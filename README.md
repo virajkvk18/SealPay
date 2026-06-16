@@ -129,6 +129,29 @@ Frontend runs in mock mode by default. Smart contract deployment is not required
 
 This MVP does not use real money, real INR escrow, production payments, or production compliance.
 
+## Security Posture
+
+This MVP currently has no real authentication system, password storage, session cookies, password reset flow, backend API routes, or database queries. Because those systems are not present, there are no in-repo passwords to hash, sessions to expire, email verification tokens to configure, or database ownership checks to refactor yet.
+
+Current hardening included in this repo:
+
+- `proxy.ts` adds security headers, production HTTPS redirect handling, suspicious-path blocking, and lightweight request rate limiting.
+- API, auth, and AI route groups are rate-limit grouped in the proxy so future server endpoints inherit abuse protection.
+- Auth/API security events, rate-limit hits, HTTPS redirects, and suspicious paths are logged server-side with `console.warn`.
+- `.env*` files are ignored except `.env.example`, and the example only exposes public mock settings through `NEXT_PUBLIC_`.
+- Proof preview URLs are constrained to `http` or `https` links before being stored through the UI.
+
+Before using SealPay with real users, add server-side authentication and enforce:
+
+- Argon2id or bcrypt password hashing with per-user salts.
+- Email verification before account activation.
+- Short-lived sessions with secure, httpOnly, sameSite cookies.
+- Expiring, single-use password reset tokens stored hashed on the server.
+- Login, signup, reset, API, and AI-generation rate limits backed by Redis or another shared production store.
+- Server-side ownership checks on every read, update, delete, approval, proof submission, dispute, and payout action.
+- Server-only secrets for database URLs, service keys, wallet private keys, AI API keys, and webhook secrets.
+- Private database networking or IP allow-listing so the database is not directly reachable from the public internet.
+
 ## Smart Contract Future Extension
 
 `contracts/SealPayEscrow.sol` is included for Polygon Amoy/Sepolia testnet extension. It includes:

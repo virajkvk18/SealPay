@@ -12,6 +12,15 @@ export interface ProofFormValues {
   deliverableType: DeliverableType;
 }
 
+function normalizePreviewUrl(value: string) {
+  try {
+    const url = new URL(value.trim());
+    return url.protocol === "https:" || url.protocol === "http:" ? url.toString() : "";
+  } catch {
+    return "";
+  }
+}
+
 interface SubmitProofModalProps {
   open: boolean;
   onClose: () => void;
@@ -36,17 +45,33 @@ export default function SubmitProofModal({
   defaultDeliverableType,
 }: SubmitProofModalProps) {
   const [form, setForm] = useState(() => makeEmptyProof(defaultDeliverableType));
+  const [formError, setFormError] = useState("");
 
   if (!open) return null;
 
   function updateField(field: keyof ProofFormValues, value: string) {
+    if (formError) setFormError("");
     setForm((current) => ({ ...current, [field]: value }));
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    onSubmit(form);
+
+    const previewUrl = normalizePreviewUrl(form.previewUrl);
+    if (!previewUrl) {
+      setFormError("Preview URL must be a valid http or https link.");
+      return;
+    }
+
+    onSubmit({
+      ...form,
+      title: form.title.trim(),
+      note: form.note.trim(),
+      previewUrl,
+      finalFileName: form.finalFileName.trim(),
+    });
     setForm(makeEmptyProof(defaultDeliverableType));
+    setFormError("");
     onClose();
   }
 
@@ -110,12 +135,19 @@ export default function SubmitProofModal({
             </span>
             <input
               required
+              type="url"
+              inputMode="url"
               className="input-field"
               value={form.previewUrl}
               onChange={(event) => updateField("previewUrl", event.target.value)}
               placeholder="https://preview.example.com/watermarked-sample"
             />
           </label>
+          {formError ? (
+            <p className="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm font-bold text-red-700">
+              {formError}
+            </p>
+          ) : null}
 
           <label>
             <span className="mb-2 block text-sm font-bold text-[#43474b]">
