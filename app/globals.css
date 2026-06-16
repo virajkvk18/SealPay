@@ -1,26 +1,188 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f7f9fb;
+  --foreground: #191c1e;
+  --surface: #ffffff;
+  --surface-soft: #f2f4f6;
+  --primary-ink: #010b13;
+  --muted-ink: #43474b;
+  --secondary: #00677f;
+  --secondary-bright: #00d2ff;
+  --mint: #47d6ff;
+  --lavender: #edb1ff;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-inter), "Inter", "Segoe UI", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+.brand-font {
+  font-family: "Sora", "Inter", "Segoe UI", Arial, sans-serif;
+  font-family: var(--font-sora), var(--font-sans);
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  outline-color: #22d3ee;
+}
+
+::selection {
+  background: rgba(0, 210, 255, 0.22);
+  color: #010b13;
+}
+
+.page-shell {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 85% 8%, rgba(0, 210, 255, 0.2), transparent 30%),
+    radial-gradient(circle at 10% 92%, rgba(237, 177, 255, 0.22), transparent 28%),
+    linear-gradient(180deg, #ffffff 0%, #f7f9fb 44%, #eef3f7 100%);
+}
+
+.grid-bg {
+  background-image: radial-gradient(circle at 2px 2px, rgba(0, 103, 127, 0.06) 1px, transparent 0);
+  background-size: 40px 40px;
+}
+
+.glass-panel {
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 20px 40px rgba(1, 11, 19, 0.06);
+  backdrop-filter: blur(20px);
+}
+
+.soft-panel {
+  border: 1px solid rgba(16, 29, 37, 0.08);
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow: 0 14px 34px rgba(1, 11, 19, 0.035);
+  backdrop-filter: blur(18px);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #00677f 0%, #00d2ff 54%, #6e208c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.input-field {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(16, 29, 37, 0.1);
+  background: rgba(255, 255, 255, 0.86);
+  padding: 0.9rem 1rem;
+  color: #191c1e;
+  box-shadow: inset 0 1px 2px rgba(1, 11, 19, 0.04);
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.input-field::placeholder {
+  color: rgba(67, 71, 75, 0.52);
+}
+
+.input-field:focus {
+  border-color: rgba(0, 103, 127, 0.45);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 0 0 4px rgba(0, 210, 255, 0.12);
+}
+
+.primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #010b13 0%, #00677f 52%, #00d2ff 100%);
+  padding: 0.8rem 1.15rem;
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    0 14px 30px rgba(0, 103, 127, 0.16);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    filter 160ms ease;
+}
+
+.primary-button:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    0 20px 42px rgba(0, 103, 127, 0.2);
+  filter: brightness(1.04);
+}
+
+.secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(1, 11, 19, 0.18);
+  background: rgba(255, 255, 255, 0.58);
+  padding: 0.8rem 1.15rem;
+  color: #010b13;
+  font-weight: 700;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.secondary-button:hover {
+  border-color: rgba(0, 103, 127, 0.35);
+  background: rgba(255, 255, 255, 0.86);
+  transform: translateY(-1px);
+}
+
+.danger-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(186, 26, 26, 0.22);
+  background: rgba(255, 218, 214, 0.52);
+  padding: 0.8rem 1.15rem;
+  color: #93000a;
+  font-weight: 700;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.danger-button:hover {
+  border-color: rgba(186, 26, 26, 0.34);
+  background: rgba(255, 218, 214, 0.74);
+  transform: translateY(-1px);
+}
+
+.primary-button:disabled,
+.secondary-button:disabled,
+.danger-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+  transform: none;
 }

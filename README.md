@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SealPay
 
-## Getting Started
+**Seal the Deal. Secure the Pay.**
 
-First, run the development server:
+SealPay is a polished hackathon MVP for Web3-based freelancer escrow. It protects freelancers, students, designers, developers, tutors, and small service providers by locking client payment before work starts and releasing it only after verified delivery.
+
+## Problem
+
+Freelancers often complete work but face delayed payment, denied delivery, or misuse of the delivered work before payment is made.
+
+## Solution
+
+SealPay creates a simple escrow flow: a client creates a deal, locks payment, the freelancer submits proof of work, the client approves it, and the payment is released. Every step appears in a public proof timeline with mock transaction hashes.
+
+## MVP Features
+
+- Mock wallet connection
+- Mock blockchain transactions with fake hashes
+- Local mock deal database
+- Deal creation flow
+- Risk score calculator
+- Proof-of-work submission modal
+- Deliverable lock/unlock demo
+- Client, freelancer, and admin/judge role switcher
+- Dispute and resolution simulation
+- Public proof timeline at `/proof/[id]`
+- Simple Solidity escrow contract for future testnet extension
+
+## Demo Flow
+
+1. Open the landing page.
+2. Click **Launch MVP**.
+3. View the dashboard.
+4. Create a new deal.
+5. Open the deal and lock payment as Client.
+6. Switch to Freelancer and submit work proof.
+7. Switch back to Client and approve work.
+8. Show payment released and the unlocked deliverable.
+9. Open the public proof timeline.
+10. Use the seeded disputed deal `SP-1003` to briefly show dispute resolution.
+
+## Tech Stack
+
+- Next.js with TypeScript
+- Tailwind CSS
+- Lucide icons
+- Local browser state and seeded mock data
+- Solidity contract included in `contracts/SealPayEscrow.sol`
+
+## How To Run
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then open:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```text
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Smart Contract
 
-## Learn More
+`contracts/SealPayEscrow.sol` includes a simple escrow contract with:
 
-To learn more about Next.js, take a look at the following resources:
+- `createDeal(address freelancer) payable`
+- `submitWork(uint256 dealId, string memory proofHash)`
+- `approveWork(uint256 dealId)`
+- `raiseDispute(uint256 dealId, string memory reason)`
+- `resolveDispute(uint256 dealId, bool releaseToFreelancer)`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The frontend does not require deployment. It clearly runs in demo mode with mock transaction hashes.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Future Scope
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Real smart contract deployment
+- MetaMask integration
+- IPFS file storage
+- Milestone-based payments
+- Reputation score
+- Arbitration DAO
+- UPI/off-chain payment proof integration
+- Freelancer profile verification
