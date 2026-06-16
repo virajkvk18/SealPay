@@ -30,8 +30,17 @@ export default function RootLayout({
   children: ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${sora.variable} h-full antialiased`}>
-      <body className="min-h-full bg-[#f7f9fb] text-[#191c1e]">{children}</body>
+    <html
+      lang="en"
+      className={`${inter.variable} ${sora.variable} h-full antialiased`}
+      suppressHydrationWarning
+    >
+      <body
+        className="min-h-full bg-[#f7f9fb] text-[#191c1e]"
+        suppressHydrationWarning
+      >
+        {children}
+      </body>
     </html>
   );
 }
