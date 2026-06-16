@@ -13,7 +13,7 @@ export function formatAmount(amount: number) {
   return `${amount.toLocaleString("en-US", {
     maximumFractionDigits: 3,
     minimumFractionDigits: amount % 1 === 0 ? 0 : 2,
-  })} test ETH`;
+  })} test MATIC`;
 }
 
 export function formatDate(value: string) {

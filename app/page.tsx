@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FileText, Fingerprint, Gavel, LockKeyhole, PlayCircle, ShieldCheck } from "lucide-react";
+import WalletButton from "@/components/WalletButton";
 
 const trustCards = [
   {
@@ -38,7 +39,7 @@ export default function Home() {
                 className="size-11 rounded-2xl object-cover shadow-lg shadow-cyan-900/10"
                 priority
               />
-              <span className="brand-font text-[25px] font-black leading-none tracking-[-0.03em] text-black">
+              <span className="brand-font text-[25px] font-black leading-none tracking-normal text-black">
                 SealPay
               </span>
             </Link>
@@ -62,16 +63,14 @@ export default function Home() {
                 Disputes
               </Link>
               <Link
-                href="/proof/SP-1002"
+                href="/reputation"
                 className="text-xs font-medium text-[#43474b] transition hover:text-black"
               >
                 Reputation
               </Link>
             </div>
           </div>
-          <button className="rounded-full bg-black px-6 py-2.5 text-xs font-black text-white shadow-sm transition hover:bg-[#00677f]">
-            Connect Wallet
-          </button>
+          <WalletButton />
         </nav>
       </header>
 
@@ -82,7 +81,7 @@ export default function Home() {
             Web3 Escrow Infrastructure
           </div>
 
-          <h1 className="brand-font mt-7 max-w-[610px] text-[44px] font-black leading-[1.09] tracking-[-0.035em] text-black sm:text-[48px] lg:text-[50px]">
+          <h1 className="brand-font mt-7 max-w-[610px] text-[44px] font-black leading-[1.09] tracking-normal text-black sm:text-[48px] lg:text-[50px]">
             Secure Freelance Payments with{" "}
             <span className="bg-gradient-to-br from-[#00677f] to-[#00d2ff] bg-clip-text text-transparent">
               Smart Contract Escrow
@@ -136,7 +135,7 @@ export default function Home() {
               <div>
                 <p className="text-xs font-black text-black">Payment Secured</p>
                 <p className="mt-0.5 text-[12px] font-medium text-[#43474b]">
-                  0.45 ETH locked in vault
+                  0.45 MATIC locked in vault
                 </p>
               </div>
             </div>
@@ -156,7 +155,7 @@ export default function Home() {
               <div className="mb-6 grid size-14 place-items-center rounded-2xl bg-[#b6ebff]/50 text-[#00677f]">
                 <Icon className="size-7" />
               </div>
-              <h2 className="brand-font text-[21px] font-black tracking-[-0.02em] text-[#191c1e]">
+              <h2 className="brand-font text-[21px] font-black tracking-normal text-[#191c1e]">
                 {card.title}
               </h2>
               <p className="mt-3 max-w-[280px] text-[14px] font-medium leading-6 text-[#74777b]">

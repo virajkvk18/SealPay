@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import {
   ArrowLeft,
   CheckCircle2,
+  Download,
   ExternalLink,
   FileLock2,
   FileUp,
@@ -21,6 +22,7 @@ import Navbar from "@/components/Navbar";
 import StatusBadge from "@/components/StatusBadge";
 import SubmitProofModal, { type ProofFormValues } from "@/components/SubmitProofModal";
 import Timeline from "@/components/Timeline";
+import { analyzeWorkProof, summarizeDispute } from "@/lib/aiEngine";
 import { demoModeNotice, roles, type Deal, type Role } from "@/lib/mockData";
 import { useSealPay } from "@/lib/store";
 import {
@@ -44,6 +46,40 @@ function detailRows(deal: Deal) {
     ["Deadline", formatDate(deal.deadline)],
     ["Deliverable", deal.deliverableType],
   ];
+}
+
+function getActionHelper(deal: Deal, activeRole: Role) {
+  if (activeRole === "Client") {
+    if (deal.status === "Created") return "Lock payment first so the freelancer can submit work.";
+    if (deal.status !== "Work Submitted") return "Submit proof before client can approve.";
+    return "Review the proof and AI notes before approving release.";
+  }
+
+  if (activeRole === "Freelancer") {
+    if (deal.status !== "Payment Locked") return "Lock payment first before freelancer can submit work.";
+    return "Submit proof with a note, file name, and preview URL for AI-assisted review.";
+  }
+
+  if (deal.status !== "Disputed") return "Only disputed deals can be resolved by Admin/Judge.";
+  return "AI assists the review. Final decision stays with human admin/judge.";
+}
+
+function getFinalFileName(deal: Deal) {
+  return deal.finalFileName ?? deal.proof?.finalFileName ?? deal.proof?.fileName ?? "final-deliverable.zip";
+}
+
+function getPreviewUrl(deal: Deal) {
+  return deal.previewUrl ?? deal.proof?.previewUrl ?? "";
+}
+
+function isVisualPreview(deal: Deal) {
+  const fileName = getFinalFileName(deal).toLowerCase();
+  return (
+    deal.deliverableType === "Design" ||
+    [".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"].some((extension) =>
+      fileName.endsWith(extension),
+    )
+  );
 }
 
 export default function DealDetailsPage() {
@@ -118,18 +154,33 @@ export default function DealDetailsPage() {
     if (!deal) return;
     const txHash = makeTxHash();
     const fileHash = makeFileHash();
+    const aiProofReview = analyzeWorkProof({
+      originalDescription: deal.description,
+      deliverableType: values.deliverableType,
+      proofTitle: values.title,
+      proofNote: values.note,
+      fileName: values.finalFileName,
+      previewUrl: values.previewUrl,
+    });
+
     updateDeal(deal.id, (current) => ({
       ...current,
       status: "Work Submitted",
+      deliverableType: values.deliverableType,
+      previewUrl: values.previewUrl,
+      finalFileName: values.finalFileName,
       proof: {
         title: values.title,
         note: values.note,
-        fileName: values.fileName,
+        fileName: values.finalFileName,
+        finalFileName: values.finalFileName,
+        deliverableType: values.deliverableType,
         previewUrl: values.previewUrl,
         fileHash,
         txHash,
         submittedAt: new Date().toISOString(),
       },
+      aiProofReview,
       timeline: [
         ...current.timeline,
         makeTimelineEvent({
@@ -145,17 +196,32 @@ export default function DealDetailsPage() {
 
   function handleRaiseDispute(values: DisputeFormValues) {
     if (!deal) return;
-    appendStatusEvent(
-      "Disputed",
-      "Dispute raised",
-      values.reason,
-      "Client",
-    );
-    updateDeal(deal.id, (current) => ({
-      ...current,
-      disputeReason: values.reason,
-      disputeEvidence: values.evidence,
-    }));
+    updateDeal(deal.id, (current) => {
+      const nextTimeline = [
+        ...current.timeline,
+        makeTimelineEvent({
+          title: "Dispute raised",
+          description: values.reason,
+          status: "Disputed",
+          actor: "Client",
+          txHash: makeTxHash(),
+        }),
+      ];
+
+      return {
+        ...current,
+        status: "Disputed",
+        disputeReason: values.reason,
+        disputeEvidence: values.evidence,
+        aiDisputeSummary: summarizeDispute({
+          deal: current,
+          disputeReason: values.reason,
+          disputeEvidence: values.evidence,
+          timeline: nextTimeline,
+        }),
+        timeline: nextTimeline,
+      };
+    });
   }
 
   function handleResolveDispute(resolution: "Released to freelancer" | "Refunded client") {
@@ -183,7 +249,7 @@ export default function DealDetailsPage() {
 
   if (!deal) {
     return (
-      <main className="page-shell">
+      <main className="page-shell grid-bg">
         <Navbar />
         <section className="mx-auto max-w-4xl px-4 py-16 text-center sm:px-6">
           <h1 className="text-4xl font-black text-[#010b13]">Deal not found</h1>
@@ -199,7 +265,7 @@ export default function DealDetailsPage() {
   }
 
   return (
-    <main className="page-shell">
+    <main className="page-shell grid-bg">
       <Navbar />
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -218,13 +284,14 @@ export default function DealDetailsPage() {
             <article className="glass-panel rounded-3xl p-6 sm:p-8">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <p className="text-sm font-black uppercase tracking-[0.26em] text-[#00677f]">
-                    {deal.id}
+                  <p className="text-sm font-black uppercase tracking-normal text-[#00677f]">
+                    Approval Evidence Vault - {deal.id}
                   </p>
                   <h1 className="mt-3 text-4xl font-black tracking-normal text-[#010b13] sm:text-5xl">
-                    {deal.title}
+                    Evidence Vault
                   </h1>
                   <p className="mt-4 max-w-3xl text-base leading-7 text-[#43474b]">
+                    <span className="font-black text-[#010b13]">{deal.title}</span> -{" "}
                     {deal.description}
                   </p>
                 </div>
@@ -243,7 +310,7 @@ export default function DealDetailsPage() {
                   <p className="mt-2 text-3xl font-black text-[#010b13]">{deal.risk.score}/100</p>
                 </div>
                 <div className="rounded-2xl border border-violet-300/20 bg-violet-300/[0.06] p-5">
-                  <p className="text-sm font-bold text-[#6e208c]">Created tx</p>
+                  <p className="text-sm font-bold text-[#6e208c]">Escrow hash</p>
                   <p className="mt-2 font-mono text-sm font-black text-[#010b13]">
                     {formatWallet(deal.createdTxHash)}
                   </p>
@@ -256,7 +323,7 @@ export default function DealDetailsPage() {
                     key={label}
                     className="rounded-2xl border border-[#101d25]/10 bg-white/70 p-4"
                   >
-                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#74777b]">
+                    <p className="text-xs font-bold uppercase tracking-normal text-[#74777b]">
                       {label}
                     </p>
                     <p className="mt-2 break-words text-sm font-bold text-[#101d25]">
@@ -270,78 +337,164 @@ export default function DealDetailsPage() {
             <article className="glass-panel rounded-3xl p-6 sm:p-8">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <p className="text-sm font-black uppercase tracking-[0.26em] text-emerald-700">
-                    Deliverable Lock Demo
+                  <p className="text-sm font-black uppercase tracking-normal text-emerald-700">
+                    Deliverable Lock
                   </p>
                   <h2 className="mt-3 text-3xl font-black text-[#010b13]">
                     {isDeliverableUnlocked
-                      ? "Full deliverable unlocked after payment release"
-                      : "Full deliverable locked until payment release"}
+                      ? "Payment released. Full deliverable unlocked."
+                      : "Full deliverable is locked until payment release."}
                   </h2>
+                  <p className="mt-3 max-w-3xl text-sm leading-6 text-[#53606a]">
+                    No platform can fully prevent screenshots, but SealPay reduces misuse
+                    through watermarked previews, locked final files, blockchain proof,
+                    and reputation penalties.
+                  </p>
                 </div>
-                {isDeliverableUnlocked ? (
-                  <UnlockKeyhole className="size-8 text-emerald-700" />
-                ) : (
-                  <FileLock2 className="size-8 text-[#00677f]" />
-                )}
-              </div>
-
-              <div className="relative mt-6 overflow-hidden rounded-3xl border border-[#101d25]/10 bg-white/80">
-                <div
+                <span
                   className={cn(
-                    "relative min-h-72 bg-[linear-gradient(135deg,#ffffff,#dffdf5,#e7f8ff,#f9d8ff)] p-6 transition",
-                    !isDeliverableUnlocked && "blur-[1.5px]",
+                    "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-black",
+                    isDeliverableUnlocked
+                      ? "bg-emerald-100 text-emerald-800"
+                      : "bg-[#010b13] text-white",
                   )}
                 >
-                  <div className="grid gap-4 md:grid-cols-[0.8fr_1.2fr]">
-                    <div className="rounded-2xl border border-white/70 bg-white/55 p-4 shadow-inner">
-                      <div className="h-36 rounded-xl border border-cyan-200/25 bg-cyan-200/10" />
-                      <p className="mt-4 font-black text-[#010b13]">
-                        {deal.proof?.title ?? "Awaiting freelancer proof"}
-                      </p>
-                    </div>
-                    <div className="rounded-2xl border border-[#101d25]/15 bg-white/60 p-5">
-                      <p className="text-sm font-bold text-[#43474b]">Delivery note</p>
-                      <p className="mt-3 leading-7 text-[#010b13]">
-                        {deal.proof?.note ??
-                          "Once work proof is submitted, this card shows a protected preview before release."}
-                      </p>
-                      <div className="mt-5 grid gap-3 text-sm text-[#43474b]">
-                        <div className="flex items-center justify-between gap-3 rounded-xl bg-white/10 px-3 py-2">
-                          <span>File</span>
-                          <span className="font-mono">
-                            {deal.proof?.fileName ?? "locked-deliverable.zip"}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between gap-3 rounded-xl bg-white/10 px-3 py-2">
-                          <span>Hash</span>
-                          <span className="font-mono">
-                            {deal.proof ? formatWallet(deal.proof.fileHash) : "pending"}
-                          </span>
-                        </div>
+                  {isDeliverableUnlocked ? (
+                    <UnlockKeyhole className="size-4" />
+                  ) : (
+                    <FileLock2 className="size-4" />
+                  )}
+                  {isDeliverableUnlocked ? "Unlocked" : "Locked"}
+                </span>
+              </div>
+
+              <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+                <div className="relative min-h-80 overflow-hidden rounded-3xl border border-[#101d25]/10 bg-[#eaf6fa]">
+                  {getPreviewUrl(deal) && isVisualPreview(deal) ? (
+                    <div
+                      className={cn(
+                        "absolute inset-0 bg-cover bg-center transition",
+                        !isDeliverableUnlocked && "blur-[2px] saturate-75",
+                      )}
+                      style={{ backgroundImage: `url("${getPreviewUrl(deal)}")` }}
+                    />
+                  ) : (
+                    <div
+                      className={cn(
+                        "absolute inset-0 grid place-items-center bg-[linear-gradient(135deg,#ffffff,#dffdf5,#e7f8ff,#f9d8ff)] p-8 text-center transition",
+                        !isDeliverableUnlocked && "blur-[1px]",
+                      )}
+                    >
+                      <div>
+                        <FileLock2 className="mx-auto size-12 text-[#00677f]" />
+                        <p className="mt-4 text-xl font-black text-[#010b13]">
+                          Protected preview only
+                        </p>
+                        <p className="mt-2 text-sm leading-6 text-[#53606a]">
+                          {deal.proof?.title ?? "Submit proof to show a protected preview."}
+                        </p>
                       </div>
+                    </div>
+                  )}
+
+                  <div className="absolute inset-0 bg-[repeating-linear-gradient(135deg,rgba(1,11,19,0.08)_0,rgba(1,11,19,0.08)_1px,transparent_1px,transparent_18px)]" />
+                  {!isDeliverableUnlocked ? (
+                    <div className="absolute inset-0 bg-white/20" />
+                  ) : null}
+                  <div className="absolute inset-0 grid place-items-center p-5">
+                    <div className="rounded-2xl border border-white/60 bg-white/72 p-5 text-center shadow-xl backdrop-blur-md">
+                      <p className="text-lg font-black text-[#010b13]">
+                        SealPay Protected Preview
+                      </p>
+                      <p className="mt-2 font-mono text-sm font-black text-[#00677f]">
+                        Deal ID: {deal.id}
+                      </p>
+                      <p className="mt-1 font-mono text-xs font-bold text-[#43474b]">
+                        Client: {formatWallet(deal.clientWallet)}
+                      </p>
                     </div>
                   </div>
                 </div>
-                {!isDeliverableUnlocked ? (
-                  <div className="pointer-events-none absolute inset-0 grid place-items-center bg-[#010b13]/20">
-                    <span className="rounded-full border border-white/30 bg-[#010b13]/82 px-5 py-3 text-sm font-black uppercase tracking-[0.2em] text-white shadow-2xl">
-                      Locked until release
-                    </span>
+
+                <div className="rounded-3xl border border-[#101d25]/10 bg-white/70 p-5">
+                  <p className="text-sm font-black text-[#00677f]">Final file</p>
+                  <p className="mt-2 break-all font-mono text-sm font-black text-[#010b13]">
+                    {getFinalFileName(deal)}
+                  </p>
+                  <div className="mt-5 grid gap-3 text-sm text-[#43474b]">
+                    <div className="rounded-2xl border border-[#101d25]/10 bg-white/70 p-4">
+                      <p className="font-bold">Deliverable type</p>
+                      <p className="mt-1">{deal.proof?.deliverableType ?? deal.deliverableType}</p>
+                    </div>
+                    <div className="rounded-2xl border border-[#101d25]/10 bg-white/70 p-4">
+                      <p className="font-bold">Proof hash</p>
+                      <p className="mt-1 font-mono">
+                        {deal.proof ? formatWallet(deal.proof.fileHash) : "pending"}
+                      </p>
+                    </div>
                   </div>
-                ) : null}
-                <div className="border-t border-[#101d25]/10 bg-white/88 p-4">
-                  <p className="text-sm font-bold text-[#43474b]">
+                  <button
+                    type="button"
+                    disabled={!isDeliverableUnlocked}
+                    className={cn(
+                      "mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-black transition",
+                      isDeliverableUnlocked
+                        ? "bg-black text-white hover:bg-[#00677f]"
+                        : "cursor-not-allowed border border-[#101d25]/10 bg-[#f2f4f6] text-[#74777b]",
+                    )}
+                  >
+                    <Download className="size-4" />
+                    Download Final Deliverable
+                  </button>
+                  <p className="mt-4 text-sm font-bold leading-6 text-[#53606a]">
                     {isDeliverableUnlocked
-                      ? "Full deliverable unlocked after payment release"
-                      : "Full deliverable locked until payment release"}
+                      ? "Payment released. Full deliverable unlocked."
+                      : "Full deliverable is locked until payment release."}
                   </p>
                 </div>
               </div>
             </article>
 
+            {deal.aiProofReview ? (
+              <article className="glass-panel rounded-3xl p-6 sm:p-8">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-black uppercase tracking-normal text-[#00677f]">
+                      AI Trust Engine
+                    </p>
+                    <h2 className="mt-3 text-3xl font-black text-[#010b13]">
+                      AI Proof Review
+                    </h2>
+                    <p className="mt-3 text-sm leading-6 text-[#53606a]">
+                      AI assists the review. Final decision stays with human admin/judge.
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/[0.08] px-5 py-4 text-right">
+                    <p className="text-sm font-black text-[#00566a]">
+                      {deal.aiProofReview.status}
+                    </p>
+                    <p className="mt-1 text-3xl font-black text-[#010b13]">
+                      {deal.aiProofReview.score}/100
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  {deal.aiProofReview.reasons.map((reason) => (
+                    <div
+                      key={reason}
+                      className="rounded-2xl border border-[#101d25]/10 bg-white/65 p-4 text-sm font-bold leading-6 text-[#43474b]"
+                    >
+                      {reason}
+                    </div>
+                  ))}
+                </div>
+              </article>
+            ) : null}
+
             <article className="glass-panel rounded-3xl p-6 sm:p-8">
-              <h2 className="text-3xl font-black text-[#010b13]">Proof timeline</h2>
+              <h2 className="text-3xl font-black text-[#010b13]">
+                On-chain Proof Trail
+              </h2>
               <p className="mt-2 text-sm leading-6 text-[#53606a]">{demoModeNotice}</p>
               <div className="mt-6">
                 <Timeline events={deal.timeline} />
@@ -350,8 +503,8 @@ export default function DealDetailsPage() {
           </section>
 
           <aside className="space-y-5">
-            <div className="glass-panel rounded-3xl p-5">
-              <p className="text-sm font-black uppercase tracking-[0.18em] text-[#53606a]">
+            <div className="glass-panel rounded-[2rem] p-5">
+              <p className="text-sm font-black uppercase tracking-normal text-[#00677f]">
                 Active role
               </p>
               <div className="mt-4 grid gap-2">
@@ -363,7 +516,7 @@ export default function DealDetailsPage() {
                     className={cn(
                       "rounded-2xl border px-4 py-3 text-left text-sm font-black transition",
                       activeRole === role
-                        ? "border-cyan-300/55 bg-cyan-300 text-slate-950"
+                        ? "border-black bg-black text-white"
                         : "border-[#101d25]/10 bg-white/70 text-[#43474b] hover:bg-[#f2f4f6]",
                     )}
                   >
@@ -373,8 +526,11 @@ export default function DealDetailsPage() {
               </div>
             </div>
 
-            <div className="glass-panel rounded-3xl p-5">
-              <h2 className="text-2xl font-black text-[#010b13]">Actions</h2>
+            <div className="rounded-[2rem] bg-[#010b13] p-5 text-white shadow-2xl shadow-cyan-950/20">
+              <p className="text-sm font-black uppercase tracking-normal text-cyan-100">
+                Smart Contract
+              </p>
+              <h2 className="mt-2 text-2xl font-black">Escrow Actions</h2>
               <div className="mt-5 grid gap-3">
                 {activeRole === "Client" ? (
                   <>
@@ -450,6 +606,9 @@ export default function DealDetailsPage() {
                   </>
                 ) : null}
               </div>
+              <p className="mt-4 rounded-2xl border border-white/10 bg-white/10 p-3 text-sm leading-6 text-white/70">
+                {getActionHelper(deal, activeRole)}
+              </p>
             </div>
 
             <div className="soft-panel rounded-3xl p-5">
@@ -478,6 +637,19 @@ export default function DealDetailsPage() {
                 <p className="mt-3 text-sm leading-6 text-[#53606a]">
                   {deal.disputeEvidence}
                 </p>
+                {deal.aiDisputeSummary ? (
+                  <div className="mt-4 rounded-2xl border border-cyan-300/25 bg-cyan-50 p-4">
+                    <p className="text-sm font-black text-[#00566a]">
+                      AI Dispute Summary
+                    </p>
+                    <p className="mt-2 text-xs font-bold text-[#43474b]">
+                      AI assists the review. Final decision stays with human admin/judge.
+                    </p>
+                    <p className="mt-3 text-sm leading-6 text-[#43474b]">
+                      {deal.aiDisputeSummary}
+                    </p>
+                  </div>
+                ) : null}
                 {deal.resolution ? (
                   <p className="mt-4 rounded-2xl border border-emerald-300/25 bg-emerald-300/10 p-3 text-sm font-bold text-emerald-800">
                     Resolution: {deal.resolution}
@@ -505,6 +677,7 @@ export default function DealDetailsPage() {
         open={proofOpen}
         onClose={() => setProofOpen(false)}
         onSubmit={handleSubmitProof}
+        defaultDeliverableType={deal.deliverableType}
       />
       <DisputeModal
         open={disputeOpen}

@@ -34,11 +34,19 @@ export interface TimelineEvent {
 export interface WorkProof {
   title: string;
   note: string;
-  fileName: string;
+  fileName?: string;
+  finalFileName: string;
+  deliverableType: DeliverableType;
   previewUrl: string;
   fileHash: string;
   txHash: string;
   submittedAt: string;
+}
+
+export interface AiProofReview {
+  status: string;
+  score: number;
+  reasons: string[];
 }
 
 export interface Deal {
@@ -55,9 +63,13 @@ export interface Deal {
   status: DealStatus;
   risk: RiskScore;
   createdTxHash: string;
+  previewUrl?: string;
+  finalFileName?: string;
   proof?: WorkProof;
+  aiProofReview?: AiProofReview;
   disputeReason?: string;
   disputeEvidence?: string;
+  aiDisputeSummary?: string;
   resolution?: "Released to freelancer" | "Refunded client";
   timeline: TimelineEvent[];
 }
@@ -110,7 +122,7 @@ export const initialDeals: Deal[] = [
       {
         id: "ev-sp1001-2",
         title: "Payment locked",
-        description: "0.42 test ETH locked in mock escrow.",
+        description: "0.42 test MATIC locked in mock escrow.",
         status: "Payment Locked",
         actor: "Client",
         timestamp: "2026-06-14T10:21:00+05:30",
@@ -121,9 +133,9 @@ export const initialDeals: Deal[] = [
   },
   {
     id: "SP-1002",
-    title: "Website landing page",
+    title: "Escrow dashboard build",
     description:
-      "Build a responsive launch page with copy sections, pricing blocks, and handoff notes.",
+      "Build a responsive escrow dashboard with invoice cards, proof vault panels, and handoff notes.",
     clientName: "Nisha Rao",
     freelancerName: "DevWorks Lab",
     clientWallet: "0x72c9A211b8F7b1893B26bFbb9C302dcE725D67e2",
@@ -140,20 +152,34 @@ export const initialDeals: Deal[] = [
     createdTxHash:
       "0x44db3b8ba04202cf1ca452f02b71fe228273d2ab604ce6c8b852c9002eed9bc2",
     proof: {
-      title: "Landing page preview",
+      title: "Dashboard preview",
       note: "Vercel preview link and exported source ZIP name attached for review.",
-      fileName: "launch-page-preview.zip",
+      fileName: "sealpay-dashboard-preview.zip",
+      finalFileName: "sealpay-dashboard-final.zip",
+      deliverableType: "Code",
       previewUrl: "https://images.unsplash.com/photo-1559028012-481c04fa702d",
       fileHash: "bafysealpay7158c829d4e4",
       txHash:
         "0x83f7a0db61a3c5f919dc10ce2e6ebff8c294db0f77f84d510553511c66bbbc70",
       submittedAt: "2026-06-15T18:42:00+05:30",
     },
+    previewUrl: "https://images.unsplash.com/photo-1559028012-481c04fa702d",
+    finalFileName: "sealpay-dashboard-final.zip",
+    aiProofReview: {
+      status: "Proof looks valid",
+      score: 84,
+      reasons: [
+        "Delivery note explains the submitted proof.",
+        "File type matches the expected deliverable.",
+        "Preview link is attached for review.",
+        "Proof wording matches the original work description.",
+      ],
+    },
     timeline: [
       {
         id: "ev-sp1002-1",
         title: "Deal created",
-        description: "Landing page escrow created with code deliverables.",
+        description: "Escrow dashboard invoice created with code deliverables.",
         status: "Created",
         actor: "Client",
         timestamp: "2026-06-13T15:00:00+05:30",
@@ -163,7 +189,7 @@ export const initialDeals: Deal[] = [
       {
         id: "ev-sp1002-2",
         title: "Payment locked",
-        description: "1.8 test ETH locked before development started.",
+        description: "1.8 test MATIC locked before development started.",
         status: "Payment Locked",
         actor: "Client",
         timestamp: "2026-06-13T15:08:00+05:30",
@@ -206,14 +232,30 @@ export const initialDeals: Deal[] = [
       title: "Watermarked event reel",
       note: "Low-res preview shared while final export remains locked.",
       fileName: "event-reel-watermarked.mp4",
+      finalFileName: "event-reel-final-4k.mp4",
+      deliverableType: "Video",
       previewUrl: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30",
       fileHash: "bafysealpay1829ad4ce3a8",
       txHash:
         "0xe3db9a28f1f64b617d24309ced2496da124fedc8bb9f6cd5fa86001aa5174c2c",
       submittedAt: "2026-06-15T21:10:00+05:30",
     },
+    previewUrl: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30",
+    finalFileName: "event-reel-final-4k.mp4",
+    aiProofReview: {
+      status: "Proof looks valid",
+      score: 78,
+      reasons: [
+        "Delivery note explains the submitted proof.",
+        "File type matches the expected deliverable.",
+        "Preview link is attached for review.",
+        "Proof has a partial match with the work description.",
+      ],
+    },
     disputeReason: "Client requested a color correction pass before release.",
     disputeEvidence: "Freelancer attached first cut and revision notes.",
+    aiDisputeSummary:
+      "Buyer/Seller issue: Campus Media Club requested a color correction review before release. Evidence available: Freelancer attached first cut and revision notes. Timeline observation: dispute was raised after work proof was submitted. Suggested admin action: compare the preview against the revision notes, then either release to freelancer or refund the client.",
     timeline: [
       {
         id: "ev-sp1003-1",
@@ -228,7 +270,7 @@ export const initialDeals: Deal[] = [
       {
         id: "ev-sp1003-2",
         title: "Payment locked",
-        description: "0.75 test ETH locked in escrow.",
+        description: "0.75 test MATIC locked in escrow.",
         status: "Payment Locked",
         actor: "Client",
         timestamp: "2026-06-12T12:12:00+05:30",

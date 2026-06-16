@@ -35,7 +35,7 @@ export default function DealCard({ deal, activeRole }: DealCardProps) {
     <article className="soft-panel rounded-2xl p-5 transition hover:-translate-y-1 hover:border-emerald-200/35 hover:bg-white/85">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#00677f]/80">
+          <p className="text-xs font-bold uppercase tracking-normal text-[#00677f]/80">
             {deal.id}
           </p>
           <h3 className="mt-2 text-xl font-black tracking-normal text-[#010b13]">

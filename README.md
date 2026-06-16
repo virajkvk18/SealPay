@@ -1,51 +1,102 @@
 # SealPay
 
-**Seal the Deal. Secure the Pay.**
+**Seal the deal. Secure the pay.**
 
-SealPay is a polished hackathon MVP for Web3-based freelancer escrow. It protects freelancers, students, designers, developers, tutors, and small service providers by locking client payment before work starts and releasing it only after verified delivery.
+SealPay is a demo-ready FinTech + Web3 hackathon MVP for safer freelance payments. It shows how a client can lock funds, a freelancer can submit proof of work, AI can assist risk/proof review, and a public proof timeline can verify the full escrow flow.
 
 ## Problem
 
-Freelancers often complete work but face delayed payment, denied delivery, or misuse of the delivered work before payment is made.
+Freelancers often deliver work before receiving payment. Clients also worry about releasing funds before seeing proof that the work matches the agreed scope. This creates late payments, disputes, and weak trust between both sides.
 
-## Solution
+## Why SealPay Is Needed
 
-SealPay creates a simple escrow flow: a client creates a deal, locks payment, the freelancer submits proof of work, the client approves it, and the payment is released. Every step appears in a public proof timeline with mock transaction hashes.
+SealPay gives both sides a visible process:
+
+- Client creates a deal and locks payment in escrow.
+- AI flags risky scope, short deadlines, and weak proof.
+- Freelancer submits proof before final release.
+- Client approves only after review.
+- Every major step appears in a public proof timeline.
+- Human admin/judge stays responsible for final dispute decisions.
 
 ## MVP Features
 
-- Mock wallet connection
-- Mock blockchain transactions with fake hashes
-- Local mock deal database
-- Deal creation flow
-- Risk score calculator
-- Proof-of-work submission modal
-- Deliverable lock/unlock demo
+- Polished landing page, dashboard, create invoice flow, deal vault, and public proof explorer
+- Mock wallet connection with connect/disconnect state
+- LocalStorage deal persistence with reset demo flow
+- Mock blockchain transactions and proof hashes
+- Deal creation with AI risk score
+- AI milestone suggestion for payment structure
+- Work proof submission and AI proof review
+- Deliverable Lock with watermarked preview before payment release
 - Client, freelancer, and admin/judge role switcher
-- Dispute and resolution simulation
-- Public proof timeline at `/proof/[id]`
-- Simple Solidity escrow contract for future testnet extension
+- Optional dispute raising and admin resolution
+- SealTrust score card
+- Solidity escrow contract included for future testnet extension
+
+## AI Trust Engine
+
+`lib/aiEngine.ts` contains deterministic local helper logic:
+
+- `calculateRiskScore()` checks amount, deadline, scope detail, and wallet familiarity.
+- `suggestMilestones()` recommends single payment or 30/40/30 milestone release.
+- `analyzeWorkProof()` scores proof note, file name, preview URL, keyword match, and file type.
+- `summarizeDispute()` creates an admin-assist dispute summary.
+- `generateSealTrustScore()` computes a simple wallet-level trust score.
+
+AI is only an assistant. Final approval and dispute decisions stay with a human admin/judge.
+
+## Deliverable Lock
+
+SealPay protects freelancer work by showing only watermarked/partial previews before payment release. Full files unlock only after approval and payment release.
+
+No platform can fully prevent screenshots, but SealPay reduces misuse through protected previews, locked final files, blockchain proof, and reputation penalties.
+
+## Web3 Escrow Flow
+
+```text
+Create Deal
+-> AI Risk Score
+-> Lock Payment
+-> Submit Work Proof
+-> AI Proof Review
+-> Approve Work
+-> Payment Released
+-> Public Proof Timeline
+-> Optional Dispute Resolution
+```
+
+The MVP uses mock/testnet-style transaction hashes and test MATIC labels. No real money moves.
 
 ## Demo Flow
 
-1. Open the landing page.
-2. Click **Launch MVP**.
-3. View the dashboard.
-4. Create a new deal.
+1. Open `/`.
+2. Go to `/dashboard`.
+3. Review the 3-minute demo flow card.
+4. Open `/create-deal` and create a new invoice.
 5. Open the deal and lock payment as Client.
-6. Switch to Freelancer and submit work proof.
-7. Switch back to Client and approve work.
-8. Show payment released and the unlocked deliverable.
-9. Open the public proof timeline.
-10. Use the seeded disputed deal `SP-1003` to briefly show dispute resolution.
+6. Switch to Freelancer and submit proof.
+7. Review the AI Proof Review card.
+8. Switch back to Client and approve work.
+9. Show the payment released state and unlocked deliverable.
+10. Open `/proof/[id]` to show the mini blockchain explorer.
+11. Open `SP-1003` to show dispute summary and admin resolution.
+
+Useful seeded routes:
+
+- `/deal/SP-1001` - payment locked sample
+- `/deal/SP-1002` - work submitted sample
+- `/deal/SP-1003` - disputed sample
+- `/proof/SP-1001` - public proof explorer sample
 
 ## Tech Stack
 
-- Next.js with TypeScript
+- Next.js + TypeScript
 - Tailwind CSS
 - Lucide icons
-- Local browser state and seeded mock data
-- Solidity contract included in `contracts/SealPayEscrow.sol`
+- LocalStorage mock store
+- Deterministic local AI helper logic
+- Solidity contract in `contracts/SealPayEscrow.sol`
 
 ## How To Run
 
@@ -54,15 +105,33 @@ npm install
 npm run dev
 ```
 
-Then open:
+Open:
 
 ```text
 http://localhost:3000
 ```
 
-## Smart Contract
+Production build check:
 
-`contracts/SealPayEscrow.sol` includes a simple escrow contract with:
+```bash
+npm run build
+```
+
+## Mock Mode
+
+Frontend runs in mock mode by default. Smart contract deployment is not required for the MVP. Mock mode includes:
+
+- Mock wallet address
+- Mock deal database in LocalStorage
+- Mock transaction hashes
+- Mock proof hashes
+- Test MATIC labels for Polygon Amoy-style demo flow
+
+This MVP does not use real money, real INR escrow, production payments, or production compliance.
+
+## Smart Contract Future Extension
+
+`contracts/SealPayEscrow.sol` is included for Polygon Amoy/Sepolia testnet extension. It includes:
 
 - `createDeal(address freelancer) payable`
 - `submitWork(uint256 dealId, string memory proofHash)`
@@ -70,15 +139,28 @@ http://localhost:3000
 - `raiseDispute(uint256 dealId, string memory reason)`
 - `resolveDispute(uint256 dealId, bool releaseToFreelancer)`
 
-The frontend does not require deployment. It clearly runs in demo mode with mock transaction hashes.
+Frontend runs in mock mode by default. Smart contract is included for Polygon Amoy/Sepolia testnet extension.
+
+## Intentionally Not Included
+
+- Real INR payment
+- Real authentication
+- Full backend
+- MongoDB or Firebase setup
+- Real IPFS upload
+- Paid AI APIs
+- DAO arbitration
+- KYC
+- Marketplace
+- Production escrow compliance
 
 ## Future Scope
 
-- Real smart contract deployment
 - MetaMask integration
-- IPFS file storage
-- Milestone-based payments
-- Reputation score
-- Arbitration DAO
-- UPI/off-chain payment proof integration
-- Freelancer profile verification
+- Polygon Amoy deployment
+- IPFS/Filecoin proof storage
+- Milestone-based smart contract payouts
+- Admin dashboard for dispute review
+- Freelancer profile and reputation history
+- Payment proof integrations
+- Compliance review for production escrow use

@@ -9,6 +9,7 @@ const roleKey = "sealpay-role-v1";
 const dealsChangedEvent = "sealpay-deals-change";
 const roleChangedEvent = "sealpay-role-change";
 const initialDealsSnapshot = JSON.stringify(initialDeals);
+const legacyCurrencyLabel = ["test", "ETH"].join(" ");
 
 function readDeals() {
   if (typeof window === "undefined") return initialDeals;
@@ -73,9 +74,39 @@ function getServerRoleSnapshot(): Role {
   return "Client";
 }
 
+function normalizeStoredDeal(deal: Deal): Deal {
+  const seedDeal = initialDeals.find((seed) => seed.id === deal.id);
+  const finalFileName =
+    deal.finalFileName ??
+    deal.proof?.finalFileName ??
+    deal.proof?.fileName ??
+    seedDeal?.finalFileName;
+  const previewUrl = deal.previewUrl ?? deal.proof?.previewUrl ?? seedDeal?.previewUrl;
+
+  return {
+    ...deal,
+    finalFileName,
+    previewUrl,
+    proof: deal.proof
+      ? {
+          ...deal.proof,
+          finalFileName:
+            deal.proof.finalFileName ?? deal.proof.fileName ?? finalFileName ?? "final-deliverable.zip",
+          deliverableType: deal.proof.deliverableType ?? deal.deliverableType,
+        }
+      : undefined,
+    aiProofReview: deal.aiProofReview ?? seedDeal?.aiProofReview,
+    aiDisputeSummary: deal.aiDisputeSummary ?? seedDeal?.aiDisputeSummary,
+    timeline: deal.timeline.map((event) => ({
+      ...event,
+      description: event.description.replaceAll(legacyCurrencyLabel, "test MATIC"),
+    })),
+  };
+}
+
 function parseDealsSnapshot(snapshot: string) {
   try {
-    return JSON.parse(snapshot) as Deal[];
+    return (JSON.parse(snapshot) as Deal[]).map(normalizeStoredDeal);
   } catch {
     return initialDeals;
   }

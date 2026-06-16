@@ -3,7 +3,7 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, FileSearch, Search, ShieldCheck } from "lucide-react";
+import { ArrowLeft, FileSearch, Fingerprint, Search, ShieldCheck } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import StatusBadge from "@/components/StatusBadge";
 import Timeline from "@/components/Timeline";
@@ -19,6 +19,10 @@ export default function ProofPage() {
   const { deals } = useSealPay();
   const [lookup, setLookup] = useState(dealId);
   const deal = deals.find((candidate) => candidate.id === dealId);
+  const latestTxHash = deal?.timeline
+    .filter((event) => event.txHash)
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0]
+    ?.txHash;
 
   function handleLookup(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -86,7 +90,7 @@ export default function ProofPage() {
             <aside className="glass-panel h-fit rounded-3xl p-5">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-xs font-black uppercase tracking-[0.22em] text-[#00677f]">
+                  <p className="text-xs font-black uppercase tracking-normal text-[#00677f]">
                     Deal ID
                   </p>
                   <h2 className="mt-2 text-3xl font-black text-[#010b13]">{deal.id}</h2>
@@ -102,7 +106,7 @@ export default function ProofPage() {
                   </p>
                 </div>
                 <div className="rounded-2xl border border-[#101d25]/10 bg-white/70 p-4">
-                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#74777b]">
+                  <p className="text-xs font-bold uppercase tracking-normal text-[#74777b]">
                     Client wallet
                   </p>
                   <p className="mt-2 break-all font-mono text-sm text-[#101d25]">
@@ -110,11 +114,35 @@ export default function ProofPage() {
                   </p>
                 </div>
                 <div className="rounded-2xl border border-[#101d25]/10 bg-white/70 p-4">
-                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#74777b]">
+                  <p className="text-xs font-bold uppercase tracking-normal text-[#74777b]">
                     Freelancer wallet
                   </p>
                   <p className="mt-2 break-all font-mono text-sm text-[#101d25]">
                     {formatWallet(deal.freelancerWallet)}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-[#101d25]/10 bg-white/70 p-4">
+                  <p className="text-xs font-bold uppercase tracking-normal text-[#74777b]">
+                    Created transaction
+                  </p>
+                  <p className="mt-2 break-all font-mono text-sm text-[#101d25]">
+                    {formatWallet(deal.createdTxHash)}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-[#101d25]/10 bg-white/70 p-4">
+                  <p className="text-xs font-bold uppercase tracking-normal text-[#74777b]">
+                    Proof hash
+                  </p>
+                  <p className="mt-2 break-all font-mono text-sm text-[#101d25]">
+                    {deal.proof ? formatWallet(deal.proof.fileHash) : "Pending proof"}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-[#101d25]/10 bg-white/70 p-4">
+                  <p className="text-xs font-bold uppercase tracking-normal text-[#74777b]">
+                    Latest transaction
+                  </p>
+                  <p className="mt-2 break-all font-mono text-sm text-[#101d25]">
+                    {latestTxHash ? formatWallet(latestTxHash) : "No transaction yet"}
                   </p>
                 </div>
               </div>
@@ -128,11 +156,36 @@ export default function ProofPage() {
                   Every action below includes a fake transaction hash for demo proof.
                 </p>
               </div>
+
+              <div className="mt-4 rounded-2xl border border-cyan-300/20 bg-cyan-300/[0.06] p-4">
+                <div className="flex items-center gap-2 text-sm font-black text-[#00566a]">
+                  <Fingerprint className="size-4" />
+                  AI explorer signals
+                </div>
+                <div className="mt-3 space-y-2 text-sm leading-6 text-[#43474b]">
+                  <p>
+                    AI risk score:{" "}
+                    <span className="font-black text-[#010b13]">{deal.risk.score}/100</span>
+                  </p>
+                  <p>
+                    AI proof review:{" "}
+                    <span className="font-black text-[#010b13]">
+                      {deal.aiProofReview?.status ?? "Pending proof submission"}
+                    </span>
+                  </p>
+                  {deal.aiDisputeSummary ? (
+                    <p>
+                      Dispute summary:{" "}
+                      <span className="font-semibold">{deal.aiDisputeSummary}</span>
+                    </p>
+                  ) : null}
+                </div>
+              </div>
             </aside>
 
             <section className="glass-panel rounded-3xl p-5 sm:p-7">
               <div className="mb-6">
-                <p className="text-sm font-black uppercase tracking-[0.26em] text-emerald-700">
+                <p className="text-sm font-black uppercase tracking-normal text-emerald-700">
                   Timeline
                 </p>
                 <h2 className="mt-2 text-3xl font-black text-[#010b13]">

@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+/// @title SealPayEscrow
+/// @notice Simple escrow contract kept as a future Polygon Amoy/Sepolia testnet extension.
+/// @dev The current SealPay frontend runs in mock mode by default; this contract documents
+/// the intended on-chain flow without blocking the hackathon demo.
 contract SealPayEscrow {
     enum Status {
         Created,

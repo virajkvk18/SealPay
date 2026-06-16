@@ -1,7 +1,6 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { CheckCircle2, Wallet } from "lucide-react";
 import { formatWallet } from "@/lib/utils";
 
 const walletKey = "sealpay-wallet-v1";
@@ -48,10 +47,9 @@ export default function WalletButton() {
     <button
       type="button"
       onClick={toggleWallet}
-      className="inline-flex h-11 items-center gap-2 rounded-full bg-[#010b13] px-4 text-sm font-bold text-[#010b13] shadow-lg shadow-cyan-900/10 transition hover:bg-[#00677f]"
+      className="inline-flex h-11 items-center justify-center rounded-full bg-black px-6 text-xs font-black text-white shadow-lg shadow-cyan-900/10 transition hover:bg-[#00677f] active:scale-95"
     >
-      {wallet ? <CheckCircle2 className="size-4" /> : <Wallet className="size-4" />}
-      <span>{wallet ? formatWallet(wallet) : "Mock Wallet"}</span>
+      {wallet ? formatWallet(wallet) : "Mock Wallet"}
     </button>
   );
 }

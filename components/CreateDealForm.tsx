@@ -1,13 +1,26 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, BadgeCheck, CalendarClock, Info, ShieldAlert } from "lucide-react";
+import {
+  ArrowRight,
+  BadgeCheck,
+  CalendarClock,
+  Coins,
+  FileText,
+  Fingerprint,
+  LockKeyhole,
+  ShieldAlert,
+  Wallet,
+} from "lucide-react";
 import { deliverableTypes, type Deal } from "@/lib/mockData";
-import { calculateRiskScore } from "@/lib/riskScore";
+import { calculateRiskScore, suggestMilestones } from "@/lib/aiEngine";
 import { useSealPay } from "@/lib/store";
 import {
   formatAmount,
+  formatDate,
+  formatWallet,
   makeDealId,
   makeTimelineEvent,
   makeTxHash,
@@ -25,6 +38,14 @@ const initialForm = {
   deadline: "",
   deliverableType: "Design",
 };
+
+function FieldIcon({ children }: { children: ReactNode }) {
+  return (
+    <span className="pointer-events-none absolute left-4 top-[2.85rem] text-[#00677f]">
+      {children}
+    </span>
+  );
+}
 
 export default function CreateDealForm() {
   const router = useRouter();
@@ -47,6 +68,15 @@ export default function CreateDealForm() {
         knownFreelancerWallets,
       }),
     [form.amount, form.deadline, form.description, form.freelancerWallet, knownFreelancerWallets],
+  );
+  const milestoneSuggestion = useMemo(
+    () =>
+      suggestMilestones({
+        amount: Number(form.amount),
+        deadline: form.deadline,
+        description: form.description,
+      }),
+    [form.amount, form.deadline, form.description],
   );
 
   function updateField(field: keyof typeof initialForm, value: string) {
@@ -90,8 +120,8 @@ export default function CreateDealForm() {
       createdTxHash: txHash,
       timeline: [
         makeTimelineEvent({
-          title: "Deal created",
-          description: `${form.clientName.trim()} created a mock escrow for ${form.freelancerName.trim()}.`,
+          title: "Invoice created",
+          description: `${form.clientName.trim()} created a SealPay invoice for ${form.freelancerName.trim()}.`,
           actor: "Client",
           status: "Created",
           txHash,
@@ -104,25 +134,27 @@ export default function CreateDealForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-[1fr_360px]">
-      <section className="glass-panel rounded-3xl p-5 sm:p-7">
+    <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_390px]">
+      <section className="glass-panel rounded-[2rem] p-6 sm:p-8">
         <div className="flex items-center gap-3">
-          <span className="grid size-11 place-items-center rounded-xl border border-emerald-300/30 bg-emerald-300/10 text-emerald-800">
-            <BadgeCheck className="size-5" />
+          <span className="grid size-12 place-items-center rounded-2xl bg-cyan-100 text-[#00677f]">
+            <FileText className="size-5" />
           </span>
           <div>
-            <h1 className="text-3xl font-black tracking-normal text-[#010b13]">
-              Create a new deal
-            </h1>
+            <h2 className="text-2xl font-black tracking-normal text-[#010b13]">
+              Invoice Details
+            </h2>
             <p className="mt-1 text-sm text-[#53606a]">
-              Lock terms, generate a mock transaction, and open the escrow page.
+              Define the escrow terms before the payment is locked.
             </p>
           </div>
         </div>
 
         <div className="mt-8 grid gap-5 sm:grid-cols-2">
           <label className="sm:col-span-2">
-            <span className="mb-2 block text-sm font-bold text-[#43474b]">Job title</span>
+            <span className="mb-2 block text-sm font-bold text-[#43474b]">
+              Invoice Title
+            </span>
             <input
               required
               className="input-field"
@@ -132,22 +164,40 @@ export default function CreateDealForm() {
             />
           </label>
 
-          <label className="sm:col-span-2">
+          <label className="relative">
             <span className="mb-2 block text-sm font-bold text-[#43474b]">
-              Job description
+              Client Wallet Address
             </span>
-            <textarea
-              className="input-field min-h-32 resize-y"
-              value={form.description}
-              onChange={(event) => updateField("description", event.target.value)}
-              placeholder="Describe the deliverable, acceptance criteria, and handoff format."
+            <FieldIcon>
+              <Wallet className="size-4" />
+            </FieldIcon>
+            <input
+              required
+              className="input-field pl-11 font-mono text-sm"
+              value={form.clientWallet}
+              onChange={(event) => updateField("clientWallet", event.target.value)}
+              placeholder="0x..."
+            />
+          </label>
+
+          <label className="relative">
+            <span className="mb-2 block text-sm font-bold text-[#43474b]">
+              Freelancer Wallet Address
+            </span>
+            <FieldIcon>
+              <Wallet className="size-4" />
+            </FieldIcon>
+            <input
+              required
+              className="input-field pl-11 font-mono text-sm"
+              value={form.freelancerWallet}
+              onChange={(event) => updateField("freelancerWallet", event.target.value)}
+              placeholder="0x..."
             />
           </label>
 
           <label>
-            <span className="mb-2 block text-sm font-bold text-[#43474b]">
-              Client name
-            </span>
+            <span className="mb-2 block text-sm font-bold text-[#43474b]">Client Name</span>
             <input
               required
               className="input-field"
@@ -159,7 +209,7 @@ export default function CreateDealForm() {
 
           <label>
             <span className="mb-2 block text-sm font-bold text-[#43474b]">
-              Freelancer name
+              Freelancer Name
             </span>
             <input
               required
@@ -170,53 +220,33 @@ export default function CreateDealForm() {
             />
           </label>
 
-          <label>
+          <label className="relative">
             <span className="mb-2 block text-sm font-bold text-[#43474b]">
-              Client wallet address
+              Amount in test MATIC
             </span>
-            <input
-              required
-              className="input-field font-mono text-sm"
-              value={form.clientWallet}
-              onChange={(event) => updateField("clientWallet", event.target.value)}
-              placeholder="0x..."
-            />
-          </label>
-
-          <label>
-            <span className="mb-2 block text-sm font-bold text-[#43474b]">
-              Freelancer wallet address
-            </span>
-            <input
-              required
-              className="input-field font-mono text-sm"
-              value={form.freelancerWallet}
-              onChange={(event) => updateField("freelancerWallet", event.target.value)}
-              placeholder="0x..."
-            />
-          </label>
-
-          <label>
-            <span className="mb-2 block text-sm font-bold text-[#43474b]">
-              Amount in test ETH/MATIC
-            </span>
+            <FieldIcon>
+              <Coins className="size-4" />
+            </FieldIcon>
             <input
               required
               min="0.01"
               step="0.01"
               type="number"
-              className="input-field"
+              className="input-field pl-11"
               value={form.amount}
               onChange={(event) => updateField("amount", event.target.value)}
             />
           </label>
 
-          <label>
+          <label className="relative">
             <span className="mb-2 block text-sm font-bold text-[#43474b]">Deadline</span>
+            <FieldIcon>
+              <CalendarClock className="size-4" />
+            </FieldIcon>
             <input
               required
               type="date"
-              className="input-field"
+              className="input-field pl-11"
               value={form.deadline}
               onChange={(event) => updateField("deadline", event.target.value)}
             />
@@ -224,7 +254,7 @@ export default function CreateDealForm() {
 
           <label className="sm:col-span-2">
             <span className="mb-2 block text-sm font-bold text-[#43474b]">
-              Deliverable type
+              Proof of Work Requirements
             </span>
             <select
               className="input-field"
@@ -236,13 +266,72 @@ export default function CreateDealForm() {
               ))}
             </select>
           </label>
+
+          <label className="sm:col-span-2">
+            <span className="mb-2 block text-sm font-bold text-[#43474b]">
+              Milestone Description
+            </span>
+            <textarea
+              className="input-field min-h-36 resize-y"
+              value={form.description}
+              onChange={(event) => updateField("description", event.target.value)}
+              placeholder="Describe acceptance criteria, handoff format, and review rules."
+            />
+          </label>
         </div>
       </section>
 
-      <aside className="space-y-4">
-        <div className="glass-panel rounded-3xl p-5">
+      <aside className="space-y-5">
+        <section className="glass-panel overflow-hidden rounded-[2rem]">
+          <div className="bg-[#010b13] p-6 text-white">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-black text-cyan-100">Live Preview</p>
+                <h3 className="mt-2 text-2xl font-black tracking-normal">
+                  {form.title || "Untitled invoice"}
+                </h3>
+              </div>
+              <span className="grid size-12 place-items-center rounded-2xl bg-cyan-300/15 text-cyan-100">
+                <LockKeyhole className="size-5" />
+              </span>
+            </div>
+            <div className="mt-6 rounded-2xl border border-white/10 bg-white/10 p-4">
+              <p className="text-sm text-white/60">Amount locked</p>
+              <p className="mt-2 text-3xl font-black">
+                {formatAmount(Number(form.amount) || 0)}
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-4 p-6">
+            <div className="flex items-center justify-between gap-4 rounded-2xl border border-[#101d25]/10 bg-white/60 p-4">
+              <span className="text-sm font-bold text-[#53606a]">Deadline</span>
+              <span className="text-sm font-black text-[#010b13]">
+                {form.deadline ? formatDate(form.deadline) : "Select date"}
+              </span>
+            </div>
+            <div className="rounded-2xl border border-[#101d25]/10 bg-white/60 p-4">
+              <p className="text-xs font-black uppercase tracking-normal text-[#74777b]">
+                Client
+              </p>
+              <p className="mt-2 font-mono text-sm font-bold text-[#010b13]">
+                {form.clientWallet ? formatWallet(form.clientWallet) : "0x..."}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-[#101d25]/10 bg-white/60 p-4">
+              <p className="text-xs font-black uppercase tracking-normal text-[#74777b]">
+                Freelancer
+              </p>
+              <p className="mt-2 font-mono text-sm font-bold text-[#010b13]">
+                {form.freelancerWallet ? formatWallet(form.freelancerWallet) : "0x..."}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="glass-panel rounded-[2rem] p-6">
           <div className="flex items-center gap-3">
-            <span className="grid size-10 place-items-center rounded-xl border border-amber-300/40 bg-amber-100/60 text-amber-800">
+            <span className="grid size-11 place-items-center rounded-2xl bg-amber-100 text-amber-800">
               <ShieldAlert className="size-5" />
             </span>
             <div>
@@ -251,15 +340,13 @@ export default function CreateDealForm() {
             </div>
           </div>
 
-          <div className="mt-5">
-            <span
-              className={`inline-flex rounded-full border px-3 py-1.5 text-sm font-black ${riskTone(
-                liveRisk.level,
-              )}`}
-            >
-              {liveRisk.level}
-            </span>
-          </div>
+          <span
+            className={`mt-5 inline-flex rounded-full border px-3 py-1.5 text-sm font-black ${riskTone(
+              liveRisk.level,
+            )}`}
+          >
+            {liveRisk.level}
+          </span>
 
           <ul className="mt-5 space-y-2 text-sm text-[#53606a]">
             {liveRisk.reasons.map((reason) => (
@@ -269,31 +356,62 @@ export default function CreateDealForm() {
               </li>
             ))}
           </ul>
-        </div>
+        </section>
 
-        <div className="soft-panel rounded-3xl p-5">
+        <section className="glass-panel rounded-[2rem] p-6">
+          <div className="flex items-center gap-3">
+            <span className="grid size-11 place-items-center rounded-2xl bg-cyan-100 text-[#00677f]">
+              <Fingerprint className="size-5" />
+            </span>
+            <div>
+              <p className="text-sm font-bold text-[#53606a]">AI Milestone Suggestion</p>
+              <p className="text-lg font-black text-[#010b13]">
+                {milestoneSuggestion.structure.length === 1
+                  ? "Single release"
+                  : "Milestone-based payment"}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-5 space-y-2">
+            {milestoneSuggestion.structure.map((step) => (
+              <div
+                key={step}
+                className="rounded-2xl border border-[#101d25]/10 bg-white/60 px-4 py-3 text-sm font-bold text-[#43474b]"
+              >
+                {step}
+              </div>
+            ))}
+          </div>
+          <p className="mt-4 text-sm leading-6 text-[#53606a]">
+            {milestoneSuggestion.reason}
+          </p>
+          {milestoneSuggestion.warning || liveRisk.level !== "Low Risk" ? (
+            <p className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm font-bold text-amber-800">
+              {milestoneSuggestion.warning ??
+                "SealPay flags this as a riskier deal, so milestone review is recommended."}
+            </p>
+          ) : null}
+        </section>
+
+        <section className="rounded-[2rem] bg-cyan-50 p-5">
           <div className="flex items-start gap-3">
-            <Info className="mt-0.5 size-5 shrink-0 text-[#00677f]" />
+            <Fingerprint className="mt-0.5 size-5 shrink-0 text-[#00677f]" />
             <p className="text-sm leading-6 text-[#43474b]">
-              Submitting creates a local deal, assigns status Created, and generates a
-              fake blockchain transaction hash for the public proof timeline.
+              Creating an invoice generates a local SealPay hash and opens the escrow
+              evidence vault.
             </p>
           </div>
-        </div>
+        </section>
 
         <button type="submit" disabled={isSubmitting} className="primary-button w-full">
-          Create Deal
+          Create Invoice Hash
           <ArrowRight className="size-4" />
         </button>
 
-        <div className="rounded-2xl border border-[#101d25]/10 bg-white/70 p-4">
-          <div className="flex items-center gap-2 text-sm font-bold text-[#43474b]">
-            <CalendarClock className="size-4 text-emerald-700" />
-            Live estimate
-          </div>
-          <p className="mt-2 text-2xl font-black text-[#010b13]">
-            {formatAmount(Number(form.amount) || 0)}
-          </p>
+        <div className="flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-bold text-emerald-800">
+          <BadgeCheck className="size-4" />
+          Smart-contract escrow ready
         </div>
       </aside>
     </form>

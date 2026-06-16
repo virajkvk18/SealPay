@@ -2,33 +2,40 @@
 
 import { FormEvent, useState } from "react";
 import { FileUp, Link2, X } from "lucide-react";
+import { deliverableTypes, type DeliverableType } from "@/lib/mockData";
 
 export interface ProofFormValues {
   title: string;
   note: string;
-  fileName: string;
   previewUrl: string;
+  finalFileName: string;
+  deliverableType: DeliverableType;
 }
 
 interface SubmitProofModalProps {
   open: boolean;
   onClose: () => void;
   onSubmit: (values: ProofFormValues) => void;
+  defaultDeliverableType: DeliverableType;
 }
 
-const emptyProof = {
-  title: "",
-  note: "",
-  fileName: "",
-  previewUrl: "",
-};
+function makeEmptyProof(deliverableType: DeliverableType) {
+  return {
+    title: "",
+    note: "",
+    previewUrl: "",
+    finalFileName: "",
+    deliverableType,
+  };
+}
 
 export default function SubmitProofModal({
   open,
   onClose,
   onSubmit,
+  defaultDeliverableType,
 }: SubmitProofModalProps) {
-  const [form, setForm] = useState(emptyProof);
+  const [form, setForm] = useState(() => makeEmptyProof(defaultDeliverableType));
 
   if (!open) return null;
 
@@ -39,7 +46,7 @@ export default function SubmitProofModal({
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     onSubmit(form);
-    setForm(emptyProof);
+    setForm(makeEmptyProof(defaultDeliverableType));
     onClose();
   }
 
@@ -57,7 +64,7 @@ export default function SubmitProofModal({
             <div>
               <h2 className="text-2xl font-black text-[#010b13]">Submit work proof</h2>
               <p className="text-sm text-[#53606a]">
-                Attach demo metadata and seal it with a fake file hash.
+                Share a protected preview and keep the final file locked until release.
               </p>
             </div>
           </div>
@@ -97,27 +104,47 @@ export default function SubmitProofModal({
           </label>
 
           <label>
-            <span className="mb-2 block text-sm font-bold text-[#43474b]">File name</span>
+            <span className="mb-2 flex items-center gap-2 text-sm font-bold text-[#43474b]">
+              <Link2 className="size-4 text-[#00677f]" />
+              Preview URL
+            </span>
             <input
               required
               className="input-field"
-              value={form.fileName}
-              onChange={(event) => updateField("fileName", event.target.value)}
-              placeholder="deliverable-preview.zip"
+              value={form.previewUrl}
+              onChange={(event) => updateField("previewUrl", event.target.value)}
+              placeholder="https://preview.example.com/watermarked-sample"
             />
           </label>
 
           <label>
-            <span className="mb-2 flex items-center gap-2 text-sm font-bold text-[#43474b]">
-              <Link2 className="size-4 text-[#00677f]" />
-              Preview link or sample image URL
+            <span className="mb-2 block text-sm font-bold text-[#43474b]">
+              Final file name
             </span>
             <input
+              required
               className="input-field"
-              value={form.previewUrl}
-              onChange={(event) => updateField("previewUrl", event.target.value)}
-              placeholder="https://..."
+              value={form.finalFileName}
+              onChange={(event) => updateField("finalFileName", event.target.value)}
+              placeholder="final-deliverable.zip"
             />
+          </label>
+
+          <label>
+            <span className="mb-2 block text-sm font-bold text-[#43474b]">
+              Deliverable type
+            </span>
+            <select
+              className="input-field"
+              value={form.deliverableType}
+              onChange={(event) =>
+                updateField("deliverableType", event.target.value as DeliverableType)
+              }
+            >
+              {deliverableTypes.map((type) => (
+                <option key={type}>{type}</option>
+              ))}
+            </select>
           </label>
         </div>
 
