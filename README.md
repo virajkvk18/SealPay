@@ -20,11 +20,6 @@
 <p align="center">
   <img src="public/sealpay-landing-hero.png" width="900" alt="SealPay landing preview" />
 </p>
-
-## One-Line Pitch
-
-SealPay is a Web3 escrow MVP that helps clients lock payment, freelancers submit protected proof, and both sides verify every major step through a transparent proof timeline.
-
 ## Problem
 
 Freelance work often breaks down at the same trust point:
