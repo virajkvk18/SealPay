@@ -4,7 +4,7 @@
   <img src="public/sealpay-logo.png" width="110" alt="SealPay logo" />
 </p>
 
-<h1 align="center">SealPay</h1>
+<h1 align="center">Seal Pay</h1>
 
 <p align="center">
   <strong>Secure freelance payments with smart-contract escrow, protected deliverables, proof trails, and AI-assisted review.</strong>
