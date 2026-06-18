@@ -1,4 +1,4 @@
-### SealPay
+# SealPay
 
 <p align="center">
   <img src="public/sealpay-logo.png" width="110" alt="SealPay logo" />
