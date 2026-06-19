@@ -1,7 +1,7 @@
 # SealPay
 
 <p align="center">
-  <img src="public/sealpay-logo.png" width="110" alt="SealPay logo" />
+  <img src="public/sealpay-mark.png" width="110" alt="SealPay logo" />
 </p>
 
 <h1 align="center">Seal Pay</h1>
@@ -24,26 +24,27 @@
 
 Freelance work often breaks down at the same trust point:
 
-| Client Risk | Freelancer Risk |
-| --- | --- |
-| Paying before seeing enough proof | Sending full work before payment release |
-| Weak dispute evidence | Late payments or non-payment |
-| No shared proof history | Proof being copied, downloaded, or misused |
+| Client Risk                       | Freelancer Risk                            |
+| --------------------------------- | ------------------------------------------ |
+| Paying before seeing enough proof | Sending full work before payment release   |
+| Weak dispute evidence             | Late payments or non-payment               |
+| No shared proof history           | Proof being copied, downloaded, or misused |
 
 SealPay turns this trust gap into a visible escrow workflow.
 
 ## What SealPay Does
 
-| Module | What It Does | Why It Matters |
-| --- | --- | --- |
-| Landing Page | Explains the product and routes users into the MVP | Gives the demo a polished first impression |
-| Dashboard | Shows locked value, invoices, activity, roles, and reputation | Makes the escrow workspace easy to present |
-| Create Invoice | Lets a client define the work, wallets, amount, deadline, and deliverable type | Starts a structured escrow agreement |
-| Deal Vault | Shows deal details, escrow status, risk, proof, disputes, and actions | Central place for payment and proof decisions |
-| Deliverable Lock | Shows only watermarked/partial previews before release | Reduces misuse of freelancer work |
-| Public Proof Explorer | Shows a blockchain-style timeline with hashes | Makes the flow verifiable and shareable |
-| Reputation Page | Summarizes completed work, disputes, and trust signals | Adds accountability beyond one transaction |
-| Solidity Contract | Documents the future on-chain escrow extension | Shows a realistic path from MVP to testnet |
+| Module                   | What It Does                                                                   | Why It Matters                                |
+| ------------------------ | ------------------------------------------------------------------------------ | --------------------------------------------- |
+| Landing Page             | Explains the product and routes users into the MVP                             | Gives the demo a polished first impression    |
+| Dashboard                | Shows locked value, invoices, activity, roles, and reputation                  | Makes the escrow workspace easy to present    |
+| Create Invoice           | Lets a client define the work, wallets, amount, deadline, and deliverable type | Starts a structured escrow agreement          |
+| Deal Vault               | Shows deal details, escrow status, risk, proof, disputes, and actions          | Central place for payment and proof decisions |
+| Deliverable Lock         | Shows only watermarked/partial previews before release                         | Reduces misuse of freelancer work             |
+| Pinata/IPFS Proof Upload | Pins submitted proof files and stores the returned CID                         | Makes work proof portable beyond the UI       |
+| Public Proof Explorer    | Shows a blockchain-style timeline with hashes                                  | Makes the flow verifiable and shareable       |
+| Reputation Page          | Summarizes completed work, disputes, and trust signals                         | Adds accountability beyond one transaction    |
+| Solidity Contract        | Documents the future on-chain escrow extension                                 | Shows a realistic path from MVP to testnet    |
 
 ## Core Flow
 
@@ -52,14 +53,15 @@ flowchart LR
   A["Client creates invoice"] --> B["AI risk score"]
   B --> C["Client locks payment"]
   C --> D["Freelancer submits proof"]
-  D --> E["Deliverable Lock preview"]
-  E --> F["AI proof review"]
-  F --> G{"Client decision"}
-  G -->|Approve| H["Payment released"]
-  G -->|Dispute| I["Admin/Judge review"]
-  I --> J["Release or refund"]
-  H --> K["Public proof timeline"]
-  J --> K
+  D --> E["Pinata/IPFS CID"]
+  E --> F["Deliverable Lock preview"]
+  F --> G["AI proof review"]
+  G --> H{"Client decision"}
+  H -->|Approve| I["Payment released"]
+  H -->|Dispute| J["Admin/Judge review"]
+  J --> K["Release or refund"]
+  I --> L["Public proof timeline"]
+  K --> L
 ```
 
 ## Deliverable Lock
@@ -84,50 +86,109 @@ Important limitation: no platform can fully prevent screenshots. SealPay reduces
 
 ## AI Trust Engine
 
-SealPay uses deterministic local helper logic in `lib/aiEngine.ts`. No paid AI API is required for the MVP.
+SealPay uses server-side Groq API routes for real AI proof review and dispute summaries. `GROQ_API_KEY` must stay server-side and must never be exposed with a `NEXT_PUBLIC_` prefix.
 
-| Function | Purpose |
-| --- | --- |
-| `calculateRiskScore()` | Scores deal risk using amount, deadline, scope detail, and wallet familiarity |
-| `suggestMilestones()` | Suggests single-release or milestone payment structure |
-| `analyzeWorkProof()` | Reviews proof note, file name, preview URL, file type, and keyword match |
-| `summarizeDispute()` | Produces an admin-assist dispute summary |
-| `generateSealTrustScore()` | Creates a wallet-level trust score from deal history |
+| Route / Function               | Purpose                                                                                        |
+| ------------------------------ | ---------------------------------------------------------------------------------------------- |
+| `POST /api/ai/proof-review`    | Sends deal and proof metadata to Groq and returns score, verdict, reasons, issues, and summary |
+| `POST /api/ai/dispute-summary` | Sends dispute evidence and proof CID to Groq and returns an admin/judge summary                |
+| `calculateRiskScore()`         | Scores deal risk using amount, deadline, scope detail, and wallet familiarity                  |
+| `suggestMilestones()`          | Suggests single-release or milestone payment structure                                         |
+| `generateSealTrustScore()`     | Creates a wallet-level trust score from deal history                                           |
 
 AI is only an assistant. Final approval and dispute decisions stay with a human client or admin/judge.
 
+## IPFS Proof Storage
+
+The proof submission flow calls `POST /api/pinata/upload` before AI review.
+
+- With `PINATA_JWT` configured, the server uploads the selected proof file to Pinata and returns a CID plus gateway URL.
+- With `NEXT_PUBLIC_ENABLE_MOCK_MODE=true` and no `PINATA_JWT`, the route returns a mock CID so the demo remains fully usable.
+- The returned CID is stored as the deal proof hash and shown in both the Deal Vault and Public Proof Explorer.
+
+Local setup:
+
+```bash
+cp .env.example .env.local
+```
+
+Then add:
+
+```text
+PINATA_JWT=your_pinata_jwt
+NEXT_PUBLIC_GATEWAY_URL=https://gateway.pinata.cloud/ipfs
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_public_key
+GROQ_API_KEY=your_groq_api_key
+GROQ_MODEL=llama-3.3-70b-versatile
+```
+
+## IPFS + AI Proof Flow
+
+Freelancer uploads work proof -> SealPay uploads it to Pinata IPFS -> Pinata returns a CID -> CID is saved in Supabase and submitted on-chain -> AI reviews proof relevance -> client approves or raises dispute.
+
+- IPFS gives the deal an immutable proof reference.
+- The CID changes if the uploaded file changes.
+- AI only assists; the human client or admin/judge makes the final decision.
+- `PINATA_JWT` must stay server-side and must never be exposed in frontend code.
+
+Create the Supabase proof table with:
+
+```sql
+create table if not exists proofs (
+  id uuid primary key default gen_random_uuid(),
+  deal_id text not null,
+  proof_cid text not null,
+  proof_url text not null,
+  file_name text,
+  ai_review jsonb,
+  status text default 'submitted',
+  created_at timestamptz default now()
+);
+
+alter table proofs enable row level security;
+
+create policy "Allow public read proofs"
+on proofs for select
+using (true);
+
+create policy "Allow public insert proofs"
+on proofs for insert
+with check (true);
+```
+
 ## Pages Included
 
-| Route | Purpose |
-| --- | --- |
-| `/` | Polished product landing page |
-| `/dashboard` | Escrow workspace and invoice ledger |
-| `/create-deal` | Create a new invoice/deal |
-| `/deal/[id]` | Deal vault, escrow actions, deliverable lock, disputes |
-| `/proof/[id]` | Public proof explorer for a deal timeline |
-| `/reputation` | Wallet and workspace reputation view |
+| Route          | Purpose                                                |
+| -------------- | ------------------------------------------------------ |
+| `/`            | Polished product landing page                          |
+| `/dashboard`   | Escrow workspace and invoice ledger                    |
+| `/create-deal` | Create a new invoice/deal                              |
+| `/deal/[id]`   | Deal vault, escrow actions, deliverable lock, disputes |
+| `/proof/[id]`  | Public proof explorer for a deal timeline              |
+| `/reputation`  | Wallet and workspace reputation view                   |
 
 Seeded demo routes:
 
-| Route | Demo State |
-| --- | --- |
-| `/deal/SP-1001` | Payment locked sample |
-| `/deal/SP-1002` | Work submitted sample |
-| `/deal/SP-1003` | Disputed sample |
+| Route            | Demo State                   |
+| ---------------- | ---------------------------- |
+| `/deal/SP-1001`  | Payment locked sample        |
+| `/deal/SP-1002`  | Work submitted sample        |
+| `/deal/SP-1003`  | Disputed sample              |
 | `/proof/SP-1001` | Public proof explorer sample |
 
 ## Why This MVP Is Feasible
 
 SealPay is feasible for a hackathon because the demo focuses on the core trust workflow instead of trying to build a full financial institution on day one.
 
-| MVP Decision | Why It Works |
-| --- | --- |
-| LocalStorage mock store | Fast to demo without backend setup |
-| Mock wallet connection | Shows wallet-based UX without requiring every judge to connect MetaMask |
-| Mock transaction hashes | Demonstrates proof trail behavior before testnet deployment |
-| Deterministic AI helper logic | Reliable, free, and demo-ready without paid APIs |
-| Solidity contract included | Gives a clear path to real testnet escrow |
-| Deliverable Lock UI | Demonstrates a real freelancer pain point with low technical overhead |
+| MVP Decision                  | Why It Works                                                            |
+| ----------------------------- | ----------------------------------------------------------------------- |
+| LocalStorage mock store       | Fast to demo without backend setup                                      |
+| Mock wallet connection        | Shows wallet-based UX without requiring every judge to connect MetaMask |
+| Mock transaction hashes       | Demonstrates proof trail behavior before testnet deployment             |
+| Deterministic AI helper logic | Reliable, free, and demo-ready without paid APIs                        |
+| Solidity contract included    | Gives a clear path to real testnet escrow                               |
+| Deliverable Lock UI           | Demonstrates a real freelancer pain point with low technical overhead   |
 
 ## Production Path
 
@@ -149,20 +210,22 @@ To move from MVP to production, SealPay would need real auth, a backend database
 
 ## Tech Stack
 
-| Layer | Technology |
-| --- | --- |
-| App Framework | Next.js App Router |
-| Language | TypeScript |
-| UI | Tailwind CSS, Lucide icons |
-| State | LocalStorage mock store |
-| AI Logic | Deterministic local scoring helpers |
-| Web3 Contract | Solidity escrow contract |
+| Layer                | Technology                                    |
+| -------------------- | --------------------------------------------- |
+| App Framework        | Next.js App Router                            |
+| Language             | TypeScript                                    |
+| UI                   | Tailwind CSS, Lucide icons                    |
+| State                | LocalStorage mock store                       |
+| AI Logic             | Server-side Groq API routes                   |
+| Proof Storage        | Pinata API route with mock-CID fallback       |
+| Web3 Contract        | Solidity escrow contract                      |
 | Deployment Hardening | Next proxy security headers and rate limiting |
 
 ## Project Structure
 
 ```text
 app/
+  api/pinata/upload/route.ts Pinata/IPFS upload endpoint
   page.tsx              Landing page
   dashboard/page.tsx    Escrow dashboard
   create-deal/page.tsx  Invoice creation
@@ -222,11 +285,16 @@ npm run lint
 4. Open `/create-deal` and create a new invoice.
 5. Open the new deal and lock payment as Client.
 6. Switch to Freelancer and submit proof with preview URL and final file name.
-7. Show the Deliverable Lock card before release.
-8. Switch back to Client and approve work.
-9. Show the unlocked deliverable state.
-10. Open `/proof/[id]` to show the public proof timeline.
-11. Open `/deal/SP-1003` to show dispute and admin/judge resolution.
+7. Attach a proof file and show the generated IPFS CID/gateway link.
+8. Show the Deliverable Lock card before release.
+9. Switch back to Client and approve work.
+10. Show the unlocked deliverable state.
+11. Open `/proof/[id]` to show the public proof timeline.
+12. Open `/deal/SP-1003` to show dispute and admin/judge resolution.
+
+Role explanation:
+
+> My role was IPFS proof storage and AI verification. When the freelancer uploads proof, SealPay sends the file to Pinata IPFS and receives a unique CID. This CID is saved in our backend and can also be submitted on-chain, so the proof cannot be silently changed later. AI checks whether the proof looks relevant to the deal and creates a short dispute summary if conflict happens.
 
 ## Mock Mode
 
@@ -235,7 +303,8 @@ SealPay currently runs in mock mode by default. It includes:
 - Mock wallet address
 - LocalStorage deal database
 - Mock transaction hashes
-- Mock proof hashes
+- Pinata uploads when `PINATA_JWT` is configured
+- Mock proof CIDs when Pinata is not configured
 - Test MATIC labels for Polygon Amoy-style demo flow
 
 No real money moves in the MVP.
@@ -268,13 +337,13 @@ Before using SealPay with real users, add server-side authentication and enforce
 
 `contracts/SealPayEscrow.sol` is included for Polygon Amoy/Sepolia testnet extension. It supports:
 
-| Contract Function | Purpose |
-| --- | --- |
-| `createDeal(address freelancer) payable` | Client creates an escrow deal and locks funds |
-| `submitWork(uint256 dealId, string memory proofHash)` | Freelancer submits proof hash |
-| `approveWork(uint256 dealId)` | Client approves work and releases funds |
-| `raiseDispute(uint256 dealId, string memory reason)` | Client or freelancer raises a dispute |
-| `resolveDispute(uint256 dealId, bool releaseToFreelancer)` | Admin resolves the dispute |
+| Contract Function                                          | Purpose                                       |
+| ---------------------------------------------------------- | --------------------------------------------- |
+| `createDeal(address freelancer) payable`                   | Client creates an escrow deal and locks funds |
+| `submitWork(uint256 dealId, string memory proofHash)`      | Freelancer submits proof hash                 |
+| `approveWork(uint256 dealId)`                              | Client approves work and releases funds       |
+| `raiseDispute(uint256 dealId, string memory reason)`       | Client or freelancer raises a dispute         |
+| `resolveDispute(uint256 dealId, bool releaseToFreelancer)` | Admin resolves the dispute                    |
 
 ## What Is Intentionally Not Included Yet
 
@@ -282,7 +351,6 @@ Before using SealPay with real users, add server-side authentication and enforce
 - Real authentication
 - Full backend
 - MongoDB, PostgreSQL, Supabase, or Firebase setup
-- Real IPFS/Filecoin upload
 - Paid AI APIs
 - DAO arbitration
 - KYC

@@ -1,55 +1,41 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { CheckCircle2, Wallet } from "lucide-react";
+import { useWallet } from "@/lib/wallet";
 import { formatWallet } from "@/lib/utils";
 
-const walletKey = "sealpay-wallet-v1";
-const walletChangedEvent = "sealpay-wallet-change";
-const demoWallet = "0x9D13C8cA88f6E3F575A1e86f2022A1f846D7A901";
-
-function subscribeWallet(onStoreChange: () => void) {
-  window.addEventListener("storage", onStoreChange);
-  window.addEventListener(walletChangedEvent, onStoreChange);
-
-  return () => {
-    window.removeEventListener("storage", onStoreChange);
-    window.removeEventListener(walletChangedEvent, onStoreChange);
-  };
-}
-
-function getWalletSnapshot() {
-  return window.localStorage.getItem(walletKey) ?? "";
-}
-
-function getServerWalletSnapshot() {
-  return "";
-}
-
 export default function WalletButton() {
-  const wallet = useSyncExternalStore(
-    subscribeWallet,
-    getWalletSnapshot,
-    getServerWalletSnapshot,
-  );
+  const { address, isAmoy, isConnecting, connect, switchToAmoy } = useWallet();
 
-  function toggleWallet() {
-    if (wallet) {
-      window.localStorage.removeItem(walletKey);
-      window.dispatchEvent(new Event(walletChangedEvent));
-      return;
-    }
-
-    window.localStorage.setItem(walletKey, demoWallet);
-    window.dispatchEvent(new Event(walletChangedEvent));
+  if (address && !isAmoy) {
+    return (
+      <button
+        type="button"
+        onClick={switchToAmoy}
+        className="wallet-button wallet-button-warning"
+      >
+        Switch to Amoy
+      </button>
+    );
   }
 
   return (
     <button
       type="button"
-      onClick={toggleWallet}
-      className="inline-flex h-11 items-center justify-center rounded-full bg-black px-6 text-xs font-black text-white shadow-lg shadow-cyan-900/10 transition hover:bg-[#00677f] active:scale-95"
+      onClick={connect}
+      disabled={isConnecting || Boolean(address)}
+      className="wallet-button"
     >
-      {wallet ? formatWallet(wallet) : "Mock Wallet"}
+      {address ? (
+        <CheckCircle2 className="size-4" />
+      ) : (
+        <Wallet className="size-4" />
+      )}
+      {isConnecting
+        ? "Connecting..."
+        : address
+          ? formatWallet(address)
+          : "Connect Wallet"}
     </button>
   );
 }

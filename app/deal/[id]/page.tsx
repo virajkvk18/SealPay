@@ -17,13 +17,17 @@ import {
   ShieldCheck,
   UnlockKeyhole,
 } from "lucide-react";
-import DisputeModal, { type DisputeFormValues } from "@/components/DisputeModal";
+import DisputeModal, {
+  type DisputeFormValues,
+} from "@/components/DisputeModal";
 import Navbar from "@/components/Navbar";
 import StatusBadge from "@/components/StatusBadge";
-import SubmitProofModal, { type ProofFormValues } from "@/components/SubmitProofModal";
+import SubmitProofModal, {
+  type ProofFormValues,
+} from "@/components/SubmitProofModal";
 import Timeline from "@/components/Timeline";
-import { analyzeWorkProof, summarizeDispute } from "@/lib/aiEngine";
 import { demoModeNotice, roles, type Deal, type Role } from "@/lib/mockData";
+import { saveProofToSupabase } from "@/lib/proofs";
 import { useSealPay } from "@/lib/store";
 import {
   cn,
@@ -50,22 +54,31 @@ function detailRows(deal: Deal) {
 
 function getActionHelper(deal: Deal, activeRole: Role) {
   if (activeRole === "Client") {
-    if (deal.status === "Created") return "Lock payment first so the freelancer can submit work.";
-    if (deal.status !== "Work Submitted") return "Submit proof before client can approve.";
+    if (deal.status === "Created")
+      return "Lock payment first so the freelancer can submit work.";
+    if (deal.status !== "Work Submitted")
+      return "Submit proof before client can approve.";
     return "Review the proof and AI notes before approving release.";
   }
 
   if (activeRole === "Freelancer") {
-    if (deal.status !== "Payment Locked") return "Lock payment first before freelancer can submit work.";
+    if (deal.status !== "Payment Locked")
+      return "Lock payment first before freelancer can submit work.";
     return "Submit proof with a note, file name, and preview URL for AI-assisted review.";
   }
 
-  if (deal.status !== "Disputed") return "Only disputed deals can be resolved by Admin/Judge.";
+  if (deal.status !== "Disputed")
+    return "Only disputed deals can be resolved by Admin/Judge.";
   return "AI assists the review. Final decision stays with human admin/judge.";
 }
 
 function getFinalFileName(deal: Deal) {
-  return deal.finalFileName ?? deal.proof?.finalFileName ?? deal.proof?.fileName ?? "final-deliverable.zip";
+  return (
+    deal.finalFileName ??
+    deal.proof?.finalFileName ??
+    deal.proof?.fileName ??
+    "final-deliverable.zip"
+  );
 }
 
 function getPreviewUrl(deal: Deal) {
@@ -82,6 +95,79 @@ function isVisualPreview(deal: Deal) {
   );
 }
 
+async function requestProofReview(
+  deal: Deal,
+  values: ProofFormValues,
+  proofCid: string,
+) {
+  const response = await fetch("/api/ai/proof-review", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      dealTitle: deal.title,
+      dealDescription: deal.description,
+      deliverableType: values.deliverableType,
+      proofTitle: values.title,
+      proofNote: values.note,
+      fileName: values.finalFileName,
+      previewUrl: values.previewUrl,
+      proofCid,
+      proofUrl: values.proofGatewayUrl,
+    }),
+  });
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.error ?? "AI proof review failed.");
+  }
+
+  return result;
+}
+
+async function requestDisputeSummary(
+  deal: Deal,
+  values: DisputeFormValues,
+  timeline: Deal["timeline"],
+) {
+  const response = await fetch("/api/ai/dispute-summary", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      dealTitle: deal.title,
+      dealDescription: deal.description,
+      clientName: deal.clientName,
+      freelancerName: deal.freelancerName,
+      reason: values.reason,
+      evidence: values.evidence,
+      proofCid: deal.proof?.fileHash,
+      proofUrl: deal.proof?.gatewayUrl,
+      timeline: timeline.map(({ title, status, actor, timestamp }) => ({
+        title,
+        status,
+        actor,
+        timestamp,
+      })),
+    }),
+  });
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.error ?? "AI dispute summary failed.");
+  }
+
+  return result as {
+    title: "AI Dispute Summary";
+    summary: string;
+    recommendation: string;
+  };
+}
+
 export default function DealDetailsPage() {
   const params = useParams();
   const routeId = Array.isArray(params.id) ? params.id[0] : params.id;
@@ -95,7 +181,8 @@ export default function DealDetailsPage() {
     if (!deal) return false;
     return (
       deal.status === "Payment Released" ||
-      (deal.status === "Resolved" && deal.resolution === "Released to freelancer")
+      (deal.status === "Resolved" &&
+        deal.resolution === "Released to freelancer")
     );
   }, [deal]);
 
@@ -134,7 +221,8 @@ export default function DealDetailsPage() {
         ...current.timeline,
         makeTimelineEvent({
           title: "Work approved",
-          description: "Client approved the submitted proof and authorized release.",
+          description:
+            "Client approved the submitted proof and authorized release.",
           status: "Approved",
           actor: "Client",
           txHash: approvalTx,
@@ -150,17 +238,18 @@ export default function DealDetailsPage() {
     }));
   }
 
-  function handleSubmitProof(values: ProofFormValues) {
+  async function handleSubmitProof(values: ProofFormValues) {
     if (!deal) return;
     const txHash = makeTxHash();
-    const fileHash = makeFileHash();
-    const aiProofReview = analyzeWorkProof({
-      originalDescription: deal.description,
-      deliverableType: values.deliverableType,
-      proofTitle: values.title,
-      proofNote: values.note,
-      fileName: values.finalFileName,
-      previewUrl: values.previewUrl,
+    const fileHash = values.proofCid || makeFileHash();
+    const aiProofReview = await requestProofReview(deal, values, fileHash);
+
+    await saveProofToSupabase({
+      dealId: deal.id,
+      proofCid: fileHash,
+      proofUrl: values.proofGatewayUrl,
+      fileName: values.uploadedFileName,
+      aiReview: aiProofReview,
     });
 
     updateDeal(deal.id, (current) => ({
@@ -177,6 +266,8 @@ export default function DealDetailsPage() {
         deliverableType: values.deliverableType,
         previewUrl: values.previewUrl,
         fileHash,
+        gatewayUrl: values.proofGatewayUrl,
+        storageProvider: values.storageProvider,
         txHash,
         submittedAt: new Date().toISOString(),
       },
@@ -184,8 +275,8 @@ export default function DealDetailsPage() {
       timeline: [
         ...current.timeline,
         makeTimelineEvent({
-          title: "Work proof submitted",
-          description: `${values.title} submitted with file hash ${fileHash}.`,
+          title: "Proof uploaded to IPFS",
+          description: `${values.title} uploaded to Pinata IPFS with proof CID ${fileHash}.`,
           status: "Work Submitted",
           actor: "Freelancer",
           txHash,
@@ -194,37 +285,36 @@ export default function DealDetailsPage() {
     }));
   }
 
-  function handleRaiseDispute(values: DisputeFormValues) {
+  async function handleRaiseDispute(values: DisputeFormValues) {
     if (!deal) return;
-    updateDeal(deal.id, (current) => {
-      const nextTimeline = [
-        ...current.timeline,
-        makeTimelineEvent({
-          title: "Dispute raised",
-          description: values.reason,
-          status: "Disputed",
-          actor: "Client",
-          txHash: makeTxHash(),
-        }),
-      ];
+    const nextTimeline = [
+      ...deal.timeline,
+      makeTimelineEvent({
+        title: "Dispute raised",
+        description: values.reason,
+        status: "Disputed",
+        actor: "Client",
+        txHash: makeTxHash(),
+      }),
+    ];
+    const aiDispute = await requestDisputeSummary(deal, values, nextTimeline);
 
+    updateDeal(deal.id, (current) => {
       return {
         ...current,
         status: "Disputed",
         disputeReason: values.reason,
         disputeEvidence: values.evidence,
-        aiDisputeSummary: summarizeDispute({
-          deal: current,
-          disputeReason: values.reason,
-          disputeEvidence: values.evidence,
-          timeline: nextTimeline,
-        }),
+        aiDisputeSummary: aiDispute.summary,
+        aiDisputeRecommendation: aiDispute.recommendation,
         timeline: nextTimeline,
       };
     });
   }
 
-  function handleResolveDispute(resolution: "Released to freelancer" | "Refunded client") {
+  function handleResolveDispute(
+    resolution: "Released to freelancer" | "Refunded client",
+  ) {
     if (!deal) return;
     const txHash = makeTxHash();
     updateDeal(deal.id, (current) => ({
@@ -269,11 +359,17 @@ export default function DealDetailsPage() {
       <Navbar />
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <Link href="/dashboard" className="secondary-button px-4 py-2 text-sm">
+          <Link
+            href="/dashboard"
+            className="secondary-button px-4 py-2 text-sm"
+          >
             <ArrowLeft className="size-4" />
             Dashboard
           </Link>
-          <Link href={proofPath(deal.id)} className="secondary-button px-4 py-2 text-sm">
+          <Link
+            href={proofPath(deal.id)}
+            className="secondary-button px-4 py-2 text-sm"
+          >
             Public Proof
             <ExternalLink className="size-4" />
           </Link>
@@ -291,8 +387,10 @@ export default function DealDetailsPage() {
                     Evidence Vault
                   </h1>
                   <p className="mt-4 max-w-3xl text-base leading-7 text-[#43474b]">
-                    <span className="font-black text-[#010b13]">{deal.title}</span> -{" "}
-                    {deal.description}
+                    <span className="font-black text-[#010b13]">
+                      {deal.title}
+                    </span>{" "}
+                    - {deal.description}
                   </p>
                 </div>
                 <StatusBadge status={deal.status} />
@@ -300,17 +398,23 @@ export default function DealDetailsPage() {
 
               <div className="mt-8 grid gap-4 md:grid-cols-3">
                 <div className="rounded-2xl border border-emerald-300/20 bg-emerald-300/[0.06] p-5">
-                  <p className="text-sm font-bold text-emerald-800">Amount locked</p>
+                  <p className="text-sm font-bold text-emerald-800">
+                    Amount locked
+                  </p>
                   <p className="mt-2 text-3xl font-black text-[#010b13]">
                     {formatAmount(deal.amount)}
                   </p>
                 </div>
                 <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/[0.06] p-5">
                   <p className="text-sm font-bold text-[#00566a]">Risk score</p>
-                  <p className="mt-2 text-3xl font-black text-[#010b13]">{deal.risk.score}/100</p>
+                  <p className="mt-2 text-3xl font-black text-[#010b13]">
+                    {deal.risk.score}/100
+                  </p>
                 </div>
                 <div className="rounded-2xl border border-violet-300/20 bg-violet-300/[0.06] p-5">
-                  <p className="text-sm font-bold text-[#6e208c]">Escrow hash</p>
+                  <p className="text-sm font-bold text-[#6e208c]">
+                    Escrow hash
+                  </p>
                   <p className="mt-2 font-mono text-sm font-black text-[#010b13]">
                     {formatWallet(deal.createdTxHash)}
                   </p>
@@ -346,9 +450,9 @@ export default function DealDetailsPage() {
                       : "Full deliverable is locked until payment release."}
                   </h2>
                   <p className="mt-3 max-w-3xl text-sm leading-6 text-[#53606a]">
-                    No platform can fully prevent screenshots, but SealPay reduces misuse
-                    through watermarked previews, locked final files, blockchain proof,
-                    and reputation penalties.
+                    No platform can fully prevent screenshots, but SealPay
+                    reduces misuse through watermarked previews, locked final
+                    files, blockchain proof, and reputation penalties.
                   </p>
                 </div>
                 <span
@@ -376,7 +480,9 @@ export default function DealDetailsPage() {
                         "absolute inset-0 bg-cover bg-center transition",
                         !isDeliverableUnlocked && "blur-[2px] saturate-75",
                       )}
-                      style={{ backgroundImage: `url("${getPreviewUrl(deal)}")` }}
+                      style={{
+                        backgroundImage: `url("${getPreviewUrl(deal)}")`,
+                      }}
                     />
                   ) : (
                     <div
@@ -391,7 +497,8 @@ export default function DealDetailsPage() {
                           Protected preview only
                         </p>
                         <p className="mt-2 text-sm leading-6 text-[#53606a]">
-                          {deal.proof?.title ?? "Submit proof to show a protected preview."}
+                          {deal.proof?.title ??
+                            "Submit proof to show a protected preview."}
                         </p>
                       </div>
                     </div>
@@ -417,20 +524,43 @@ export default function DealDetailsPage() {
                 </div>
 
                 <div className="rounded-3xl border border-[#101d25]/10 bg-white/70 p-5">
-                  <p className="text-sm font-black text-[#00677f]">Final file</p>
+                  <p className="text-sm font-black text-[#00677f]">
+                    Final file
+                  </p>
                   <p className="mt-2 break-all font-mono text-sm font-black text-[#010b13]">
                     {getFinalFileName(deal)}
                   </p>
                   <div className="mt-5 grid gap-3 text-sm text-[#43474b]">
                     <div className="rounded-2xl border border-[#101d25]/10 bg-white/70 p-4">
                       <p className="font-bold">Deliverable type</p>
-                      <p className="mt-1">{deal.proof?.deliverableType ?? deal.deliverableType}</p>
+                      <p className="mt-1">
+                        {deal.proof?.deliverableType ?? deal.deliverableType}
+                      </p>
                     </div>
                     <div className="rounded-2xl border border-[#101d25]/10 bg-white/70 p-4">
                       <p className="font-bold">Proof hash</p>
                       <p className="mt-1 font-mono">
-                        {deal.proof ? formatWallet(deal.proof.fileHash) : "pending"}
+                        {deal.proof
+                          ? formatWallet(deal.proof.fileHash)
+                          : "pending"}
                       </p>
+                    </div>
+                    <div className="rounded-2xl border border-[#101d25]/10 bg-white/70 p-4">
+                      <p className="font-bold">IPFS gateway</p>
+                      {deal.proof?.gatewayUrl ? (
+                        <a
+                          href={deal.proof.gatewayUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mt-1 block break-all text-[#00677f] underline"
+                        >
+                          {deal.proof.storageProvider === "mock-pinata"
+                            ? "Mock CID preview"
+                            : "Open pinned proof"}
+                        </a>
+                      ) : (
+                        <p className="mt-1">pending</p>
+                      )}
                     </div>
                   </div>
                   <button
@@ -466,7 +596,8 @@ export default function DealDetailsPage() {
                       AI Proof Review
                     </h2>
                     <p className="mt-3 text-sm leading-6 text-[#53606a]">
-                      AI assists the review. Final decision stays with human admin/judge.
+                      AI assists the review. Final decision stays with human
+                      admin/judge.
                     </p>
                   </div>
                   <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/[0.08] px-5 py-4 text-right">
@@ -476,8 +607,18 @@ export default function DealDetailsPage() {
                     <p className="mt-1 text-3xl font-black text-[#010b13]">
                       {deal.aiProofReview.score}/100
                     </p>
+                    {deal.aiProofReview.verdict ? (
+                      <p className="mt-1 text-xs font-black text-[#43474b]">
+                        {deal.aiProofReview.verdict}
+                      </p>
+                    ) : null}
                   </div>
                 </div>
+                {deal.aiProofReview.summary ? (
+                  <p className="mt-5 rounded-2xl border border-cyan-300/25 bg-cyan-50 p-4 text-sm font-bold leading-6 text-[#43474b]">
+                    {deal.aiProofReview.summary}
+                  </p>
+                ) : null}
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
                   {deal.aiProofReview.reasons.map((reason) => (
                     <div
@@ -495,7 +636,9 @@ export default function DealDetailsPage() {
               <h2 className="text-3xl font-black text-[#010b13]">
                 On-chain Proof Trail
               </h2>
-              <p className="mt-2 text-sm leading-6 text-[#53606a]">{demoModeNotice}</p>
+              <p className="mt-2 text-sm leading-6 text-[#53606a]">
+                {demoModeNotice}
+              </p>
               <div className="mt-6">
                 <Timeline events={deal.timeline} />
               </div>
@@ -562,7 +705,9 @@ export default function DealDetailsPage() {
                     <button
                       type="button"
                       onClick={() => setDisputeOpen(true)}
-                      disabled={["Payment Released", "Resolved"].includes(deal.status)}
+                      disabled={["Payment Released", "Resolved"].includes(
+                        deal.status,
+                      )}
                       className="danger-button"
                     >
                       <Scale className="size-4" />
@@ -587,7 +732,9 @@ export default function DealDetailsPage() {
                   <>
                     <button
                       type="button"
-                      onClick={() => handleResolveDispute("Released to freelancer")}
+                      onClick={() =>
+                        handleResolveDispute("Released to freelancer")
+                      }
                       disabled={deal.status !== "Disputed"}
                       className="primary-button"
                     >
@@ -613,10 +760,14 @@ export default function DealDetailsPage() {
 
             <div className="soft-panel rounded-3xl p-5">
               <div className="flex items-center justify-between gap-3">
-                <span className={`rounded-full border px-3 py-1.5 text-sm font-black ${riskTone(deal.risk.level)}`}>
+                <span
+                  className={`rounded-full border px-3 py-1.5 text-sm font-black ${riskTone(deal.risk.level)}`}
+                >
                   {deal.risk.level}
                 </span>
-                <span className="text-2xl font-black text-[#010b13]">{deal.risk.score}</span>
+                <span className="text-2xl font-black text-[#010b13]">
+                  {deal.risk.score}
+                </span>
               </div>
               <ul className="mt-5 space-y-2 text-sm text-[#53606a]">
                 {deal.risk.reasons.map((reason) => (
@@ -630,7 +781,9 @@ export default function DealDetailsPage() {
 
             {deal.disputeReason ? (
               <div className="soft-panel rounded-3xl p-5">
-                <h2 className="text-xl font-black text-[#010b13]">Dispute notes</h2>
+                <h2 className="text-xl font-black text-[#010b13]">
+                  Dispute notes
+                </h2>
                 <p className="mt-3 text-sm leading-6 text-amber-800">
                   {deal.disputeReason}
                 </p>
@@ -643,11 +796,17 @@ export default function DealDetailsPage() {
                       AI Dispute Summary
                     </p>
                     <p className="mt-2 text-xs font-bold text-[#43474b]">
-                      AI assists the review. Final decision stays with human admin/judge.
+                      AI assists the review. Final decision stays with human
+                      admin/judge.
                     </p>
                     <p className="mt-3 text-sm leading-6 text-[#43474b]">
                       {deal.aiDisputeSummary}
                     </p>
+                    {deal.aiDisputeRecommendation ? (
+                      <p className="mt-3 text-sm font-black leading-6 text-[#010b13]">
+                        Recommendation: {deal.aiDisputeRecommendation}
+                      </p>
+                    ) : null}
                   </div>
                 ) : null}
                 {deal.resolution ? (
@@ -659,12 +818,17 @@ export default function DealDetailsPage() {
             ) : null}
 
             <div className="soft-panel rounded-3xl p-5">
-              <h2 className="text-xl font-black text-[#010b13]">Public proof</h2>
+              <h2 className="text-xl font-black text-[#010b13]">
+                Public proof
+              </h2>
               <p className="mt-2 text-sm leading-6 text-[#53606a]">
-                Share the proof route to show the deal timeline like a lightweight block
-                explorer.
+                Share the proof route to show the deal timeline like a
+                lightweight block explorer.
               </p>
-              <Link href={proofPath(deal.id)} className="secondary-button mt-4 w-full">
+              <Link
+                href={proofPath(deal.id)}
+                className="secondary-button mt-4 w-full"
+              >
                 <Send className="size-4" />
                 Open Proof Page
               </Link>
@@ -678,6 +842,7 @@ export default function DealDetailsPage() {
         onClose={() => setProofOpen(false)}
         onSubmit={handleSubmitProof}
         defaultDeliverableType={deal.deliverableType}
+        dealId={deal.id}
       />
       <DisputeModal
         open={disputeOpen}

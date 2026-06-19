@@ -22,7 +22,13 @@ import StatusBadge from "@/components/StatusBadge";
 import { generateSealTrustScore } from "@/lib/aiEngine";
 import { roles } from "@/lib/mockData";
 import { useSealPay } from "@/lib/store";
-import { cn, formatAmount, formatDate, formatDateTime, formatWallet } from "@/lib/utils";
+import {
+  cn,
+  formatAmount,
+  formatDate,
+  formatDateTime,
+  formatWallet,
+} from "@/lib/utils";
 
 const processSteps = [
   "Invoice created",
@@ -65,7 +71,9 @@ function MetricPanel({
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm font-semibold text-[#53606a]">{label}</p>
-          <p className="mt-3 text-3xl font-black tracking-normal text-[#010b13]">{value}</p>
+          <p className="mt-3 text-3xl font-black tracking-normal text-[#010b13]">
+            {value}
+          </p>
         </div>
         <span className="grid size-12 place-items-center rounded-2xl bg-cyan-100 text-[#00677f]">
           {icon}
@@ -142,18 +150,19 @@ const [deals, setDeals] = useState(localDeals);
 
   const activeWallet =
     activeRole === "Freelancer"
-      ? deals[0]?.freelancerWallet ?? ""
+      ? (deals[0]?.freelancerWallet ?? "")
       : activeRole === "Admin/Judge"
-        ? deals.find((deal) => deal.status === "Disputed")?.freelancerWallet ??
+        ? (deals.find((deal) => deal.status === "Disputed")?.freelancerWallet ??
           deals[0]?.freelancerWallet ??
-          ""
-        : deals[0]?.clientWallet ?? "";
+          "")
+        : (deals[0]?.clientWallet ?? "");
   const sealTrust = generateSealTrustScore(activeWallet, deals);
   const releasedAmount = deals
     .filter(
       (deal) =>
         deal.status === "Payment Released" ||
-        (deal.status === "Resolved" && deal.resolution === "Released to freelancer"),
+        (deal.status === "Resolved" &&
+          deal.resolution === "Released to freelancer"),
     )
     .reduce((sum, deal) => sum + deal.amount, 0);
   const recentActivity = deals
@@ -182,13 +191,17 @@ const [deals, setDeals] = useState(localDeals);
               Workspace Overview
             </h1>
             <p className="mt-4 max-w-3xl text-base leading-7 text-[#43474b]">
-              Manage secured invoices, proof hashes, dispute evidence, and release
-              actions from one SealPay control room.
+              Manage secured invoices, proof hashes, dispute evidence, and
+              release actions from one SealPay control room.
             </p>
           </div>
 
           <div className="flex flex-wrap gap-3">
-            <button type="button" onClick={resetDemo} className="secondary-button">
+            <button
+              type="button"
+              onClick={resetDemo}
+              className="secondary-button"
+            >
               <RotateCcw className="size-4" />
               Reset Demo
             </button>
@@ -221,7 +234,7 @@ const [deals, setDeals] = useState(localDeals);
           <MetricPanel
             label="SealPay Score"
             value="92"
-            helper="Workspace reputation from mock escrow history"
+            helper="Trust signals from the current demo event history"
             icon={<Gauge className="size-5" />}
           />
         </div>
@@ -237,7 +250,10 @@ const [deals, setDeals] = useState(localDeals);
                   Recent Invoices
                 </h2>
               </div>
-              <Link href="/create-deal" className="secondary-button px-4 py-2 text-sm">
+              <Link
+                href="/create-deal"
+                className="secondary-button px-4 py-2 text-sm"
+              >
                 New Invoice
                 <ArrowRight className="size-4" />
               </Link>
@@ -262,13 +278,17 @@ const [deals, setDeals] = useState(localDeals);
                       className="border-b border-[#101d25]/10 bg-white/35 transition last:border-b-0 hover:bg-white/70"
                     >
                       <td className="px-6 py-5">
-                        <p className="font-black text-[#010b13]">{deal.title}</p>
+                        <p className="font-black text-[#010b13]">
+                          {deal.title}
+                        </p>
                         <p className="mt-1 font-mono text-xs font-bold text-[#00677f]">
                           {deal.id}
                         </p>
                       </td>
                       <td className="px-6 py-5">
-                        <p className="font-semibold text-[#43474b]">{deal.clientName}</p>
+                        <p className="font-semibold text-[#43474b]">
+                          {deal.clientName}
+                        </p>
                         <p className="mt-1 font-mono text-xs text-[#74777b]">
                           {formatWallet(deal.clientWallet)}
                         </p>
@@ -309,7 +329,9 @@ const [deals, setDeals] = useState(localDeals);
                     <span className="grid size-8 place-items-center rounded-full bg-cyan-100 text-xs font-black text-[#00677f]">
                       {index + 1}
                     </span>
-                    <span className="text-sm font-bold text-[#43474b]">{step}</span>
+                    <span className="text-sm font-bold text-[#43474b]">
+                      {step}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -317,7 +339,7 @@ const [deals, setDeals] = useState(localDeals);
 
             <section className="glass-panel rounded-[2rem] p-6">
               <p className="text-sm font-black uppercase tracking-normal text-[#00677f]">
-                Current Role
+                Demo Role Simulator
               </p>
               <div className="mt-5 grid gap-2 rounded-2xl border border-[#101d25]/10 bg-white/60 p-1">
                 {roles.map((role) => (
@@ -344,7 +366,9 @@ const [deals, setDeals] = useState(localDeals);
                   <Award className="size-5" />
                 </span>
                 <div>
-                  <p className="text-sm font-bold text-[#53606a]">SealTrust Score</p>
+                  <p className="text-sm font-bold text-[#53606a]">
+                    SealTrust Score
+                  </p>
                   <p className="text-3xl font-black text-[#010b13]">
                     {sealTrust.score}/100
                   </p>
@@ -390,7 +414,9 @@ const [deals, setDeals] = useState(localDeals);
                     <span className="grid size-7 place-items-center rounded-full bg-black text-xs font-black text-white">
                       {index + 1}
                     </span>
-                    <span className="text-sm font-bold text-[#43474b]">{step}</span>
+                    <span className="text-sm font-bold text-[#43474b]">
+                      {step}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -413,13 +439,17 @@ const [deals, setDeals] = useState(localDeals);
                   <Fingerprint className="size-5" />
                 </span>
                 <div>
-                  <p className="text-sm font-black text-cyan-100">Protocol Verified</p>
-                  <p className="text-xs text-white/60">Mock chain health is stable</p>
+                  <p className="text-sm font-black text-cyan-100">
+                    Protocol Preview
+                  </p>
+                  <p className="text-xs text-white/60">
+                    Amoy event sync is not connected yet
+                  </p>
                 </div>
               </div>
               <p className="mt-5 text-sm leading-6 text-white/70">
-                Every SealPay action writes a visible hash to the local proof trail for
-                fast hackathon demos.
+                Every SealPay action writes a visible hash to the local proof
+                trail for fast hackathon demos.
               </p>
             </section>
 
@@ -434,7 +464,9 @@ const [deals, setDeals] = useState(localDeals);
                     href={`/deal/${event.dealId}`}
                     className="block rounded-2xl border border-[#101d25]/10 bg-white/55 p-4 transition hover:bg-white"
                   >
-                    <p className="text-sm font-black text-[#010b13]">{event.title}</p>
+                    <p className="text-sm font-black text-[#010b13]">
+                      {event.title}
+                    </p>
                     <p className="mt-1 text-xs font-semibold text-[#74777b]">
                       {event.dealTitle}
                     </p>

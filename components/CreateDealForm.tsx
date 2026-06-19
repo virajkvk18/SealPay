@@ -67,7 +67,13 @@ export default function CreateDealForm() {
         freelancerWallet: form.freelancerWallet,
         knownFreelancerWallets,
       }),
-    [form.amount, form.deadline, form.description, form.freelancerWallet, knownFreelancerWallets],
+    [
+      form.amount,
+      form.deadline,
+      form.description,
+      form.freelancerWallet,
+      knownFreelancerWallets,
+    ],
   );
   const milestoneSuggestion = useMemo(
     () =>
@@ -107,7 +113,8 @@ export default function CreateDealForm() {
     const deal: Deal = {
       id,
       title: form.title.trim(),
-      description: form.description.trim() || "No detailed description provided.",
+      description:
+        form.description.trim() || "No detailed description provided.",
       clientName: form.clientName.trim(),
       freelancerName: form.freelancerName.trim(),
       clientWallet: form.clientWallet.trim(),
@@ -134,7 +141,10 @@ export default function CreateDealForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_390px]">
+    <form
+      onSubmit={handleSubmit}
+      className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_390px]"
+    >
       <section className="glass-panel rounded-[2rem] p-6 sm:p-8">
         <div className="flex items-center gap-3">
           <span className="grid size-12 place-items-center rounded-2xl bg-cyan-100 text-[#00677f]">
@@ -175,7 +185,9 @@ export default function CreateDealForm() {
               required
               className="input-field pl-11 font-mono text-sm"
               value={form.clientWallet}
-              onChange={(event) => updateField("clientWallet", event.target.value)}
+              onChange={(event) =>
+                updateField("clientWallet", event.target.value)
+              }
               placeholder="0x..."
             />
           </label>
@@ -191,18 +203,24 @@ export default function CreateDealForm() {
               required
               className="input-field pl-11 font-mono text-sm"
               value={form.freelancerWallet}
-              onChange={(event) => updateField("freelancerWallet", event.target.value)}
+              onChange={(event) =>
+                updateField("freelancerWallet", event.target.value)
+              }
               placeholder="0x..."
             />
           </label>
 
           <label>
-            <span className="mb-2 block text-sm font-bold text-[#43474b]">Client Name</span>
+            <span className="mb-2 block text-sm font-bold text-[#43474b]">
+              Client Name
+            </span>
             <input
               required
               className="input-field"
               value={form.clientName}
-              onChange={(event) => updateField("clientName", event.target.value)}
+              onChange={(event) =>
+                updateField("clientName", event.target.value)
+              }
               placeholder="Client or team"
             />
           </label>
@@ -215,7 +233,9 @@ export default function CreateDealForm() {
               required
               className="input-field"
               value={form.freelancerName}
-              onChange={(event) => updateField("freelancerName", event.target.value)}
+              onChange={(event) =>
+                updateField("freelancerName", event.target.value)
+              }
               placeholder="Freelancer or studio"
             />
           </label>
@@ -239,7 +259,9 @@ export default function CreateDealForm() {
           </label>
 
           <label className="relative">
-            <span className="mb-2 block text-sm font-bold text-[#43474b]">Deadline</span>
+            <span className="mb-2 block text-sm font-bold text-[#43474b]">
+              Deadline
+            </span>
             <FieldIcon>
               <CalendarClock className="size-4" />
             </FieldIcon>
@@ -259,7 +281,9 @@ export default function CreateDealForm() {
             <select
               className="input-field"
               value={form.deliverableType}
-              onChange={(event) => updateField("deliverableType", event.target.value)}
+              onChange={(event) =>
+                updateField("deliverableType", event.target.value)
+              }
             >
               {deliverableTypes.map((type) => (
                 <option key={type}>{type}</option>
@@ -274,7 +298,9 @@ export default function CreateDealForm() {
             <textarea
               className="input-field min-h-36 resize-y"
               value={form.description}
-              onChange={(event) => updateField("description", event.target.value)}
+              onChange={(event) =>
+                updateField("description", event.target.value)
+              }
               placeholder="Describe acceptance criteria, handoff format, and review rules."
             />
           </label>
@@ -323,7 +349,9 @@ export default function CreateDealForm() {
                 Freelancer
               </p>
               <p className="mt-2 font-mono text-sm font-bold text-[#010b13]">
-                {form.freelancerWallet ? formatWallet(form.freelancerWallet) : "0x..."}
+                {form.freelancerWallet
+                  ? formatWallet(form.freelancerWallet)
+                  : "0x..."}
               </p>
             </div>
           </div>
@@ -335,8 +363,12 @@ export default function CreateDealForm() {
               <ShieldAlert className="size-5" />
             </span>
             <div>
-              <p className="text-sm font-bold text-[#53606a]">Deal Risk Score</p>
-              <p className="text-2xl font-black text-[#010b13]">{liveRisk.score}/100</p>
+              <p className="text-sm font-bold text-[#53606a]">
+                Deal Risk Score
+              </p>
+              <p className="text-2xl font-black text-[#010b13]">
+                {liveRisk.score}/100
+              </p>
             </div>
           </div>
 
@@ -364,7 +396,9 @@ export default function CreateDealForm() {
               <Fingerprint className="size-5" />
             </span>
             <div>
-              <p className="text-sm font-bold text-[#53606a]">AI Milestone Suggestion</p>
+              <p className="text-sm font-bold text-[#53606a]">
+                AI Milestone Suggestion
+              </p>
               <p className="text-lg font-black text-[#010b13]">
                 {milestoneSuggestion.structure.length === 1
                   ? "Single release"
@@ -398,13 +432,17 @@ export default function CreateDealForm() {
           <div className="flex items-start gap-3">
             <Fingerprint className="mt-0.5 size-5 shrink-0 text-[#00677f]" />
             <p className="text-sm leading-6 text-[#43474b]">
-              Creating an invoice generates a local SealPay hash and opens the escrow
-              evidence vault.
+              Creating an invoice generates a local SealPay hash and opens the
+              escrow evidence vault.
             </p>
           </div>
         </section>
 
-        <button type="submit" disabled={isSubmitting} className="primary-button w-full">
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="primary-button w-full"
+        >
           Create Invoice Hash
           <ArrowRight className="size-4" />
         </button>

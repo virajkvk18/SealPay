@@ -1,5 +1,11 @@
 import Link from "next/link";
-import { ArrowRight, Clock3, Coins, FileLock2, ShieldAlert } from "lucide-react";
+import {
+  ArrowRight,
+  Clock3,
+  Coins,
+  FileLock2,
+  ShieldAlert,
+} from "lucide-react";
 import type { Deal, Role } from "@/lib/mockData";
 import { formatAmount, formatDate, formatWallet, proofPath } from "@/lib/utils";
 import StatusBadge from "@/components/StatusBadge";
@@ -71,7 +77,9 @@ export default function DealCard({ deal, activeRole }: DealCardProps) {
       <div className="mt-5 rounded-xl border border-[#101d25]/10 bg-white/70 p-3 text-xs text-[#53606a]">
         <div className="flex items-center justify-between gap-3">
           <span>Client</span>
-          <span className="font-mono text-[#101d25]">{formatWallet(deal.clientWallet)}</span>
+          <span className="font-mono text-[#101d25]">
+            {formatWallet(deal.clientWallet)}
+          </span>
         </div>
         <div className="mt-2 flex items-center justify-between gap-3">
           <span>Freelancer</span>
@@ -93,7 +101,10 @@ export default function DealCard({ deal, activeRole }: DealCardProps) {
           >
             <FileLock2 className="size-4" />
           </Link>
-          <Link href={`/deal/${deal.id}`} className="primary-button px-4 py-2 text-sm">
+          <Link
+            href={`/deal/${deal.id}`}
+            className="primary-button px-4 py-2 text-sm"
+          >
             Open
             <ArrowRight className="size-4" />
           </Link>

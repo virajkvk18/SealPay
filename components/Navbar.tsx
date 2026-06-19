@@ -3,46 +3,61 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { Activity, Hexagon } from "lucide-react";
 import WalletButton from "@/components/WalletButton";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", matches: ["/dashboard"] },
-  { href: "/create-deal", label: "Invoices", matches: ["/create-deal"] },
+  { href: "/create-deal", label: "Create Deal", matches: ["/create-deal"] },
   { href: "/deal/SP-1003", label: "Disputes", matches: ["/deal"] },
   { href: "/reputation", label: "Reputation", matches: ["/reputation"] },
 ];
 
 export default function Navbar() {
   const pathname = usePathname();
+  const isLandingPage = pathname === "/";
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/40 bg-white/70 shadow-sm backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b border-cyan-200/10 bg-[#020b10]/86 shadow-xl shadow-black/10 backdrop-blur-2xl">
       <nav className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center gap-3">
           <Image
-            src="/sealpay-logo.png"
+            src="/sealpay-mark.png"
             alt="SealPay logo"
-            width={44}
-            height={44}
-            className="size-11 rounded-2xl object-cover shadow-lg shadow-cyan-900/10"
+            width={48}
+            height={48}
+            className="size-12 object-contain drop-shadow-[0_10px_24px_rgba(139,92,246,0.28)]"
+            priority
           />
-          <span className="font-[Sora] text-2xl font-black tracking-normal text-[#010b13]">
-            SealPay
+          {isLandingPage ? (
+            <span className="brand-font text-xl font-black tracking-tight sm:text-2xl">
+              <span className="text-white">Seal</span>
+              <span className="bg-gradient-to-br from-[#c36bff] via-[#8b2cff] to-[#5921d6] bg-clip-text text-transparent">
+                Pay
+              </span>
+            </span>
+          ) : null}
+          <span className="chain-chip nav-chain-chip">
+            <Activity className="size-3" />
+            Polygon Amoy
           </span>
         </Link>
 
         <div className="hidden items-center gap-8 md:flex">
           {navItems.map((item) => {
-            const isActive = item.matches.some((match) => pathname.startsWith(match));
+            const isActive = item.matches.some((match) =>
+              pathname.startsWith(match),
+            );
 
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "border-b-2 border-transparent pb-1 text-sm font-semibold text-[#43474b] transition hover:text-[#010b13]",
-                  isActive && "border-[#010b13] font-black text-[#010b13]",
+                  "rounded-full px-3 py-2 text-sm font-semibold text-slate-300 transition hover:bg-white/6 hover:text-white",
+                  isActive &&
+                    "bg-cyan-300/10 font-black text-cyan-100 ring-1 ring-cyan-200/15",
                 )}
               >
                 {item.label}
@@ -52,6 +67,7 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-2">
+          <Hexagon className="hidden size-5 text-cyan-300 sm:block" />
           <WalletButton />
         </div>
       </nav>

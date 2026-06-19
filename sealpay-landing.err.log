@@ -1,0 +1,184 @@
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head headCacheNode={{rsc:{...}, ...}}>
+                    <__next_viewport_boundary__>
+                    <MetadataWrapper>
+                      <div
+                        hidden={true}
+-                       bis_skin_checked="1"
+                      >
+                    ...
+                  ...
+                    <RedirectErrorBoundary router={{...}}>
+                      <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} ...>
+                        <SegmentViewNode type="page" pagePath="page.tsx">
+                          <SegmentTrieNode>
+                          <Home>
+                            <main className="web3-shell...">
+                              <Navbar>
+                                <header className="sticky top...">
+                                  <nav className="mx-auto fl...">
+                                    <LinkComponent>
+                                    <div
+                                      className="hidden items-center gap-8 md:flex"
+-                                     bis_skin_checked="1"
+                                    >
+                                    <div
+                                      className="flex items-center gap-2"
+-                                     bis_skin_checked="1"
+                                    >
+                              <section className="relative z...">
+                                <div
+-                                 bis_skin_checked="1"
+                                >
+                                  <div
+                                    className="chain-chip inline-flex"
+-                                   bis_skin_checked="1"
+                                  >
+                                  <h1>
+                                  <p>
+                                  <div
+                                    className="mt-9 flex flex-wrap gap-3"
+-                                   bis_skin_checked="1"
+                                  >
+                                  <div
+                                    className="mt-10 flex flex-wrap gap-x-6 gap-y-3 text-xs font-bold text-slate-400"
+-                                   bis_skin_checked="1"
+                                  >
+                                <div
+                                  className="hero-visual-stage relative mx-auto w-full max-w-[590px]"
+-                                 bis_skin_checked="1"
+                                >
+                                  <div
+                                    className="hero-orbit hero-orbit-outer"
+-                                   bis_skin_checked="1"
+                                  >
+                                  <div
+                                    className="hero-orbit hero-orbit-inner"
+-                                   bis_skin_checked="1"
+                                  >
+                                  <img>
+                                  <ImagePreload>
+                                  <div
+                                    className="mt-5 grid grid-cols-2 gap-3 lg:mt-0 lg:block"
+-                                   bis_skin_checked="1"
+                                  >
+                                    <div
+                                      className="hero-signal-card hero-signal-left-top"
+-                                     bis_skin_checked="1"
+                                    >
+                                    <div
+                                      className="hero-signal-card hero-signal-right-top"
+-                                     bis_skin_checked="1"
+                                    >
+                                    <div
+                                      className="hero-signal-card hero-signal-left-bottom"
+-                                     bis_skin_checked="1"
+                                    >
+                                    <div
+                                      className="hero-signal-card hero-signal-right-bottom"
+-                                     bis_skin_checked="1"
+                                    >
+                              <section aria-label="SealPay pr..." className="relative z...">
+                                <div
+                                  className="protocol-ticker-track"
+-                                 bis_skin_checked="1"
+                                >
+                              <section className="relative z...">
+                                <div
+                                  className="glass-panel-dark rounded-[2rem] p-6 sm:p-8"
+-                                 bis_skin_checked="1"
+                                >
+                                  <div
+                                    className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"
+-                                   bis_skin_checked="1"
+                                  >
+                                    <div
+-                                     bis_skin_checked="1"
+                                    >
+                                    ...
+                                  <div
+                                    className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4"
+-                                   bis_skin_checked="1"
+                                  >
+                                    <article className="protocol-s...">
+                                      <div
+                                        className="flex items-center justify-between"
+-                                       bis_skin_checked="1"
+                                      >
+                                      ...
+                                    <article className="protocol-s...">
+                                      <div
+                                        className="flex items-center justify-between"
+-                                       bis_skin_checked="1"
+                                      >
+                                      ...
+                                    <article className="protocol-s...">
+                                      <div
+                                        className="flex items-center justify-between"
+-                                       bis_skin_checked="1"
+                                      >
+                                      ...
+                                    <article className="protocol-s...">
+                                      <div
+                                        className="flex items-center justify-between"
+-                                       bis_skin_checked="1"
+                                      >
+                                      ...
+                              <section className="relative z...">
+                                <div
+                                  className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end"
+-                                 bis_skin_checked="1"
+                                >
+                                  <div
+-                                   bis_skin_checked="1"
+                                  >
+                                  ...
+                                <div
+                                  className="grid gap-5 md:grid-cols-3"
+-                                 bis_skin_checked="1"
+                                >
+                              <section className="relative z...">
+                                <div
+                                  className="landing-cta relative overflow-hidden rounded-[2rem] border border-violet-..."
+-                                 bis_skin_checked="1"
+                                >
+                                  <div
+                                    className="relative z-10 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center"
+-                                   bis_skin_checked="1"
+                                  >
+                                    <div
+-                                     bis_skin_checked="1"
+                                    >
+                                      <div
+                                        className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.18..."
+-                                       bis_skin_checked="1"
+                                      >
+                                      ...
+                                    <div
+                                      className="flex flex-wrap gap-3 lg:justify-end"
+-                                     bis_skin_checked="1"
+                                    >
+                        ...
+                      ...
+                  ...
+ 
