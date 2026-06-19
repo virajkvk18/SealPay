@@ -1,7 +1,10 @@
+
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { Deal } from "@/lib/mockData";
+import { useEffect, useState, type ReactNode } from "react";
+import { supabase } from "@/lib/supabase";
 import {
   ArrowRight,
   Award,
@@ -74,7 +77,69 @@ function MetricPanel({
 }
 
 export default function DashboardPage() {
-  const { deals, totals, activeRole, setActiveRole, resetDemo } = useSealPay();
+  const {
+  deals: localDeals,
+  totals,
+  activeRole,
+  setActiveRole,
+  resetDemo,
+} = useSealPay();
+
+const [deals, setDeals] = useState(localDeals);
+
+  useEffect(() => {
+  async function fetchDeals() {
+    const { data, error } = await supabase
+      .from("deals")
+      .select("*");
+
+    console.log("SUPABASE DEALS:", data);
+    console.log("SUPABASE ERROR:", error);
+
+    if (!error && data) {
+  const mappedDeals: Deal[] = data.map((deal) => ({
+    id: deal.id,
+    title: deal.title,
+    description: deal.description,
+
+    clientName: deal.client_name,
+    freelancerName: deal.freelancer_name,
+
+    clientWallet: deal.client_wallet ?? "",
+    freelancerWallet: deal.freelancer_wallet ?? "",
+
+    amount: Number(deal.amount ?? 0),
+
+    deadline:
+      deal.deadline ??
+      new Date(
+        Date.now() + 7 * 24 * 60 * 60 * 1000,
+      ).toISOString(),
+
+    deliverableType: deal.deliverable_type ?? "Website",
+    status: deal.status ?? "Created",
+    risk: deal.risk ?? "Low",
+    createdTxHash: deal.created_tx_hash ?? "",
+    timeline: deal.timeline ?? [],
+
+    previewUrl: deal.preview_url,
+    finalFileName: deal.final_file_name,
+
+    proof: deal.proof,
+    aiProofReview: deal.ai_proof_review,
+    disputeReason: deal.dispute_reason,
+    disputeEvidence: deal.dispute_evidence,
+    aiDisputeSummary: deal.ai_dispute_summary,
+    resolution: deal.resolution,
+  }));
+
+  setDeals(mappedDeals);
+}
+  }
+
+  fetchDeals();
+}, []);
+
   const activeWallet =
     activeRole === "Freelancer"
       ? deals[0]?.freelancerWallet ?? ""
@@ -92,13 +157,13 @@ export default function DashboardPage() {
     )
     .reduce((sum, deal) => sum + deal.amount, 0);
   const recentActivity = deals
-    .flatMap((deal) =>
-      deal.timeline.map((event) => ({
-        ...event,
-        dealId: deal.id,
-        dealTitle: deal.title,
-      })),
-    )
+  .flatMap((deal) =>
+    (deal.timeline ?? []).map((event) => ({
+      ...event,
+      dealId: deal.id,
+      dealTitle: deal.title,
+    })),
+  )
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
     .slice(0, 4);
 

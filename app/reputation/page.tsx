@@ -52,7 +52,7 @@ export default function ReputationPage() {
   const lockedVolume = deals.reduce((sum, deal) => sum + deal.amount, 0);
   const latestProofs = deals
     .flatMap((deal) =>
-      deal.timeline.map((event) => ({
+      (deal.timeline ?? []).map((event) => ({
         ...event,
         dealId: deal.id,
         dealTitle: deal.title,
