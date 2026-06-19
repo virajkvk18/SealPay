@@ -134,9 +134,26 @@ export default function ProofPage() {
                     Proof hash
                   </p>
                   <p className="mt-2 break-all font-mono text-sm text-[#101d25]">
-                    {deal.proof ? formatWallet(deal.proof.fileHash) : "Pending proof"}
+                    {deal.proof ? deal.proof.fileHash : "Pending proof"}
                   </p>
                 </div>
+                {deal.proof?.gatewayUrl ? (
+                  <div className="rounded-2xl border border-[#101d25]/10 bg-white/70 p-4">
+                    <p className="text-xs font-bold uppercase tracking-normal text-[#74777b]">
+                      IPFS proof
+                    </p>
+                    <a
+                      href={deal.proof.gatewayUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-2 block break-all text-sm font-bold text-[#00677f] underline"
+                    >
+                      {deal.proof.storageProvider === "mock-pinata"
+                        ? "Mock CID gateway URL"
+                        : "Open pinned proof"}
+                    </a>
+                  </div>
+                ) : null}
                 <div className="rounded-2xl border border-[#101d25]/10 bg-white/70 p-4">
                   <p className="text-xs font-bold uppercase tracking-normal text-[#74777b]">
                     Latest transaction
@@ -173,6 +190,30 @@ export default function ProofPage() {
                       {deal.aiProofReview?.status ?? "Pending proof submission"}
                     </span>
                   </p>
+                  {deal.aiProofReview ? (
+                    <>
+                      <p>
+                        AI review score:{" "}
+                        <span className="font-black text-[#010b13]">
+                          {deal.aiProofReview.score}/100
+                        </span>
+                      </p>
+                      <p>
+                        AI verdict:{" "}
+                        <span className="font-black text-[#010b13]">
+                          {deal.aiProofReview.verdict ?? deal.aiProofReview.status}
+                        </span>
+                      </p>
+                      {deal.aiProofReview.summary ? (
+                        <p>
+                          AI summary:{" "}
+                          <span className="font-semibold">
+                            {deal.aiProofReview.summary}
+                          </span>
+                        </p>
+                      ) : null}
+                    </>
+                  ) : null}
                   {deal.aiDisputeSummary ? (
                     <p>
                       Dispute summary:{" "}
