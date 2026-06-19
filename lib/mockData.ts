@@ -39,6 +39,8 @@ export interface WorkProof {
   deliverableType: DeliverableType;
   previewUrl: string;
   fileHash: string;
+  gatewayUrl?: string;
+  storageProvider?: "pinata" | "mock-pinata";
   txHash: string;
   submittedAt: string;
 }
@@ -47,6 +49,9 @@ export interface AiProofReview {
   status: string;
   score: number;
   reasons: string[];
+  verdict?: string;
+  issues?: string[];
+  summary?: string;
 }
 
 export interface Deal {
@@ -70,6 +75,7 @@ export interface Deal {
   disputeReason?: string;
   disputeEvidence?: string;
   aiDisputeSummary?: string;
+  aiDisputeRecommendation?: string;
   resolution?: "Released to freelancer" | "Refunded client";
   timeline: TimelineEvent[];
 }

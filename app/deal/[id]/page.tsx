@@ -22,8 +22,14 @@ import Navbar from "@/components/Navbar";
 import StatusBadge from "@/components/StatusBadge";
 import SubmitProofModal, { type ProofFormValues } from "@/components/SubmitProofModal";
 import Timeline from "@/components/Timeline";
-import { analyzeWorkProof, summarizeDispute } from "@/lib/aiEngine";
+import {
+  analyzeWorkProof,
+  generateDisputeSummary,
+  reviewProof,
+  summarizeDispute,
+} from "@/lib/aiEngine";
 import { demoModeNotice, roles, type Deal, type Role } from "@/lib/mockData";
+import { saveProofToSupabase } from "@/lib/proofs";
 import { useSealPay } from "@/lib/store";
 import {
   cn,
@@ -150,10 +156,10 @@ export default function DealDetailsPage() {
     }));
   }
 
-  function handleSubmitProof(values: ProofFormValues) {
+  async function handleSubmitProof(values: ProofFormValues) {
     if (!deal) return;
     const txHash = makeTxHash();
-    const fileHash = makeFileHash();
+    const fileHash = values.proofCid || makeFileHash();
     const aiProofReview = analyzeWorkProof({
       originalDescription: deal.description,
       deliverableType: values.deliverableType,
@@ -161,6 +167,23 @@ export default function DealDetailsPage() {
       proofNote: values.note,
       fileName: values.finalFileName,
       previewUrl: values.previewUrl,
+    });
+    const fileReview = reviewProof(values.finalFileName, deal.title);
+
+    const mergedAiReview = {
+      ...aiProofReview,
+      score: Math.round((aiProofReview.score + fileReview.score) / 2),
+      verdict: fileReview.verdict,
+      issues: fileReview.issues,
+      summary: fileReview.summary,
+    };
+
+    await saveProofToSupabase({
+      dealId: deal.id,
+      proofCid: fileHash,
+      proofUrl: values.proofGatewayUrl,
+      fileName: values.uploadedFileName,
+      aiReview: mergedAiReview,
     });
 
     updateDeal(deal.id, (current) => ({
@@ -177,15 +200,17 @@ export default function DealDetailsPage() {
         deliverableType: values.deliverableType,
         previewUrl: values.previewUrl,
         fileHash,
+        gatewayUrl: values.proofGatewayUrl,
+        storageProvider: values.storageProvider,
         txHash,
         submittedAt: new Date().toISOString(),
       },
-      aiProofReview,
+      aiProofReview: mergedAiReview,
       timeline: [
         ...current.timeline,
         makeTimelineEvent({
-          title: "Work proof submitted",
-          description: `${values.title} submitted with file hash ${fileHash}.`,
+          title: "Proof uploaded to IPFS",
+          description: `${values.title} uploaded to Pinata IPFS with proof CID ${fileHash}.`,
           status: "Work Submitted",
           actor: "Freelancer",
           txHash,
@@ -197,6 +222,7 @@ export default function DealDetailsPage() {
   function handleRaiseDispute(values: DisputeFormValues) {
     if (!deal) return;
     updateDeal(deal.id, (current) => {
+      const aiDispute = generateDisputeSummary(values.reason, current.proof?.fileHash);
       const nextTimeline = [
         ...current.timeline,
         makeTimelineEvent({
@@ -213,12 +239,13 @@ export default function DealDetailsPage() {
         status: "Disputed",
         disputeReason: values.reason,
         disputeEvidence: values.evidence,
-        aiDisputeSummary: summarizeDispute({
+        aiDisputeSummary: `${aiDispute.summary} ${summarizeDispute({
           deal: current,
           disputeReason: values.reason,
           disputeEvidence: values.evidence,
           timeline: nextTimeline,
-        }),
+        })}`,
+        aiDisputeRecommendation: aiDispute.recommendation,
         timeline: nextTimeline,
       };
     });
@@ -432,6 +459,23 @@ export default function DealDetailsPage() {
                         {deal.proof ? formatWallet(deal.proof.fileHash) : "pending"}
                       </p>
                     </div>
+                    <div className="rounded-2xl border border-[#101d25]/10 bg-white/70 p-4">
+                      <p className="font-bold">IPFS gateway</p>
+                      {deal.proof?.gatewayUrl ? (
+                        <a
+                          href={deal.proof.gatewayUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mt-1 block break-all text-[#00677f] underline"
+                        >
+                          {deal.proof.storageProvider === "mock-pinata"
+                            ? "Mock CID preview"
+                            : "Open pinned proof"}
+                        </a>
+                      ) : (
+                        <p className="mt-1">pending</p>
+                      )}
+                    </div>
                   </div>
                   <button
                     type="button"
@@ -476,8 +520,18 @@ export default function DealDetailsPage() {
                     <p className="mt-1 text-3xl font-black text-[#010b13]">
                       {deal.aiProofReview.score}/100
                     </p>
+                    {deal.aiProofReview.verdict ? (
+                      <p className="mt-1 text-xs font-black text-[#43474b]">
+                        {deal.aiProofReview.verdict}
+                      </p>
+                    ) : null}
                   </div>
                 </div>
+                {deal.aiProofReview.summary ? (
+                  <p className="mt-5 rounded-2xl border border-cyan-300/25 bg-cyan-50 p-4 text-sm font-bold leading-6 text-[#43474b]">
+                    {deal.aiProofReview.summary}
+                  </p>
+                ) : null}
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
                   {deal.aiProofReview.reasons.map((reason) => (
                     <div
@@ -648,6 +702,11 @@ export default function DealDetailsPage() {
                     <p className="mt-3 text-sm leading-6 text-[#43474b]">
                       {deal.aiDisputeSummary}
                     </p>
+                    {deal.aiDisputeRecommendation ? (
+                      <p className="mt-3 text-sm font-black leading-6 text-[#010b13]">
+                        Recommendation: {deal.aiDisputeRecommendation}
+                      </p>
+                    ) : null}
                   </div>
                 ) : null}
                 {deal.resolution ? (
@@ -678,6 +737,7 @@ export default function DealDetailsPage() {
         onClose={() => setProofOpen(false)}
         onSubmit={handleSubmitProof}
         defaultDeliverableType={deal.deliverableType}
+        dealId={deal.id}
       />
       <DisputeModal
         open={disputeOpen}
