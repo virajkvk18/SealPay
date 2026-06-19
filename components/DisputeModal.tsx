@@ -11,7 +11,7 @@ export interface DisputeFormValues {
 interface DisputeModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (values: DisputeFormValues) => void;
+  onSubmit: (values: DisputeFormValues) => void | Promise<void>;
 }
 
 const emptyDispute = {
@@ -21,17 +21,29 @@ const emptyDispute = {
 
 export default function DisputeModal({ open, onClose, onSubmit }: DisputeModalProps) {
   const [form, setForm] = useState(emptyDispute);
+  const [formError, setFormError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   if (!open) return null;
 
   function updateField(field: keyof DisputeFormValues, value: string) {
+    if (formError) setFormError("");
     setForm((current) => ({ ...current, [field]: value }));
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    onSubmit(form);
+    setSubmitting(true);
+    try {
+      await onSubmit(form);
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : "AI dispute summary failed.");
+      setSubmitting(false);
+      return;
+    }
     setForm(emptyDispute);
+    setFormError("");
+    setSubmitting(false);
     onClose();
   }
 
@@ -87,13 +99,18 @@ export default function DisputeModal({ open, onClose, onSubmit }: DisputeModalPr
             />
           </label>
         </div>
+        {formError ? (
+          <p className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-3 text-sm font-bold text-red-700">
+            {formError}
+          </p>
+        ) : null}
 
         <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <button type="button" onClick={onClose} className="secondary-button">
             Cancel
           </button>
-          <button type="submit" className="danger-button">
-            Raise Dispute
+          <button type="submit" disabled={submitting} className="danger-button">
+            {submitting ? "Generating Summary..." : "Raise Dispute"}
           </button>
         </div>
       </form>

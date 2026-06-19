@@ -22,12 +22,6 @@ import Navbar from "@/components/Navbar";
 import StatusBadge from "@/components/StatusBadge";
 import SubmitProofModal, { type ProofFormValues } from "@/components/SubmitProofModal";
 import Timeline from "@/components/Timeline";
-import {
-  analyzeWorkProof,
-  generateDisputeSummary,
-  reviewProof,
-  summarizeDispute,
-} from "@/lib/aiEngine";
 import { demoModeNotice, roles, type Deal, type Role } from "@/lib/mockData";
 import { saveProofToSupabase } from "@/lib/proofs";
 import { useSealPay } from "@/lib/store";
@@ -86,6 +80,75 @@ function isVisualPreview(deal: Deal) {
       fileName.endsWith(extension),
     )
   );
+}
+
+async function requestProofReview(deal: Deal, values: ProofFormValues, proofCid: string) {
+  const response = await fetch("/api/ai/proof-review", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      dealTitle: deal.title,
+      dealDescription: deal.description,
+      deliverableType: values.deliverableType,
+      proofTitle: values.title,
+      proofNote: values.note,
+      fileName: values.finalFileName,
+      previewUrl: values.previewUrl,
+      proofCid,
+      proofUrl: values.proofGatewayUrl,
+    }),
+  });
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.error ?? "AI proof review failed.");
+  }
+
+  return result;
+}
+
+async function requestDisputeSummary(
+  deal: Deal,
+  values: DisputeFormValues,
+  timeline: Deal["timeline"],
+) {
+  const response = await fetch("/api/ai/dispute-summary", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      dealTitle: deal.title,
+      dealDescription: deal.description,
+      clientName: deal.clientName,
+      freelancerName: deal.freelancerName,
+      reason: values.reason,
+      evidence: values.evidence,
+      proofCid: deal.proof?.fileHash,
+      proofUrl: deal.proof?.gatewayUrl,
+      timeline: timeline.map(({ title, status, actor, timestamp }) => ({
+        title,
+        status,
+        actor,
+        timestamp,
+      })),
+    }),
+  });
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.error ?? "AI dispute summary failed.");
+  }
+
+  return result as {
+    title: "AI Dispute Summary";
+    summary: string;
+    recommendation: string;
+  };
 }
 
 export default function DealDetailsPage() {
@@ -160,30 +223,14 @@ export default function DealDetailsPage() {
     if (!deal) return;
     const txHash = makeTxHash();
     const fileHash = values.proofCid || makeFileHash();
-    const aiProofReview = analyzeWorkProof({
-      originalDescription: deal.description,
-      deliverableType: values.deliverableType,
-      proofTitle: values.title,
-      proofNote: values.note,
-      fileName: values.finalFileName,
-      previewUrl: values.previewUrl,
-    });
-    const fileReview = reviewProof(values.finalFileName, deal.title);
-
-    const mergedAiReview = {
-      ...aiProofReview,
-      score: Math.round((aiProofReview.score + fileReview.score) / 2),
-      verdict: fileReview.verdict,
-      issues: fileReview.issues,
-      summary: fileReview.summary,
-    };
+    const aiProofReview = await requestProofReview(deal, values, fileHash);
 
     await saveProofToSupabase({
       dealId: deal.id,
       proofCid: fileHash,
       proofUrl: values.proofGatewayUrl,
       fileName: values.uploadedFileName,
-      aiReview: mergedAiReview,
+      aiReview: aiProofReview,
     });
 
     updateDeal(deal.id, (current) => ({
@@ -205,7 +252,7 @@ export default function DealDetailsPage() {
         txHash,
         submittedAt: new Date().toISOString(),
       },
-      aiProofReview: mergedAiReview,
+      aiProofReview,
       timeline: [
         ...current.timeline,
         makeTimelineEvent({
@@ -219,32 +266,27 @@ export default function DealDetailsPage() {
     }));
   }
 
-  function handleRaiseDispute(values: DisputeFormValues) {
+  async function handleRaiseDispute(values: DisputeFormValues) {
     if (!deal) return;
-    updateDeal(deal.id, (current) => {
-      const aiDispute = generateDisputeSummary(values.reason, current.proof?.fileHash);
-      const nextTimeline = [
-        ...current.timeline,
-        makeTimelineEvent({
-          title: "Dispute raised",
-          description: values.reason,
-          status: "Disputed",
-          actor: "Client",
-          txHash: makeTxHash(),
-        }),
-      ];
+    const nextTimeline = [
+      ...deal.timeline,
+      makeTimelineEvent({
+        title: "Dispute raised",
+        description: values.reason,
+        status: "Disputed",
+        actor: "Client",
+        txHash: makeTxHash(),
+      }),
+    ];
+    const aiDispute = await requestDisputeSummary(deal, values, nextTimeline);
 
+    updateDeal(deal.id, (current) => {
       return {
         ...current,
         status: "Disputed",
         disputeReason: values.reason,
         disputeEvidence: values.evidence,
-        aiDisputeSummary: `${aiDispute.summary} ${summarizeDispute({
-          deal: current,
-          disputeReason: values.reason,
-          disputeEvidence: values.evidence,
-          timeline: nextTimeline,
-        })}`,
+        aiDisputeSummary: aiDispute.summary,
         aiDisputeRecommendation: aiDispute.recommendation,
         timeline: nextTimeline,
       };
