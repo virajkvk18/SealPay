@@ -7,7 +7,12 @@ export type DealStatus =
   | "Disputed"
   | "Resolved";
 
-export type DeliverableType = "Design" | "Code" | "Document" | "Video" | "Other";
+export type DeliverableType =
+  | "Design"
+  | "Code"
+  | "Document"
+  | "Video"
+  | "Other";
 
 export type Role = "Client" | "Freelancer" | "Admin/Judge";
 
@@ -153,7 +158,11 @@ export const initialDeals: Deal[] = [
     risk: {
       score: 47,
       level: "Medium Risk",
-      reasons: ["Higher value deal", "Short delivery window", "Detailed description"],
+      reasons: [
+        "Higher value deal",
+        "Short delivery window",
+        "Detailed description",
+      ],
     },
     createdTxHash:
       "0x44db3b8ba04202cf1ca452f02b71fe228273d2ab604ce6c8b852c9002eed9bc2",
@@ -205,7 +214,8 @@ export const initialDeals: Deal[] = [
       {
         id: "ev-sp1002-3",
         title: "Work proof submitted",
-        description: "Freelancer submitted preview link and source archive hash.",
+        description:
+          "Freelancer submitted preview link and source archive hash.",
         status: "Work Submitted",
         actor: "Freelancer",
         timestamp: "2026-06-15T18:42:00+05:30",
@@ -230,7 +240,11 @@ export const initialDeals: Deal[] = [
     risk: {
       score: 62,
       level: "Medium Risk",
-      reasons: ["Tight deadline", "Revision-heavy scope", "Newer freelancer wallet"],
+      reasons: [
+        "Tight deadline",
+        "Revision-heavy scope",
+        "Newer freelancer wallet",
+      ],
     },
     createdTxHash:
       "0xbf23600f4b436db38c12fd32a909f5040ec2d33ae96ffb723c215f7791dd3122",
@@ -240,7 +254,8 @@ export const initialDeals: Deal[] = [
       fileName: "event-reel-watermarked.mp4",
       finalFileName: "event-reel-final-4k.mp4",
       deliverableType: "Video",
-      previewUrl: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30",
+      previewUrl:
+        "https://images.unsplash.com/photo-1492684223066-81342ee5ff30",
       fileHash: "bafysealpay1829ad4ce3a8",
       txHash:
         "0xe3db9a28f1f64b617d24309ced2496da124fedc8bb9f6cd5fa86001aa5174c2c",

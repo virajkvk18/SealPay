@@ -61,8 +61,10 @@ export function suggestMilestones({
   };
 }
 
-
-export function generateSealTrustScore(userWallet: string, allDeals: Deal[]): SealTrustScore {
+export function generateSealTrustScore(
+  userWallet: string,
+  allDeals: Deal[],
+): SealTrustScore {
   const normalizedWallet = userWallet.trim().toLowerCase();
   const relatedDeals = normalizedWallet
     ? allDeals.filter(
@@ -78,14 +80,18 @@ export function generateSealTrustScore(userWallet: string, allDeals: Deal[]): Se
 
   for (const deal of relatedDeals) {
     const isClient = deal.clientWallet.toLowerCase() === normalizedWallet;
-    const isFreelancer = deal.freelancerWallet.toLowerCase() === normalizedWallet;
+    const isFreelancer =
+      deal.freelancerWallet.toLowerCase() === normalizedWallet;
 
     if (["Approved", "Payment Released", "Resolved"].includes(deal.status)) {
       completedDeals += 1;
       score += 10;
     }
 
-    if (deal.status === "Payment Released" || deal.resolution === "Released to freelancer") {
+    if (
+      deal.status === "Payment Released" ||
+      deal.resolution === "Released to freelancer"
+    ) {
       score += 10;
     }
 

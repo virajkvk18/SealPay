@@ -1,210 +1,317 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, FileText, Fingerprint, Gavel, PlayCircle, ShieldCheck } from "lucide-react";
+import {
+  Activity,
+  ArrowRight,
+  BadgeCheck,
+  Blocks,
+  BrainCircuit,
+  CheckCircle2,
+  CircleDollarSign,
+  FileKey2,
+  Fingerprint,
+  Gavel,
+  LockKeyhole,
+  ShieldCheck,
+  Wallet,
+} from "lucide-react";
+import Navbar from "@/components/Navbar";
+
+const protocolSteps = [
+  {
+    title: "Create and fund",
+    detail: "Client defines the deal and locks testnet funds.",
+    icon: LockKeyhole,
+  },
+  {
+    title: "Submit proof",
+    detail: "Freelancer pins proof to IPFS and submits its CID.",
+    icon: FileKey2,
+  },
+  {
+    title: "Review or dispute",
+    detail: "Client approves work or opens transparent arbitration.",
+    icon: Gavel,
+  },
+  {
+    title: "Settle on-chain",
+    detail: "The contract releases payment or returns escrowed funds.",
+    icon: Blocks,
+  },
+];
 
 const trustCards = [
   {
-    title: "Smart Contract Escrow",
+    title: "Wallet-native roles",
     description:
-      "Programmable security that ensures funds are only released upon mutually agreed milestones.",
-    icon: FileText,
+      "Client, freelancer, and arbitrator permissions come from wallet addresses in each deal.",
+    icon: Wallet,
   },
   {
-    title: "Proof Hash Stored",
+    title: "Verifiable proof",
     description:
-      "Cryptographic proofs of work are immutable and stored on-chain for permanent verification.",
+      "IPFS content identifiers and contract events create a public, tamper-evident history.",
     icon: Fingerprint,
   },
   {
-    title: "Dispute Evidence Vault",
+    title: "Non-custodial escrow",
     description:
-      "Decentralized arbitration layer to resolve conflicts with transparent evidence submission.",
-    icon: Gavel,
+      "Funds remain governed by contract rules rather than a platform-controlled account.",
+    icon: ShieldCheck,
   },
+];
+
+const floatingSignals = [
+  {
+    title: "Escrow locked",
+    detail: "Funds protected",
+    icon: LockKeyhole,
+    className: "hero-signal-left-top",
+  },
+  {
+    title: "AI trust score",
+    detail: "92 · Excellent",
+    icon: BrainCircuit,
+    className: "hero-signal-right-top",
+  },
+  {
+    title: "IPFS proof",
+    detail: "CID verified",
+    icon: FileKey2,
+    className: "hero-signal-left-bottom",
+  },
+  {
+    title: "Amoy payout",
+    detail: "Ready to settle",
+    icon: CircleDollarSign,
+    className: "hero-signal-right-bottom",
+  },
+];
+
+const protocolSignals = [
+  "Wallet-native identity",
+  "Non-custodial escrow",
+  "IPFS proof storage",
+  "Polygon Amoy settlement",
+  "Public transaction trail",
 ];
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[#f7f9fb] text-[#191c1e]">
-      <header className="border-b border-[#d8dadc]/70 bg-white/78 backdrop-blur-xl">
-        <nav className="mx-auto flex h-[68px] max-w-[1280px] items-center justify-between px-6">
-          <div className="flex items-center gap-8">
-            <Link href="/" className="flex items-center gap-3">
-              <Image
-                src="/sealpay-logo.png"
-                alt="SealPay logo"
-                width={44}
-                height={44}
-                className="size-11 rounded-2xl object-cover shadow-lg shadow-cyan-900/10"
-                priority
-              />
-              <span className="brand-font text-[25px] font-black leading-none tracking-normal text-black">
-                SealPay
-              </span>
+    <main className="web3-shell protocol-grid relative overflow-hidden">
+      <Navbar />
+
+      <section className="relative z-10 mx-auto grid max-w-7xl gap-12 px-5 pb-20 pt-12 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start lg:pb-28 lg:pt-16">
+        <div>
+          <div className="chain-chip inline-flex">
+            <span className="size-2 rounded-full bg-emerald-400 shadow-[0_0_16px_rgba(52,211,153,0.9)]" />
+            Built for Polygon Amoy
+          </div>
+          <h1 className="brand-font mt-7 max-w-3xl text-5xl font-black leading-[1.03] tracking-tight text-white sm:text-6xl lg:text-7xl">
+            Trust the contract,{" "}
+            <span className="gradient-text">not the promise.</span>
+          </h1>
+          <p className="mt-7 max-w-xl text-base leading-8 text-slate-300 sm:text-lg">
+            SealPay protects freelance deals with wallet-native identity,
+            testnet escrow, IPFS proof, and transparent dispute resolution.
+          </p>
+
+          <div className="mt-9 flex flex-wrap gap-3">
+            <Link href="/auth" className="primary-button min-h-12 px-6">
+              <Wallet className="size-4" />
+              Connect wallet
             </Link>
-            <div className="hidden items-center gap-7 md:flex">
-              <Link href="/dashboard" className="border-b-2 border-black pb-1 text-xs font-bold text-black">
-                Dashboard
+            <Link
+              href="/dashboard"
+              className="secondary-button min-h-12 border-white/15 bg-white/5 px-6 text-white hover:bg-white/10"
+            >
+              Explore protocol
+              <ArrowRight className="size-4" />
+            </Link>
+          </div>
+
+          <div className="mt-10 flex flex-wrap gap-x-6 gap-y-3 text-xs font-bold text-slate-400">
+            {["No password", "No custodial account", "No payment gateway"].map(
+              (item) => (
+                <span key={item} className="flex items-center gap-2">
+                  <CheckCircle2 className="size-4 text-cyan-300" />
+                  {item}
+                </span>
+              ),
+            )}
+          </div>
+        </div>
+
+        <div className="hero-visual-stage relative mx-auto w-full max-w-[590px]">
+          <div className="hero-orbit hero-orbit-outer" />
+          <div className="hero-orbit hero-orbit-inner" />
+          <Image
+            src="/sealpay-web3-dashboard-square.webp"
+            alt="SealPay Web3 escrow dashboard surrounded by smart contract, IPFS, AI trust, Polygon, payout, and wallet features"
+            width={900}
+            height={900}
+            priority
+            sizes="(max-width: 1024px) 92vw, 540px"
+            className="hero-dashboard-visual mx-auto aspect-square w-full rounded-[2rem] object-cover"
+          />
+
+          <div className="mt-5 grid grid-cols-2 gap-3 lg:mt-0 lg:block">
+            {floatingSignals.map((signal) => {
+              const Icon = signal.icon;
+
+              return (
+                <div
+                  key={signal.title}
+                  className={`hero-signal-card ${signal.className}`}
+                >
+                  <span className="hero-signal-icon">
+                    <Icon className="size-4" />
+                  </span>
+                  <span>
+                    <strong>{signal.title}</strong>
+                    <small>{signal.detail}</small>
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section
+        aria-label="SealPay protocol capabilities"
+        className="relative z-10 mb-20 overflow-hidden border-y border-cyan-100/10 bg-black/20 py-4"
+      >
+        <div className="protocol-ticker-track">
+          {[...protocolSignals, ...protocolSignals].map((signal, index) => (
+            <span
+              key={`${signal}-${index}`}
+              aria-hidden={index >= protocolSignals.length ? true : undefined}
+              className="protocol-ticker-item"
+            >
+              <BadgeCheck className="size-4 text-violet-300" />
+              {signal}
+            </span>
+          ))}
+        </div>
+      </section>
+
+      <section className="relative z-10 mx-auto max-w-7xl px-5 pb-20 sm:px-8">
+        <div className="glass-panel-dark rounded-[2rem] p-6 sm:p-8">
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">
+                Protocol flow
+              </p>
+              <h2 className="brand-font mt-3 text-3xl font-black text-white">
+                Four steps. Every action verifiable.
+              </h2>
+            </div>
+            <p className="max-w-sm text-sm leading-6 text-slate-400">
+              The blockchain and IPFS remain the source of truth from funding to
+              settlement.
+            </p>
+          </div>
+
+          <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {protocolSteps.map((step, index) => {
+              const Icon = step.icon;
+              return (
+                <article
+                  key={step.title}
+                  className="protocol-step-card rounded-3xl border border-cyan-100/10 bg-white/[0.035] p-5"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="grid size-11 place-items-center rounded-2xl bg-cyan-300/10 text-cyan-200">
+                      <Icon className="size-5" />
+                    </span>
+                    <span className="font-mono text-xs font-black text-slate-600">
+                      0{index + 1}
+                    </span>
+                  </div>
+                  <h3 className="mt-6 text-lg font-black text-white">
+                    {step.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-400">
+                    {step.detail}
+                  </p>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="relative z-10 mx-auto max-w-7xl px-5 pb-20 sm:px-8">
+        <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-violet-300">
+              The SealPay trust layer
+            </p>
+            <h2 className="brand-font mt-3 max-w-2xl text-3xl font-black text-white sm:text-4xl">
+              Built so neither side has to trust blindly.
+            </h2>
+          </div>
+          <p className="max-w-md text-sm leading-6 text-slate-400">
+            Identity, evidence, and settlement stay independently verifiable
+            throughout the deal.
+          </p>
+        </div>
+
+        <div className="grid gap-5 md:grid-cols-3">
+          {trustCards.map((card) => {
+            const Icon = card.icon;
+            return (
+              <article
+                key={card.title}
+                className="trust-feature-card glass-panel-dark rounded-[1.75rem] p-7"
+              >
+                <span className="grid size-12 place-items-center rounded-2xl bg-gradient-to-br from-cyan-300/20 to-violet-300/10 text-cyan-200 ring-1 ring-cyan-100/10">
+                  <Icon className="size-5" />
+                </span>
+                <h3 className="brand-font mt-6 text-xl font-black text-white">
+                  {card.title}
+                </h3>
+                <p className="mt-3 text-sm leading-6 text-slate-400">
+                  {card.description}
+                </p>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="relative z-10 mx-auto max-w-7xl px-5 pb-24 sm:px-8">
+        <div className="landing-cta relative overflow-hidden rounded-[2rem] border border-violet-300/15 px-6 py-10 sm:px-10 sm:py-12">
+          <div className="relative z-10 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div>
+              <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-cyan-300">
+                <Activity className="size-4" />
+                Your next deal, sealed on-chain
+              </div>
+              <h2 className="brand-font mt-4 max-w-3xl text-3xl font-black text-white sm:text-4xl">
+                Protect the payment. Prove the work. Release with confidence.
+              </h2>
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
+                Connect a wallet to explore the complete SealPay escrow flow on
+                Polygon Amoy testnet.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3 lg:justify-end">
+              <Link href="/auth" className="primary-button min-h-12 px-6">
+                <Wallet className="size-4" />
+                Connect wallet
               </Link>
-              <Link href="/create-deal" className="text-xs font-medium text-[#43474b] transition hover:text-black">
-                Invoices
-              </Link>
-              <Link href="/deal/SP-1003" className="text-xs font-medium text-[#43474b] transition hover:text-black">
-                Disputes
-              </Link>
-              <Link href="/reputation" className="text-xs font-medium text-[#43474b] transition hover:text-black">
-                Reputation
+              <Link
+                href="/create-deal"
+                className="secondary-button min-h-12 border-white/15 bg-white/5 px-6 text-white hover:bg-white/10"
+              >
+                Create a deal
+                <ArrowRight className="size-4" />
               </Link>
             </div>
           </div>
-
-          <div className="flex items-center gap-2">
-            <Link
-              href="/dashboard"
-              className="hidden h-10 items-center rounded-full border border-black px-5 text-xs font-black text-black transition hover:bg-black/5 sm:inline-flex"
-            >
-              Explore Deals
-            </Link>
-            <Link
-              href="/auth"
-              className="inline-flex h-10 items-center rounded-full bg-black px-5 text-xs font-black text-white transition hover:bg-[#00677f]"
-            >
-              Connect Wallet
-            </Link>
-          </div>
-        </nav>
-      </header>
-
-      <section className="blockchain-bg mx-auto grid max-w-[1280px] grid-cols-1 gap-12 px-6 pb-16 pt-9 lg:grid-cols-[1fr_0.98fr] lg:items-center">
-        <div className="pt-0 lg:pt-1">
-          <div className="inline-flex items-center gap-2 rounded-full bg-[#b6ebff] px-4 py-1.5 text-xs font-bold text-[#001f28]">
-            <ShieldCheck className="size-3.5" />
-            Web3 Escrow Infrastructure
-          </div>
-
-          <h1 className="brand-font mt-7 max-w-[610px] text-[44px] font-black leading-[1.09] tracking-normal text-black sm:text-[48px] lg:text-[50px]">
-            Secure Freelance Payments with{" "}
-            <span className="bg-gradient-to-br from-[#00677f] to-[#00d2ff] bg-clip-text text-transparent">
-              Smart Contract Escrow
-            </span>
-          </h1>
-
-          <p className="mt-7 max-w-[520px] text-[15px] leading-6 text-[#43474b]">
-            Seal the deal. Secure the pay. Lock invoice payments, verify work proof,
-            and release funds transparently.
-          </p>
-
-          <div className="mt-10 flex flex-wrap items-center gap-4">
-            <Link
-              href="/auth"
-              className="inline-flex h-12 items-center rounded-full bg-black px-7 text-xs font-black text-white shadow-sm transition hover:bg-[#00677f]"
-            >
-              Connect Wallet
-            </Link>
-            <Link
-              href="/auth"
-              className="inline-flex h-12 items-center rounded-full border border-black px-7 text-xs font-black text-black transition hover:bg-black/5"
-            >
-              Get Started
-            </Link>
-            <Link
-              href="/dashboard"
-              className="inline-flex h-12 items-center gap-2 px-3 text-xs font-bold text-[#43474b] transition hover:text-black"
-            >
-              <PlayCircle className="size-4" />
-              Explore Deals
-            </Link>
-          </div>
         </div>
-
-        <div className="relative">
-          <div className="absolute -inset-7 rounded-full bg-[#00d2ff]/20 blur-3xl" />
-          <div className="glass-panel relative overflow-hidden rounded-[32px] p-6 shadow-2xl shadow-[#101d25]/10">
-            <Image
-              src="/sealpay-landing-hero.png"
-              alt="Glowing invoice proof on a secure SealPay escrow platform"
-              width={1000}
-              height={750}
-              priority
-              className="aspect-[4/3] w-full rounded-[24px] object-cover"
-            />
-          </div>
-        </div>
-      </section>
-
-      <section id="how-it-works" className="mx-auto max-w-[1280px] px-6 pb-16">
-        <div className="glass-panel rounded-[28px] p-8">
-          <h2 className="brand-font text-2xl font-black text-black">How it works</h2>
-          <div className="mt-6 grid gap-4 md:grid-cols-4">
-            {[
-              "Client posts an escrow deal.",
-              "Freelancer submits IPFS proof.",
-              "AI reviews proof and disputes.",
-              "Timeline verifies every step.",
-            ].map((step, index) => (
-              <div key={step} className="rounded-2xl border border-[#101d25]/10 bg-white/65 p-4">
-                <span className="grid size-8 place-items-center rounded-full bg-black text-xs font-black text-white">
-                  {index + 1}
-                </span>
-                <p className="mt-4 text-sm font-bold leading-6 text-[#43474b]">{step}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="features" className="mx-auto grid max-w-[1280px] grid-cols-1 gap-8 px-6 pb-16 md:grid-cols-3">
-        {trustCards.map((card) => {
-          const Icon = card.icon;
-
-          return (
-            <article
-              key={card.title}
-              className="glass-panel rounded-[24px] p-8 transition duration-300 hover:-translate-y-2 hover:shadow-xl"
-            >
-              <div className="mb-6 grid size-14 place-items-center rounded-2xl bg-[#b6ebff]/50 text-[#00677f]">
-                <Icon className="size-7" />
-              </div>
-              <h2 className="brand-font text-[21px] font-black tracking-normal text-[#191c1e]">
-                {card.title}
-              </h2>
-              <p className="mt-3 max-w-[280px] text-[14px] font-medium leading-6 text-[#74777b]">
-                {card.description}
-              </p>
-            </article>
-          );
-        })}
-      </section>
-
-      <section id="demo-flow" className="mx-auto grid max-w-[1280px] gap-8 px-6 pb-16 lg:grid-cols-2">
-        <article className="rounded-[28px] bg-[#010b13] p-8 text-white shadow-2xl shadow-cyan-950/20">
-          <h2 className="brand-font text-2xl font-black">Demo flow</h2>
-          <p className="mt-5 text-sm leading-7 text-white/72">
-            Sign up, explore the dashboard, submit proof to IPFS, let Groq review it,
-            and open the public proof timeline.
-          </p>
-          <Link href="/dashboard" className="primary-button mt-6 bg-white text-black">
-            Explore Deals
-            <ArrowRight className="size-4" />
-          </Link>
-        </article>
-
-        <article className="glass-panel rounded-[28px] p-8">
-          <h2 className="brand-font text-2xl font-black text-black">Why SealPay</h2>
-          <div className="mt-5 space-y-3">
-            {[
-              "Clients avoid paying before proof is visible.",
-              "Freelancers avoid sending full work before escrow is locked.",
-              "IPFS CID proves uploaded work cannot silently change.",
-              "AI assists proof review and dispute summaries.",
-            ].map((item) => (
-              <p key={item} className="flex items-start gap-3 text-sm font-bold leading-6 text-[#43474b]">
-                <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-700" />
-                {item}
-              </p>
-            ))}
-          </div>
-        </article>
       </section>
     </main>
   );

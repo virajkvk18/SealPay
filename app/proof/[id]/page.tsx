@@ -3,7 +3,13 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, FileSearch, Fingerprint, Search, ShieldCheck } from "lucide-react";
+import {
+  ArrowLeft,
+  FileSearch,
+  Fingerprint,
+  Search,
+  ShieldCheck,
+} from "lucide-react";
 import Navbar from "@/components/Navbar";
 import StatusBadge from "@/components/StatusBadge";
 import Timeline from "@/components/Timeline";
@@ -21,8 +27,10 @@ export default function ProofPage() {
   const deal = deals.find((candidate) => candidate.id === dealId);
   const latestTxHash = deal?.timeline
     .filter((event) => event.txHash)
-    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0]
-    ?.txHash;
+    .sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+    )[0]?.txHash;
 
   function handleLookup(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -35,12 +43,18 @@ export default function ProofPage() {
       <Navbar />
       <section className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <Link href="/dashboard" className="secondary-button px-4 py-2 text-sm">
+          <Link
+            href="/dashboard"
+            className="secondary-button px-4 py-2 text-sm"
+          >
             <ArrowLeft className="size-4" />
             Dashboard
           </Link>
           {deal ? (
-            <Link href={`/deal/${deal.id}`} className="secondary-button px-4 py-2 text-sm">
+            <Link
+              href={`/deal/${deal.id}`}
+              className="secondary-button px-4 py-2 text-sm"
+            >
               Open Deal
             </Link>
           ) : null}
@@ -70,7 +84,10 @@ export default function ProofPage() {
                 onChange={(event) => setLookup(event.target.value)}
                 placeholder="Enter Deal ID"
               />
-              <button type="submit" className="primary-button px-4 py-2 text-sm">
+              <button
+                type="submit"
+                className="primary-button px-4 py-2 text-sm"
+              >
                 <Search className="size-4" />
                 Verify
               </button>
@@ -80,7 +97,9 @@ export default function ProofPage() {
 
         {!deal ? (
           <article className="mt-6 glass-panel rounded-3xl p-6 text-center">
-            <h2 className="text-2xl font-black text-[#010b13]">No public proof found</h2>
+            <h2 className="text-2xl font-black text-[#010b13]">
+              No public proof found
+            </h2>
             <p className="mt-3 text-[#53606a]">
               Try one of the seeded demo IDs: SP-1001, SP-1002, or SP-1003.
             </p>
@@ -93,14 +112,18 @@ export default function ProofPage() {
                   <p className="text-xs font-black uppercase tracking-normal text-[#00677f]">
                     Deal ID
                   </p>
-                  <h2 className="mt-2 text-3xl font-black text-[#010b13]">{deal.id}</h2>
+                  <h2 className="mt-2 text-3xl font-black text-[#010b13]">
+                    {deal.id}
+                  </h2>
                 </div>
                 <StatusBadge status={deal.status} compact />
               </div>
 
               <div className="mt-6 space-y-3">
                 <div className="rounded-2xl border border-emerald-300/20 bg-emerald-300/[0.06] p-4">
-                  <p className="text-sm font-bold text-emerald-800">Amount locked</p>
+                  <p className="text-sm font-bold text-emerald-800">
+                    Amount locked
+                  </p>
                   <p className="mt-2 text-2xl font-black text-[#010b13]">
                     {formatAmount(deal.amount)}
                   </p>
@@ -159,7 +182,9 @@ export default function ProofPage() {
                     Latest transaction
                   </p>
                   <p className="mt-2 break-all font-mono text-sm text-[#101d25]">
-                    {latestTxHash ? formatWallet(latestTxHash) : "No transaction yet"}
+                    {latestTxHash
+                      ? formatWallet(latestTxHash)
+                      : "No transaction yet"}
                   </p>
                 </div>
               </div>
@@ -170,7 +195,8 @@ export default function ProofPage() {
                   Mock verification
                 </div>
                 <p className="mt-2 text-sm leading-6 text-[#43474b]">
-                  Every action below includes a fake transaction hash for demo proof.
+                  Every action below includes a fake transaction hash for demo
+                  proof.
                 </p>
               </div>
 
@@ -182,7 +208,9 @@ export default function ProofPage() {
                 <div className="mt-3 space-y-2 text-sm leading-6 text-[#43474b]">
                   <p>
                     AI risk score:{" "}
-                    <span className="font-black text-[#010b13]">{deal.risk.score}/100</span>
+                    <span className="font-black text-[#010b13]">
+                      {deal.risk.score}/100
+                    </span>
                   </p>
                   <p>
                     AI proof review:{" "}
@@ -201,7 +229,8 @@ export default function ProofPage() {
                       <p>
                         AI verdict:{" "}
                         <span className="font-black text-[#010b13]">
-                          {deal.aiProofReview.verdict ?? deal.aiProofReview.status}
+                          {deal.aiProofReview.verdict ??
+                            deal.aiProofReview.status}
                         </span>
                       </p>
                       {deal.aiProofReview.summary ? (
@@ -217,7 +246,9 @@ export default function ProofPage() {
                   {deal.aiDisputeSummary ? (
                     <p>
                       Dispute summary:{" "}
-                      <span className="font-semibold">{deal.aiDisputeSummary}</span>
+                      <span className="font-semibold">
+                        {deal.aiDisputeSummary}
+                      </span>
                     </p>
                   ) : null}
                 </div>

@@ -14,7 +14,10 @@ function getGatewayUrl(cid: string) {
 }
 
 function createMockCid(fileName: string) {
-  const safeName = fileName.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 12);
+  const safeName = fileName
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "")
+    .slice(0, 12);
   const suffix = Array.from({ length: 18 }, () =>
     Math.floor(Math.random() * 16).toString(16),
   ).join("");
@@ -27,7 +30,10 @@ export async function POST(request: Request) {
   const file = formData.get("file");
 
   if (!(file instanceof File)) {
-    return NextResponse.json({ error: "Proof file is required." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Proof file is required." },
+      { status: 400 },
+    );
   }
 
   const pinataJwt = process.env.PINATA_JWT;

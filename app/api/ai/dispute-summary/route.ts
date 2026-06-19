@@ -23,7 +23,9 @@ function parseJsonObject(content: string) {
   return JSON.parse(jsonText) as Partial<DisputeSummaryResponse>;
 }
 
-function normalizeSummary(summary: Partial<DisputeSummaryResponse>): DisputeSummaryResponse {
+function normalizeSummary(
+  summary: Partial<DisputeSummaryResponse>,
+): DisputeSummaryResponse {
   return {
     title: "AI Dispute Summary",
     summary:
@@ -31,7 +33,8 @@ function normalizeSummary(summary: Partial<DisputeSummaryResponse>): DisputeSumm
         ? summary.summary.trim()
         : "A dispute was raised and should be reviewed by a human admin/judge.",
     recommendation:
-      typeof summary.recommendation === "string" && summary.recommendation.trim()
+      typeof summary.recommendation === "string" &&
+      summary.recommendation.trim()
         ? summary.recommendation.trim()
         : "Compare deal requirements, submitted proof, and timeline before making a final decision.",
   };
@@ -57,7 +60,12 @@ export async function POST(request: Request) {
     evidence?: string;
     proofCid?: string;
     proofUrl?: string;
-    timeline?: Array<{ title: string; status: string; actor: string; timestamp: string }>;
+    timeline?: Array<{
+      title: string;
+      status: string;
+      actor: string;
+      timestamp: string;
+    }>;
   };
 
   const response = await fetch(groqChatUrl, {

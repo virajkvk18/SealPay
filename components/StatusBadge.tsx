@@ -7,7 +7,11 @@ interface StatusBadgeProps {
   compact?: boolean;
 }
 
-export default function StatusBadge({ status, risk, compact = false }: StatusBadgeProps) {
+export default function StatusBadge({
+  status,
+  risk,
+  compact = false,
+}: StatusBadgeProps) {
   const label = status ?? risk;
   const tone = status ? statusTone(status) : risk ? riskTone(risk) : "";
 

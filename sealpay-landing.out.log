@@ -1,0 +1,14 @@
+
+> sealpay@0.1.0 dev
+> next dev --hostname 127.0.0.1
+
+▲ Next.js 16.2.9 (Turbopack)
+- Local:         http://127.0.0.1:3000
+- Network:       http://127.0.0.1:3000
+✓ Ready in 929ms
+
+ GET / 200 in 2.4s (next.js: 1698ms, proxy.ts: 9ms, application-code: 645ms)
+ GET / 200 in 3.9s (next.js: 2.9s, proxy.ts: 133ms, application-code: 800ms)
+ GET / 200 in 222ms (next.js: 12ms, proxy.ts: 13ms, application-code: 196ms)
+ GET / 200 in 136ms (next.js: 7ms, proxy.ts: 7ms, application-code: 122ms)
+[?25h

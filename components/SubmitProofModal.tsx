@@ -19,7 +19,9 @@ export interface ProofFormValues {
 function normalizePreviewUrl(value: string) {
   try {
     const url = new URL(value.trim());
-    return url.protocol === "https:" || url.protocol === "http:" ? url.toString() : "";
+    return url.protocol === "https:" || url.protocol === "http:"
+      ? url.toString()
+      : "";
   } catch {
     return "";
   }
@@ -50,7 +52,9 @@ export default function SubmitProofModal({
   defaultDeliverableType,
   dealId,
 }: SubmitProofModalProps) {
-  const [form, setForm] = useState(() => makeEmptyProof(defaultDeliverableType));
+  const [form, setForm] = useState(() =>
+    makeEmptyProof(defaultDeliverableType),
+  );
   const [formError, setFormError] = useState("");
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -101,7 +105,9 @@ export default function SubmitProofModal({
     }
 
     if (!proofFile) {
-      setFormError("Attach the final proof file so SealPay can create a proof CID.");
+      setFormError(
+        "Attach the final proof file so SealPay can create a proof CID.",
+      );
       return;
     }
 
@@ -110,7 +116,9 @@ export default function SubmitProofModal({
     try {
       upload = await uploadProofFile(proofFile);
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "Proof upload failed.");
+      setFormError(
+        error instanceof Error ? error.message : "Proof upload failed.",
+      );
       setUploading(false);
       return;
     }
@@ -128,7 +136,9 @@ export default function SubmitProofModal({
         storageProvider: upload.provider,
       });
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "Proof save failed.");
+      setFormError(
+        error instanceof Error ? error.message : "Proof save failed.",
+      );
       setUploading(false);
       return;
     }
@@ -151,9 +161,12 @@ export default function SubmitProofModal({
               <FileUp className="size-5" />
             </span>
             <div>
-              <h2 className="text-2xl font-black text-[#010b13]">Submit work proof</h2>
+              <h2 className="text-2xl font-black text-[#010b13]">
+                Submit work proof
+              </h2>
               <p className="text-sm text-[#53606a]">
-                Share a protected preview and keep the final file locked until release.
+                Share a protected preview and keep the final file locked until
+                release.
               </p>
             </div>
           </div>
@@ -169,7 +182,9 @@ export default function SubmitProofModal({
 
         <div className="mt-6 grid gap-4">
           <label>
-            <span className="mb-2 block text-sm font-bold text-[#43474b]">Work title</span>
+            <span className="mb-2 block text-sm font-bold text-[#43474b]">
+              Work title
+            </span>
             <input
               required
               className="input-field"
@@ -203,7 +218,9 @@ export default function SubmitProofModal({
               inputMode="url"
               className="input-field"
               value={form.previewUrl}
-              onChange={(event) => updateField("previewUrl", event.target.value)}
+              onChange={(event) =>
+                updateField("previewUrl", event.target.value)
+              }
               placeholder="https://preview.example.com/watermarked-sample"
             />
           </label>
@@ -221,7 +238,9 @@ export default function SubmitProofModal({
               required
               className="input-field"
               value={form.finalFileName}
-              onChange={(event) => updateField("finalFileName", event.target.value)}
+              onChange={(event) =>
+                updateField("finalFileName", event.target.value)
+              }
               placeholder="final-deliverable.zip"
             />
           </label>
@@ -234,7 +253,9 @@ export default function SubmitProofModal({
               required
               type="file"
               className="input-field"
-              onChange={(event) => setProofFile(event.target.files?.[0] ?? null)}
+              onChange={(event) =>
+                setProofFile(event.target.files?.[0] ?? null)
+              }
             />
             {proofFile ? (
               <p className="mt-2 text-xs font-bold text-[#53606a]">
@@ -251,7 +272,10 @@ export default function SubmitProofModal({
               className="input-field"
               value={form.deliverableType}
               onChange={(event) =>
-                updateField("deliverableType", event.target.value as DeliverableType)
+                updateField(
+                  "deliverableType",
+                  event.target.value as DeliverableType,
+                )
               }
             >
               {deliverableTypes.map((type) => (

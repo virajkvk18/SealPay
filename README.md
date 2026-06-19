@@ -1,7 +1,7 @@
 # SealPay
 
 <p align="center">
-  <img src="public/sealpay-logo.png" width="110" alt="SealPay logo" />
+  <img src="public/sealpay-mark.png" width="110" alt="SealPay logo" />
 </p>
 
 <h1 align="center">Seal Pay</h1>
@@ -24,27 +24,27 @@
 
 Freelance work often breaks down at the same trust point:
 
-| Client Risk | Freelancer Risk |
-| --- | --- |
-| Paying before seeing enough proof | Sending full work before payment release |
-| Weak dispute evidence | Late payments or non-payment |
-| No shared proof history | Proof being copied, downloaded, or misused |
+| Client Risk                       | Freelancer Risk                            |
+| --------------------------------- | ------------------------------------------ |
+| Paying before seeing enough proof | Sending full work before payment release   |
+| Weak dispute evidence             | Late payments or non-payment               |
+| No shared proof history           | Proof being copied, downloaded, or misused |
 
 SealPay turns this trust gap into a visible escrow workflow.
 
 ## What SealPay Does
 
-| Module | What It Does | Why It Matters |
-| --- | --- | --- |
-| Landing Page | Explains the product and routes users into the MVP | Gives the demo a polished first impression |
-| Dashboard | Shows locked value, invoices, activity, roles, and reputation | Makes the escrow workspace easy to present |
-| Create Invoice | Lets a client define the work, wallets, amount, deadline, and deliverable type | Starts a structured escrow agreement |
-| Deal Vault | Shows deal details, escrow status, risk, proof, disputes, and actions | Central place for payment and proof decisions |
-| Deliverable Lock | Shows only watermarked/partial previews before release | Reduces misuse of freelancer work |
-| Pinata/IPFS Proof Upload | Pins submitted proof files and stores the returned CID | Makes work proof portable beyond the UI |
-| Public Proof Explorer | Shows a blockchain-style timeline with hashes | Makes the flow verifiable and shareable |
-| Reputation Page | Summarizes completed work, disputes, and trust signals | Adds accountability beyond one transaction |
-| Solidity Contract | Documents the future on-chain escrow extension | Shows a realistic path from MVP to testnet |
+| Module                   | What It Does                                                                   | Why It Matters                                |
+| ------------------------ | ------------------------------------------------------------------------------ | --------------------------------------------- |
+| Landing Page             | Explains the product and routes users into the MVP                             | Gives the demo a polished first impression    |
+| Dashboard                | Shows locked value, invoices, activity, roles, and reputation                  | Makes the escrow workspace easy to present    |
+| Create Invoice           | Lets a client define the work, wallets, amount, deadline, and deliverable type | Starts a structured escrow agreement          |
+| Deal Vault               | Shows deal details, escrow status, risk, proof, disputes, and actions          | Central place for payment and proof decisions |
+| Deliverable Lock         | Shows only watermarked/partial previews before release                         | Reduces misuse of freelancer work             |
+| Pinata/IPFS Proof Upload | Pins submitted proof files and stores the returned CID                         | Makes work proof portable beyond the UI       |
+| Public Proof Explorer    | Shows a blockchain-style timeline with hashes                                  | Makes the flow verifiable and shareable       |
+| Reputation Page          | Summarizes completed work, disputes, and trust signals                         | Adds accountability beyond one transaction    |
+| Solidity Contract        | Documents the future on-chain escrow extension                                 | Shows a realistic path from MVP to testnet    |
 
 ## Core Flow
 
@@ -88,13 +88,13 @@ Important limitation: no platform can fully prevent screenshots. SealPay reduces
 
 SealPay uses server-side Groq API routes for real AI proof review and dispute summaries. `GROQ_API_KEY` must stay server-side and must never be exposed with a `NEXT_PUBLIC_` prefix.
 
-| Route / Function | Purpose |
-| --- | --- |
-| `POST /api/ai/proof-review` | Sends deal and proof metadata to Groq and returns score, verdict, reasons, issues, and summary |
-| `POST /api/ai/dispute-summary` | Sends dispute evidence and proof CID to Groq and returns an admin/judge summary |
-| `calculateRiskScore()` | Scores deal risk using amount, deadline, scope detail, and wallet familiarity |
-| `suggestMilestones()` | Suggests single-release or milestone payment structure |
-| `generateSealTrustScore()` | Creates a wallet-level trust score from deal history |
+| Route / Function               | Purpose                                                                                        |
+| ------------------------------ | ---------------------------------------------------------------------------------------------- |
+| `POST /api/ai/proof-review`    | Sends deal and proof metadata to Groq and returns score, verdict, reasons, issues, and summary |
+| `POST /api/ai/dispute-summary` | Sends dispute evidence and proof CID to Groq and returns an admin/judge summary                |
+| `calculateRiskScore()`         | Scores deal risk using amount, deadline, scope detail, and wallet familiarity                  |
+| `suggestMilestones()`          | Suggests single-release or milestone payment structure                                         |
+| `generateSealTrustScore()`     | Creates a wallet-level trust score from deal history                                           |
 
 AI is only an assistant. Final approval and dispute decisions stay with a human client or admin/judge.
 
@@ -159,36 +159,36 @@ with check (true);
 
 ## Pages Included
 
-| Route | Purpose |
-| --- | --- |
-| `/` | Polished product landing page |
-| `/dashboard` | Escrow workspace and invoice ledger |
-| `/create-deal` | Create a new invoice/deal |
-| `/deal/[id]` | Deal vault, escrow actions, deliverable lock, disputes |
-| `/proof/[id]` | Public proof explorer for a deal timeline |
-| `/reputation` | Wallet and workspace reputation view |
+| Route          | Purpose                                                |
+| -------------- | ------------------------------------------------------ |
+| `/`            | Polished product landing page                          |
+| `/dashboard`   | Escrow workspace and invoice ledger                    |
+| `/create-deal` | Create a new invoice/deal                              |
+| `/deal/[id]`   | Deal vault, escrow actions, deliverable lock, disputes |
+| `/proof/[id]`  | Public proof explorer for a deal timeline              |
+| `/reputation`  | Wallet and workspace reputation view                   |
 
 Seeded demo routes:
 
-| Route | Demo State |
-| --- | --- |
-| `/deal/SP-1001` | Payment locked sample |
-| `/deal/SP-1002` | Work submitted sample |
-| `/deal/SP-1003` | Disputed sample |
+| Route            | Demo State                   |
+| ---------------- | ---------------------------- |
+| `/deal/SP-1001`  | Payment locked sample        |
+| `/deal/SP-1002`  | Work submitted sample        |
+| `/deal/SP-1003`  | Disputed sample              |
 | `/proof/SP-1001` | Public proof explorer sample |
 
 ## Why This MVP Is Feasible
 
 SealPay is feasible for a hackathon because the demo focuses on the core trust workflow instead of trying to build a full financial institution on day one.
 
-| MVP Decision | Why It Works |
-| --- | --- |
-| LocalStorage mock store | Fast to demo without backend setup |
-| Mock wallet connection | Shows wallet-based UX without requiring every judge to connect MetaMask |
-| Mock transaction hashes | Demonstrates proof trail behavior before testnet deployment |
-| Deterministic AI helper logic | Reliable, free, and demo-ready without paid APIs |
-| Solidity contract included | Gives a clear path to real testnet escrow |
-| Deliverable Lock UI | Demonstrates a real freelancer pain point with low technical overhead |
+| MVP Decision                  | Why It Works                                                            |
+| ----------------------------- | ----------------------------------------------------------------------- |
+| LocalStorage mock store       | Fast to demo without backend setup                                      |
+| Mock wallet connection        | Shows wallet-based UX without requiring every judge to connect MetaMask |
+| Mock transaction hashes       | Demonstrates proof trail behavior before testnet deployment             |
+| Deterministic AI helper logic | Reliable, free, and demo-ready without paid APIs                        |
+| Solidity contract included    | Gives a clear path to real testnet escrow                               |
+| Deliverable Lock UI           | Demonstrates a real freelancer pain point with low technical overhead   |
 
 ## Production Path
 
@@ -210,15 +210,15 @@ To move from MVP to production, SealPay would need real auth, a backend database
 
 ## Tech Stack
 
-| Layer | Technology |
-| --- | --- |
-| App Framework | Next.js App Router |
-| Language | TypeScript |
-| UI | Tailwind CSS, Lucide icons |
-| State | LocalStorage mock store |
-| AI Logic | Server-side Groq API routes |
-| Proof Storage | Pinata API route with mock-CID fallback |
-| Web3 Contract | Solidity escrow contract |
+| Layer                | Technology                                    |
+| -------------------- | --------------------------------------------- |
+| App Framework        | Next.js App Router                            |
+| Language             | TypeScript                                    |
+| UI                   | Tailwind CSS, Lucide icons                    |
+| State                | LocalStorage mock store                       |
+| AI Logic             | Server-side Groq API routes                   |
+| Proof Storage        | Pinata API route with mock-CID fallback       |
+| Web3 Contract        | Solidity escrow contract                      |
 | Deployment Hardening | Next proxy security headers and rate limiting |
 
 ## Project Structure
@@ -337,13 +337,13 @@ Before using SealPay with real users, add server-side authentication and enforce
 
 `contracts/SealPayEscrow.sol` is included for Polygon Amoy/Sepolia testnet extension. It supports:
 
-| Contract Function | Purpose |
-| --- | --- |
-| `createDeal(address freelancer) payable` | Client creates an escrow deal and locks funds |
-| `submitWork(uint256 dealId, string memory proofHash)` | Freelancer submits proof hash |
-| `approveWork(uint256 dealId)` | Client approves work and releases funds |
-| `raiseDispute(uint256 dealId, string memory reason)` | Client or freelancer raises a dispute |
-| `resolveDispute(uint256 dealId, bool releaseToFreelancer)` | Admin resolves the dispute |
+| Contract Function                                          | Purpose                                       |
+| ---------------------------------------------------------- | --------------------------------------------- |
+| `createDeal(address freelancer) payable`                   | Client creates an escrow deal and locks funds |
+| `submitWork(uint256 dealId, string memory proofHash)`      | Freelancer submits proof hash                 |
+| `approveWork(uint256 dealId)`                              | Client approves work and releases funds       |
+| `raiseDispute(uint256 dealId, string memory reason)`       | Client or freelancer raises a dispute         |
+| `resolveDispute(uint256 dealId, bool releaseToFreelancer)` | Admin resolves the dispute                    |
 
 ## What Is Intentionally Not Included Yet
 

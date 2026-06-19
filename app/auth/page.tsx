@@ -2,217 +2,178 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, CheckCircle2, ShieldCheck, Wallet } from "lucide-react";
-import { saveWalletProfile, type Web3Role } from "@/lib/profiles";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  ExternalLink,
+  Network,
+  ShieldCheck,
+  Wallet,
+} from "lucide-react";
 import { formatWallet } from "@/lib/utils";
+import { useWallet } from "@/lib/wallet";
 
-const walletKey = "sealpay-wallet-v1";
-const walletChangedEvent = "sealpay-wallet-change";
+const identityRules = [
+  "No email, password, OTP, or centralized account",
+  "Your connected address is your only identity",
+  "Your role is derived from each escrow deal",
+  "Every value-moving action requires a wallet signature",
+];
 
-function makeMockWallet() {
-  return `0x${Array.from({ length: 40 }, () =>
-    Math.floor(Math.random() * 16).toString(16),
-  ).join("")}`;
-}
-
-export default function AuthPage() {
-  const router = useRouter();
-  const [wallet, setWallet] = useState("");
-  const [role, setRole] = useState<Web3Role>("Client");
-  const [form, setForm] = useState({
-    name: "",
-    skills: "",
-  });
-  const [status, setStatus] = useState("");
-  const [error, setError] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-
-  function connectMockWallet() {
-    const nextWallet = makeMockWallet();
-    setWallet(nextWallet);
-    window.localStorage.setItem(walletKey, nextWallet);
-    window.dispatchEvent(new Event(walletChangedEvent));
-    setStatus("Mock wallet connected. Choose your role to finish onboarding.");
-    setError("");
-  }
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!wallet) {
-      setError("Connect a wallet before saving your profile.");
-      return;
-    }
-
-    setSubmitting(true);
-    setStatus("");
-    setError("");
-
-    try {
-      await saveWalletProfile({
-        wallet,
-        name: form.name.trim(),
-        role,
-        skills: role === "Freelancer" ? form.skills.trim() : undefined,
-      });
-      setStatus("Wallet profile saved. Redirecting to dashboard...");
-      window.setTimeout(() => router.push("/dashboard"), 700);
-    } catch (caughtError) {
-      setError(caughtError instanceof Error ? caughtError.message : "Profile save failed.");
-    } finally {
-      setSubmitting(false);
-    }
-  }
+export default function WalletOnboardingPage() {
+  const {
+    address,
+    chainId,
+    error,
+    isAmoy,
+    isConnecting,
+    connect,
+    switchToAmoy,
+  } = useWallet();
 
   return (
-    <main className="page-shell grid-bg min-h-screen text-[#191c1e]">
-      <header className="border-b border-[#d8dadc]/70 bg-white/78 backdrop-blur-xl">
-        <nav className="mx-auto flex h-[68px] max-w-[1280px] items-center justify-between px-6">
+    <main className="web3-shell protocol-grid relative overflow-hidden">
+      <header className="relative z-10 border-b border-cyan-100/10 bg-black/15 backdrop-blur-2xl">
+        <nav className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8">
           <Link href="/" className="flex items-center gap-3">
             <Image
-              src="/sealpay-logo.png"
+              src="/sealpay-mark.png"
               alt="SealPay logo"
-              width={44}
-              height={44}
-              className="size-11 rounded-2xl object-cover shadow-lg shadow-cyan-900/10"
+              width={48}
+              height={48}
+              className="size-12 object-contain drop-shadow-[0_10px_24px_rgba(139,92,246,0.28)]"
               priority
             />
-            <span className="brand-font text-[25px] font-black leading-none tracking-normal text-black">
-              SealPay
-            </span>
           </Link>
-          <Link href="/" className="secondary-button px-4 py-2 text-sm">
+          <Link
+            href="/"
+            className="secondary-button border-white/15 bg-white/5 px-4 py-2 text-sm text-white"
+          >
             <ArrowLeft className="size-4" />
-            Back
+            Back home
           </Link>
         </nav>
       </header>
 
-      <section className="mx-auto grid max-w-6xl gap-8 px-6 py-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
-        <div className="pt-4">
-          <div className="inline-flex items-center gap-2 rounded-full bg-[#b6ebff] px-4 py-1.5 text-xs font-bold text-[#001f28]">
+      <section className="relative z-10 mx-auto grid max-w-7xl gap-10 px-5 py-12 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:py-20">
+        <div>
+          <div className="chain-chip inline-flex">
             <ShieldCheck className="size-3.5" />
-            Pure Web3 Identity
+            Wallet-native access
           </div>
-          <h1 className="brand-font mt-7 max-w-xl text-[42px] font-black leading-[1.08] text-black sm:text-[50px]">
-            Your wallet is your SealPay identity.
+          <h1 className="brand-font mt-7 max-w-xl text-4xl font-black leading-tight text-white sm:text-5xl lg:text-6xl">
+            One wallet. No account.{" "}
+            <span className="gradient-text">Pure Web3 identity.</span>
           </h1>
-          <p className="mt-6 max-w-lg text-[15px] leading-7 text-[#43474b]">
-            SealPay does not depend on centralized login. Connect a wallet, choose your
-            role, and Supabase only stores application state.
+          <p className="mt-6 max-w-xl text-base leading-7 text-slate-300">
+            SealPay determines whether you are a client, freelancer, arbitrator,
+            or public viewer from the connected address and the escrow contract
+            itself.
           </p>
+
           <div className="mt-8 grid gap-3">
-            {[
-              "No passwords or auth provider.",
-              "Wallet address becomes the user identity.",
-              "Supabase stores only profiles, deals, proofs, and timeline data.",
-            ].map((item) => (
-              <p key={item} className="flex items-center gap-3 text-sm font-bold text-[#43474b]">
-                <CheckCircle2 className="size-4 text-emerald-700" />
-                {item}
+            {identityRules.map((rule) => (
+              <p
+                key={rule}
+                className="flex items-start gap-3 text-sm font-semibold text-slate-300"
+              >
+                <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-cyan-300" />
+                {rule}
               </p>
             ))}
           </div>
         </div>
 
-        <section className="glass-panel rounded-[32px] p-6 shadow-2xl shadow-[#101d25]/10">
-          <div className="rounded-3xl bg-[#010b13] p-6 text-white">
-            <p className="text-sm font-black uppercase tracking-normal text-cyan-100">
-              Step 1
-            </p>
-            <h2 className="brand-font mt-2 text-3xl font-black">Connect wallet</h2>
-            <p className="mt-3 text-sm leading-6 text-white/70">
-              MetaMask will be integrated later. This button creates a demo wallet address
-              and stores it locally for the current MVP flow.
-            </p>
-            <button type="button" onClick={connectMockWallet} className="primary-button mt-5">
-              <Wallet className="size-4" />
-              {wallet ? "Reconnect Mock Wallet" : "Connect Mock Wallet"}
-            </button>
+        <section className="glass-panel-dark rounded-[2rem] p-5 sm:p-8">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">
+                Access protocol
+              </p>
+              <h2 className="brand-font mt-3 text-3xl font-black text-white">
+                Connect your wallet
+              </h2>
+            </div>
+            <span className="grid size-12 place-items-center rounded-2xl bg-cyan-300/10 text-cyan-200 ring-1 ring-cyan-200/15">
+              <Wallet className="size-5" />
+            </span>
           </div>
 
-          {wallet ? (
-            <div className="mt-5 rounded-2xl border border-cyan-300/25 bg-cyan-50 p-4">
-              <p className="text-sm font-black text-[#00566a]">Connected wallet</p>
-              <p className="mt-2 break-all font-mono text-sm font-bold text-[#010b13]">
-                {wallet}
-              </p>
-              <p className="mt-2 text-xs font-bold text-[#53606a]">
-                Display: {formatWallet(wallet)}
-              </p>
+          <div className="mt-8 rounded-3xl border border-cyan-100/10 bg-black/25 p-5">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span
+                  className={`size-2.5 rounded-full ${address ? "bg-emerald-400 shadow-[0_0_18px_rgba(52,211,153,0.8)]" : "bg-slate-500"}`}
+                />
+                <div>
+                  <p className="text-sm font-black text-white">
+                    {address ? "Wallet connected" : "No wallet connected"}
+                  </p>
+                  <p className="mt-1 font-mono text-xs text-slate-400">
+                    {address ? formatWallet(address) : "0x..."}
+                  </p>
+                </div>
+              </div>
+              {address ? (
+                <span className="chain-chip inline-flex">
+                  Chain {parseInt(chainId, 16)}
+                </span>
+              ) : null}
             </div>
+          </div>
+
+          {error ? (
+            <p className="mt-4 rounded-2xl border border-rose-300/20 bg-rose-400/10 p-4 text-sm font-semibold text-rose-100">
+              {error}
+            </p>
           ) : null}
 
-          <form onSubmit={handleSubmit} className="mt-6 grid gap-4">
-            <div>
-              <p className="text-sm font-black uppercase tracking-normal text-[#00677f]">
-                First time?
-              </p>
-              <div className="mt-3 grid grid-cols-2 gap-3">
-                {(["Client", "Freelancer"] as Web3Role[]).map((nextRole) => (
-                  <button
-                    key={nextRole}
-                    type="button"
-                    onClick={() => setRole(nextRole)}
-                    className={`rounded-2xl border px-4 py-3 text-left text-sm font-black transition ${
-                      role === nextRole
-                        ? "border-black bg-black text-white"
-                        : "border-[#101d25]/10 bg-white/70 text-[#43474b]"
-                    }`}
-                  >
-                    I&apos;m a {nextRole}
-                  </button>
-                ))}
-              </div>
-            </div>
+          <div className="mt-6 grid gap-3">
+            {!address ? (
+              <button
+                type="button"
+                onClick={connect}
+                disabled={isConnecting}
+                className="primary-button min-h-13 w-full"
+              >
+                <Wallet className="size-4" />
+                {isConnecting ? "Requesting wallet..." : "Connect MetaMask"}
+              </button>
+            ) : !isAmoy ? (
+              <button
+                type="button"
+                onClick={switchToAmoy}
+                className="primary-button min-h-13 w-full"
+              >
+                <Network className="size-4" />
+                Switch to Polygon Amoy
+              </button>
+            ) : (
+              <Link
+                href="/dashboard"
+                className="primary-button min-h-13 w-full"
+              >
+                Enter dashboard
+                <ArrowRight className="size-4" />
+              </Link>
+            )}
 
-            <label>
-              <span className="mb-2 block text-sm font-bold text-[#43474b]">Name</span>
-              <input
-                required
-                className="input-field"
-                value={form.name}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, name: event.target.value }))
-                }
-                placeholder={role === "Client" ? "Aarav Mehta" : "Aanya Studio"}
-              />
-            </label>
+            <a
+              href="https://amoy.polygonscan.com"
+              target="_blank"
+              rel="noreferrer"
+              className="secondary-button min-h-12 border-white/10 bg-white/5 text-sm text-slate-200"
+            >
+              View Amoy explorer
+              <ExternalLink className="size-4" />
+            </a>
+          </div>
 
-            {role === "Freelancer" ? (
-              <label>
-                <span className="mb-2 block text-sm font-bold text-[#43474b]">
-                  Skills
-                </span>
-                <input
-                  required
-                  className="input-field"
-                  value={form.skills}
-                  onChange={(event) =>
-                    setForm((current) => ({ ...current, skills: event.target.value }))
-                  }
-                  placeholder="Logo design, thumbnails, landing pages"
-                />
-              </label>
-            ) : null}
-
-            {status ? (
-              <p className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-bold text-emerald-800">
-                {status}
-              </p>
-            ) : null}
-            {error ? (
-              <p className="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm font-bold text-red-700">
-                {error}
-              </p>
-            ) : null}
-
-            <button type="submit" disabled={submitting || !wallet} className="primary-button w-full">
-              {submitting ? "Saving Profile..." : "Continue to Dashboard"}
-              <ArrowRight className="size-4" />
-            </button>
-          </form>
+          <p className="mt-6 text-center text-xs leading-5 text-slate-500">
+            Connecting is free. SealPay requests a signature only when you
+            perform an on-chain action.
+          </p>
         </section>
       </section>
     </main>

@@ -81,7 +81,8 @@ function normalizeStoredDeal(deal: Deal): Deal {
     deal.proof?.finalFileName ??
     deal.proof?.fileName ??
     seedDeal?.finalFileName;
-  const previewUrl = deal.previewUrl ?? deal.proof?.previewUrl ?? seedDeal?.previewUrl;
+  const previewUrl =
+    deal.previewUrl ?? deal.proof?.previewUrl ?? seedDeal?.previewUrl;
 
   return {
     ...deal,
@@ -91,7 +92,10 @@ function normalizeStoredDeal(deal: Deal): Deal {
       ? {
           ...deal.proof,
           finalFileName:
-            deal.proof.finalFileName ?? deal.proof.fileName ?? finalFileName ?? "final-deliverable.zip",
+            deal.proof.finalFileName ??
+            deal.proof.fileName ??
+            finalFileName ??
+            "final-deliverable.zip",
           deliverableType: deal.proof.deliverableType ?? deal.deliverableType,
         }
       : undefined,
@@ -99,7 +103,10 @@ function normalizeStoredDeal(deal: Deal): Deal {
     aiDisputeSummary: deal.aiDisputeSummary ?? seedDeal?.aiDisputeSummary,
     timeline: deal.timeline.map((event) => ({
       ...event,
-      description: event.description.replaceAll(legacyCurrencyLabel, "test MATIC"),
+      description: event.description.replaceAll(
+        legacyCurrencyLabel,
+        "test MATIC",
+      ),
     })),
   };
 }
@@ -123,13 +130,20 @@ export function useSealPay() {
     getRoleSnapshot,
     getServerRoleSnapshot,
   );
-  const deals = useMemo(() => parseDealsSnapshot(dealsSnapshot), [dealsSnapshot]);
+  const deals = useMemo(
+    () => parseDealsSnapshot(dealsSnapshot),
+    [dealsSnapshot],
+  );
 
-  const persistDeals = useCallback((updater: Deal[] | ((currentDeals: Deal[]) => Deal[])) => {
-    const currentDeals = readDeals();
-    const nextDeals = typeof updater === "function" ? updater(currentDeals) : updater;
-    writeDeals(nextDeals);
-  }, []);
+  const persistDeals = useCallback(
+    (updater: Deal[] | ((currentDeals: Deal[]) => Deal[])) => {
+      const currentDeals = readDeals();
+      const nextDeals =
+        typeof updater === "function" ? updater(currentDeals) : updater;
+      writeDeals(nextDeals);
+    },
+    [],
+  );
 
   const addDeal = useCallback(
     (deal: Deal) => {
@@ -159,15 +173,21 @@ export function useSealPay() {
     return deals.reduce(
       (stats, deal) => {
         stats.total += 1;
-        stats.lockedAmount += ["Payment Locked", "Work Submitted", "Disputed"].includes(
-          deal.status,
-        )
+        stats.lockedAmount += [
+          "Payment Locked",
+          "Work Submitted",
+          "Disputed",
+        ].includes(deal.status)
           ? deal.amount
           : 0;
-        if (["Created", "Payment Locked", "Work Submitted"].includes(deal.status)) {
+        if (
+          ["Created", "Payment Locked", "Work Submitted"].includes(deal.status)
+        ) {
           stats.active += 1;
         }
-        if (["Approved", "Payment Released", "Resolved"].includes(deal.status)) {
+        if (
+          ["Approved", "Payment Released", "Resolved"].includes(deal.status)
+        ) {
           stats.completed += 1;
         }
         if (deal.status === "Disputed") stats.disputed += 1;

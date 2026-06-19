@@ -9,7 +9,10 @@ interface GroqChatResponse {
 }
 
 interface ProofReviewResponse {
-  status: "Proof looks valid" | "Proof may be incomplete" | "Proof mismatch detected";
+  status:
+    | "Proof looks valid"
+    | "Proof may be incomplete"
+    | "Proof mismatch detected";
   score: number;
   verdict: "Looks valid" | "Needs manual review";
   issues: string[];
@@ -26,8 +29,13 @@ function parseJsonObject(content: string) {
   return JSON.parse(jsonText) as Partial<ProofReviewResponse>;
 }
 
-function normalizeReview(review: Partial<ProofReviewResponse>): ProofReviewResponse {
-  const score = Math.min(100, Math.max(0, Math.round(Number(review.score) || 0)));
+function normalizeReview(
+  review: Partial<ProofReviewResponse>,
+): ProofReviewResponse {
+  const score = Math.min(
+    100,
+    Math.max(0, Math.round(Number(review.score) || 0)),
+  );
   const status =
     review.status === "Proof looks valid" ||
     review.status === "Proof may be incomplete" ||
@@ -42,7 +50,8 @@ function normalizeReview(review: Partial<ProofReviewResponse>): ProofReviewRespo
   return {
     status,
     score,
-    verdict: review.verdict === "Looks valid" ? "Looks valid" : "Needs manual review",
+    verdict:
+      review.verdict === "Looks valid" ? "Looks valid" : "Needs manual review",
     issues: Array.isArray(review.issues) ? review.issues.slice(0, 5) : [],
     summary:
       typeof review.summary === "string" && review.summary.trim()

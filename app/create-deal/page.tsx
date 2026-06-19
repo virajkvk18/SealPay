@@ -14,7 +14,8 @@ export default function CreateDealPage() {
             Create New Invoice
           </h1>
           <p className="mt-4 max-w-3xl text-base leading-7 text-[#43474b]">
-            Deploy an immutable payment request secured by the SealPay escrow vault.
+            Deploy an immutable payment request secured by the SealPay escrow
+            vault.
           </p>
         </div>
 

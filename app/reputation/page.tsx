@@ -48,7 +48,10 @@ export default function ReputationPage() {
   const completedDeals = deals.filter((deal) =>
     ["Payment Released", "Resolved", "Approved"].includes(deal.status),
   );
-  const score = Math.min(98, 84 + completedDeals.length * 3 - totals.disputed * 2);
+  const score = Math.min(
+    98,
+    84 + completedDeals.length * 3 - totals.disputed * 2,
+  );
   const lockedVolume = deals.reduce((sum, deal) => sum + deal.amount, 0);
   const latestProofs = deals
     .flatMap((deal) =>
@@ -59,7 +62,10 @@ export default function ReputationPage() {
         wallet: deal.freelancerWallet,
       })),
     )
-    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+    )
     .slice(0, 5);
 
   return (
@@ -77,8 +83,8 @@ export default function ReputationPage() {
               SealPay Reputation
             </h1>
             <p className="mt-4 max-w-3xl text-base leading-7 text-[#43474b]">
-              SealPay turns completed invoices, proof hashes, and dispute outcomes into a
-              transparent trust score.
+              SealPay turns completed invoices, proof hashes, and dispute
+              outcomes into a transparent trust score.
             </p>
           </div>
           <Link href="/create-deal" className="primary-button">
@@ -103,22 +109,32 @@ export default function ReputationPage() {
                 ))}
               </div>
               <p className="mt-4 text-sm leading-6 text-white/70">
-                Strong record across escrow creation, locked payments, proof storage, and
-                release decisions.
+                Strong record across escrow creation, locked payments, proof
+                storage, and release decisions.
               </p>
             </div>
 
             <div className="mt-5 grid gap-3">
               <div className="flex items-center justify-between rounded-2xl border border-[#101d25]/10 bg-white/60 p-4">
-                <span className="text-sm font-bold text-[#53606a]">Verified Workflows</span>
-                <span className="text-sm font-black text-[#010b13]">{totals.total}</span>
+                <span className="text-sm font-bold text-[#53606a]">
+                  Verified Workflows
+                </span>
+                <span className="text-sm font-black text-[#010b13]">
+                  {totals.total}
+                </span>
               </div>
               <div className="flex items-center justify-between rounded-2xl border border-[#101d25]/10 bg-white/60 p-4">
-                <span className="text-sm font-bold text-[#53606a]">Disputes Open</span>
-                <span className="text-sm font-black text-[#010b13]">{totals.disputed}</span>
+                <span className="text-sm font-bold text-[#53606a]">
+                  Disputes Open
+                </span>
+                <span className="text-sm font-black text-[#010b13]">
+                  {totals.disputed}
+                </span>
               </div>
               <div className="flex items-center justify-between rounded-2xl border border-[#101d25]/10 bg-white/60 p-4">
-                <span className="text-sm font-bold text-[#53606a]">Total Volume</span>
+                <span className="text-sm font-bold text-[#53606a]">
+                  Total Volume
+                </span>
                 <span className="text-sm font-black text-[#010b13]">
                   {formatAmount(lockedVolume)}
                 </span>
@@ -177,7 +193,9 @@ export default function ReputationPage() {
                   >
                     <div>
                       <p className="font-black text-[#010b13]">{event.title}</p>
-                      <p className="mt-1 text-sm text-[#53606a]">{event.dealTitle}</p>
+                      <p className="mt-1 text-sm text-[#53606a]">
+                        {event.dealTitle}
+                      </p>
                       <p className="mt-2 font-mono text-xs text-[#74777b]">
                         {formatWallet(event.wallet)}
                       </p>
