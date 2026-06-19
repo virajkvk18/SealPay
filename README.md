@@ -86,14 +86,14 @@ Important limitation: no platform can fully prevent screenshots. SealPay reduces
 
 ## AI Trust Engine
 
-SealPay uses deterministic local helper logic in `lib/aiEngine.ts`. No paid AI API is required for the MVP.
+SealPay uses server-side Groq API routes for real AI proof review and dispute summaries. `GROQ_API_KEY` must stay server-side and must never be exposed with a `NEXT_PUBLIC_` prefix.
 
-| Function | Purpose |
+| Route / Function | Purpose |
 | --- | --- |
+| `POST /api/ai/proof-review` | Sends deal and proof metadata to Groq and returns score, verdict, reasons, issues, and summary |
+| `POST /api/ai/dispute-summary` | Sends dispute evidence and proof CID to Groq and returns an admin/judge summary |
 | `calculateRiskScore()` | Scores deal risk using amount, deadline, scope detail, and wallet familiarity |
 | `suggestMilestones()` | Suggests single-release or milestone payment structure |
-| `analyzeWorkProof()` | Reviews proof note, file name, preview URL, file type, and keyword match |
-| `summarizeDispute()` | Produces an admin-assist dispute summary |
 | `generateSealTrustScore()` | Creates a wallet-level trust score from deal history |
 
 AI is only an assistant. Final approval and dispute decisions stay with a human client or admin/judge.
@@ -119,6 +119,8 @@ PINATA_JWT=your_pinata_jwt
 NEXT_PUBLIC_GATEWAY_URL=https://gateway.pinata.cloud/ipfs
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_public_key
+GROQ_API_KEY=your_groq_api_key
+GROQ_MODEL=llama-3.3-70b-versatile
 ```
 
 ## IPFS + AI Proof Flow
@@ -214,7 +216,7 @@ To move from MVP to production, SealPay would need real auth, a backend database
 | Language | TypeScript |
 | UI | Tailwind CSS, Lucide icons |
 | State | LocalStorage mock store |
-| AI Logic | Deterministic local scoring helpers |
+| AI Logic | Server-side Groq API routes |
 | Proof Storage | Pinata API route with mock-CID fallback |
 | Web3 Contract | Solidity escrow contract |
 | Deployment Hardening | Next proxy security headers and rate limiting |
