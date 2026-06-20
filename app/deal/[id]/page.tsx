@@ -34,10 +34,9 @@ import SubmitProofModal, {
   type ProofFormValues,
 } from "@/components/SubmitProofModal";
 import Timeline from "@/components/Timeline";
-import TransactionSuccess from "@/components/TransactionSuccess";
-import type { Deal, Role } from "@/lib/mockData";
-import { useDashboardMode } from "@/lib/dashboardMode";
-import { saveProofToSupabase } from "@/lib/proofs";
+import { analyzeWorkProof, summarizeDispute } from "@/lib/aiEngine";
+import { lockPayment } from "@/lib/blockchain";
+import { demoModeNotice, roles, type Deal, type Role } from "@/lib/mockData";
 import { useSealPay } from "@/lib/store";
 import { useWallet } from "@/lib/wallet";
 import {
@@ -204,11 +203,8 @@ export default function DealDetailsPage() {
   const sessionMode = useDashboardMode();
   const [proofOpen, setProofOpen] = useState(false);
   const [disputeOpen, setDisputeOpen] = useState(false);
-  const [transactionResult, setTransactionResult] = useState<{
-    type: "locked" | "released";
-    txHash: string;
-  } | null>(null);
-  const [actionMessage, setActionMessage] = useState("");
+  const [isLockingPayment, setIsLockingPayment] = useState(false);
+  const [lockPaymentError, setLockPaymentError] = useState("");
   const deal = deals.find((candidate) => candidate.id === dealId);
   const normalizedWallet = address.toLowerCase();
   const arbitratorWallet = (
@@ -252,12 +248,14 @@ export default function DealDetailsPage() {
     title: string,
     description: string,
     actor: Role,
+    txHash = makeTxHash(),
+    onChainDealId?: string,
   ) {
     if (!deal) return;
-    const txHash = makeTxHash();
     updateDeal(deal.id, (current) => ({
       ...current,
       status: nextStatus,
+      onChainDealId: onChainDealId ?? current.onChainDealId,
       timeline: [
         ...current.timeline,
         makeTimelineEvent({
@@ -269,6 +267,48 @@ export default function DealDetailsPage() {
         }),
       ],
     }));
+  }
+
+  function handleMockLockPayment() {
+    if (!deal) return;
+    appendStatusEvent(
+      "Payment Locked",
+      "Payment locked",
+      `${formatAmount(deal.amount)} locked in mock escrow.`,
+      "Client",
+    );
+  }
+
+  async function handleLockPayment() {
+    if (!deal) return;
+
+    if (!process.env.NEXT_PUBLIC_CONTRACT_ADDRESS) {
+      handleMockLockPayment();
+      return;
+    }
+
+    setIsLockingPayment(true);
+    setLockPaymentError("");
+
+    try {
+      const result = await lockPayment(deal.freelancerWallet, deal.amount);
+      appendStatusEvent(
+        "Payment Locked",
+        "Payment locked",
+        `${formatAmount(deal.amount)} locked in smart contract escrow.`,
+        "Client",
+        result.txHash,
+        result.onChainDealId,
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Payment lock failed. You can use demo lock to keep testing.";
+      setLockPaymentError(`${message} You can use demo lock to keep testing.`);
+    } finally {
+      setIsLockingPayment(false);
+    }
   }
 
   function handleApproveWork() {
@@ -848,59 +888,69 @@ export default function DealDetailsPage() {
                 </div>
               </div>
 
-              <div className="rounded-[2rem] bg-[#010b13] p-5 text-white shadow-2xl shadow-cyan-950/20">
-                <p className="text-sm font-black uppercase tracking-normal text-cyan-100">
-                  Smart Contract
-                </p>
-                <h2 className="mt-2 text-2xl font-black">Escrow Actions</h2>
-                <div className="mt-5 grid gap-3">
-                  {activeRole === "Client" ? (
-                    <>
-                      {deal.dealKind === "Public" && !deal.freelancerWallet ? (
-                        <Link
-                          href="/dashboard#applications"
-                          className="secondary-button border-white/15 bg-white/5 text-white"
+            <div className="rounded-[2rem] bg-[#010b13] p-5 text-white shadow-2xl shadow-cyan-950/20">
+              <p className="text-sm font-black uppercase tracking-normal text-cyan-100">
+                Smart Contract
+              </p>
+              <h2 className="mt-2 text-2xl font-black">Escrow Actions</h2>
+              <div className="mt-5 grid gap-3">
+                {activeRole === "Client" ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleLockPayment}
+                      disabled={deal.status !== "Created" || isLockingPayment}
+                      className="primary-button"
+                    >
+                      <LockKeyhole className="size-4" />
+                      {isLockingPayment ? "Locking..." : "Lock Payment"}
+                    </button>
+                    {lockPaymentError && deal.status === "Created" ? (
+                      <div className="rounded-2xl border border-red-300/30 bg-red-400/10 p-3">
+                        <p className="text-sm font-bold leading-6 text-red-100">
+                          {lockPaymentError}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={handleMockLockPayment}
+                          className="mt-3 inline-flex h-9 items-center justify-center rounded-full bg-white px-4 text-xs font-black text-[#010b13] transition hover:bg-cyan-50"
                         >
-                          <UserRoundCheck className="size-4" />
-                          View Applications
-                        </Link>
-                      ) : null}
-                      <button
-                        type="button"
-                        onClick={handleLockPayment}
-                        disabled={
-                          !(
-                            ["Created", "Assigned"] as Deal["status"][]
-                          ).includes(deal.status) ||
-                          (deal.dealKind === "Public" && !deal.freelancerWallet)
-                        }
-                        className="primary-button"
-                      >
-                        <LockKeyhole className="size-4" />
-                        Lock Payment
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleApproveWork}
-                        disabled={deal.status !== "Work Submitted"}
-                        className="primary-button"
-                      >
-                        <CheckCircle2 className="size-4" />
-                        Approve Work
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDisputeOpen(true)}
-                        disabled={["Payment Released", "Resolved"].includes(
-                          deal.status,
-                        )}
-                        className="danger-button"
-                      >
-                        <Scale className="size-4" />
-                        Raise Dispute
-                      </button>
-                    </>
-                  ) : null}
+                          Use Demo Lock
+                        </button>
+                      </div>
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={handleApproveWork}
+                      disabled={deal.status !== "Work Submitted"}
+                      className="primary-button"
+                    >
+                      <CheckCircle2 className="size-4" />
+                      Approve Work
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDisputeOpen(true)}
+                      disabled={["Payment Released", "Resolved"].includes(deal.status)}
+                      className="danger-button"
+                    >
+                      <Scale className="size-4" />
+                      Raise Dispute
+                    </button>
+                  </>
+                ) : null}
+
+                {activeRole === "Freelancer" ? (
+                  <button
+                    type="button"
+                    onClick={() => setProofOpen(true)}
+                    disabled={deal.status !== "Payment Locked"}
+                    className="primary-button"
+                  >
+                    <FileUp className="size-4" />
+                    Submit Work Proof
+                  </button>
+                ) : null}
 
                   {activeRole === "Freelancer" ? (
                     <>
