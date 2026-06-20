@@ -1,18 +1,14 @@
 "use client";
 import { createDeal } from "@/lib/deals";
 import { FormEvent, useMemo, useState } from "react";
-import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   BadgeCheck,
-  CalendarClock,
-  Coins,
   FileText,
   Fingerprint,
   LockKeyhole,
   ShieldAlert,
-  Wallet,
 } from "lucide-react";
 import { deliverableTypes, type Deal } from "@/lib/mockData";
 import { calculateRiskScore, suggestMilestones } from "@/lib/aiEngine";
@@ -40,14 +36,6 @@ const initialForm = {
   deliverableType: "Design",
   category: "Design",
 };
-
-function FieldIcon({ children }: { children: ReactNode }) {
-  return (
-    <span className="pointer-events-none absolute left-4 top-[2.85rem] text-[#00677f]">
-      {children}
-    </span>
-  );
-}
 
 export default function CreateDealForm({
   initialDealKind = "direct",
@@ -291,16 +279,13 @@ export default function CreateDealForm({
             />
           </label>
 
-          <label className="relative">
+          <label>
             <span className="mb-2 block text-sm font-bold text-[#43474b]">
               Client Wallet Address
             </span>
-            <FieldIcon>
-              <Wallet className="size-4" />
-            </FieldIcon>
             <input
               required={!address}
-              className="input-field pl-11 font-mono text-sm"
+              className="input-field font-mono text-sm"
               value={form.clientWallet || address}
               onChange={(event) =>
                 updateField("clientWallet", event.target.value)
@@ -310,16 +295,13 @@ export default function CreateDealForm({
           </label>
 
           {dealKind === "direct" ? (
-            <label className="relative">
+            <label>
               <span className="mb-2 block text-sm font-bold text-[#43474b]">
                 Freelancer Wallet Address
               </span>
-              <FieldIcon>
-                <Wallet className="size-4" />
-              </FieldIcon>
               <input
                 required
-                className="input-field pl-11 font-mono text-sm"
+                className="input-field font-mono text-sm"
                 value={form.freelancerWallet}
                 onChange={(event) =>
                   updateField("freelancerWallet", event.target.value)
@@ -365,31 +347,25 @@ export default function CreateDealForm({
             <span className="mb-2 block text-sm font-bold text-[#43474b]">
               Escrow Amount
             </span>
-            <FieldIcon>
-              <Coins className="size-4" />
-            </FieldIcon>
             <input
               required
               min="0.001"
               step="0.001"
               type="number"
-              className="input-field pl-11"
+              className="input-field"
               value={form.amount}
               onChange={(event) => updateField("amount", event.target.value)}
             />
           </label>
 
-          <label className="relative">
+          <label>
             <span className="mb-2 block text-sm font-bold text-[#43474b]">
               Deadline
             </span>
-            <FieldIcon>
-              <CalendarClock className="size-4" />
-            </FieldIcon>
             <input
               required
               type="date"
-              className="input-field pl-11"
+              className="input-field"
               value={form.deadline}
               onChange={(event) => updateField("deadline", event.target.value)}
             />
