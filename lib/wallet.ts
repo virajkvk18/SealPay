@@ -1,3 +1,6 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
 import { BrowserProvider } from "ethers";
 
 export const AMOY_CHAIN_ID = 80002;
@@ -8,6 +11,27 @@ type EthereumProvider = {
   on?: (event: string, handler: (...args: unknown[]) => void) => void;
   removeListener?: (event: string, handler: (...args: unknown[]) => void) => void;
 };
+
+const walletChangedEvent = "sealpay-wallet-change";
+
+function notifyWalletChange() {
+  window.dispatchEvent(new Event(walletChangedEvent));
+}
+
+function readConnectedWallet() {
+  if (typeof window === "undefined") return "";
+  return window.localStorage.getItem("sealpay-connected-wallet-v1") ?? "";
+}
+
+function saveConnectedWallet(address: string) {
+  window.localStorage.setItem("sealpay-connected-wallet-v1", address);
+  notifyWalletChange();
+}
+
+function clearConnectedWallet() {
+  window.localStorage.removeItem("sealpay-connected-wallet-v1");
+  notifyWalletChange();
+}
 
 declare global {
   interface Window {
@@ -70,9 +94,115 @@ export async function connectWallet() {
     throw new Error("No wallet account was selected.");
   }
 
+  saveConnectedWallet(accounts[0]);
   return accounts[0];
 }
 
 export function getBrowserProvider() {
   return new BrowserProvider(getEthereumProvider());
+}
+
+export function useWallet() {
+  const [address, setAddress] = useState("");
+  const [error, setError] = useState("");
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [initialized, setInitialized] = useState(false);
+  const [chainId, setChainId] = useState(AMOY_CHAIN_ID_HEX);
+
+  useEffect(() => {
+    const ethereum = window.ethereum;
+
+    function syncStoredWallet() {
+      setAddress(readConnectedWallet());
+    }
+
+    function handleAccountsChanged(...args: unknown[]) {
+      const accounts = Array.isArray(args[0]) ? (args[0] as string[]) : [];
+      const nextAddress = accounts[0] ?? "";
+      if (nextAddress) saveConnectedWallet(nextAddress);
+      else clearConnectedWallet();
+      setAddress(nextAddress);
+    }
+
+    function handleChainChanged(...args: unknown[]) {
+      const nextChainId = typeof args[0] === "string" ? args[0] : "";
+      if (nextChainId) setChainId(nextChainId);
+    }
+
+    const initializeTimer = window.setTimeout(() => {
+      syncStoredWallet();
+      setInitialized(true);
+      void ethereum
+        ?.request({ method: "eth_chainId" })
+        .then((value) => {
+          if (typeof value === "string") setChainId(value);
+        })
+        .catch(() => undefined);
+    }, 0);
+    window.addEventListener(walletChangedEvent, syncStoredWallet);
+    window.addEventListener("storage", syncStoredWallet);
+    ethereum?.on?.("accountsChanged", handleAccountsChanged);
+    ethereum?.on?.("chainChanged", handleChainChanged);
+
+    return () => {
+      window.clearTimeout(initializeTimer);
+      window.removeEventListener(walletChangedEvent, syncStoredWallet);
+      window.removeEventListener("storage", syncStoredWallet);
+      ethereum?.removeListener?.("accountsChanged", handleAccountsChanged);
+      ethereum?.removeListener?.("chainChanged", handleChainChanged);
+    };
+  }, []);
+
+  const connect = useCallback(async () => {
+    setError("");
+    setIsConnecting(true);
+    try {
+      const wallet = await connectWallet();
+      setAddress(wallet);
+      return wallet;
+    } catch (connectError) {
+      const message =
+        connectError instanceof Error
+          ? connectError.message
+          : "Could not connect wallet. Please try again.";
+      setError(message);
+      return "";
+    } finally {
+      setIsConnecting(false);
+    }
+  }, []);
+
+  const disconnect = useCallback(async () => {
+    clearConnectedWallet();
+    setAddress("");
+    setError("");
+  }, []);
+
+  const switchNetworkToAmoy = useCallback(async () => {
+    setError("");
+    try {
+      await switchToAmoy();
+      setChainId(AMOY_CHAIN_ID_HEX);
+      return true;
+    } catch (switchError) {
+      setError(
+        switchError instanceof Error
+          ? switchError.message
+          : "Could not switch the wallet network.",
+      );
+      return false;
+    }
+  }, []);
+
+  return {
+    address,
+    chainId,
+    error,
+    isAmoy: chainId.toLowerCase() === AMOY_CHAIN_ID_HEX,
+    isConnecting,
+    initialized,
+    connect,
+    disconnect,
+    switchToAmoy: switchNetworkToAmoy,
+  };
 }

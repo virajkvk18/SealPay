@@ -1,4 +1,4 @@
-import { AlertTriangle, Check } from "lucide-react";
+import { AlertTriangle, Check, RotateCcw } from "lucide-react";
 import type { Deal } from "@/lib/mockData";
 import { cn } from "@/lib/utils";
 
@@ -44,6 +44,8 @@ export default function DealStatusTracker({
       : deal.status === "Resolved"
         ? `This dispute is resolved${deal.resolution ? `: ${deal.resolution.toLowerCase()}.` : "."}`
         : null;
+  const refunded =
+    deal.status === "Resolved" && deal.resolution === "Refunded client";
 
   return (
     <div>
@@ -108,10 +110,16 @@ export default function DealStatusTracker({
             "mt-5 flex items-start gap-2 rounded-2xl border p-3 text-sm font-bold",
             deal.status === "Disputed"
               ? "border-red-300/30 bg-red-500/10 text-red-300"
+              : refunded
+                ? "border-amber-300/30 bg-amber-500/10 text-amber-200"
               : "border-violet-300/30 bg-violet-500/10 text-violet-200",
           )}
         >
-          <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+          {refunded ? (
+            <RotateCcw className="mt-0.5 size-4 shrink-0" />
+          ) : (
+            <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+          )}
           {alert}
         </div>
       ) : null}

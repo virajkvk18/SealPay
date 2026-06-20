@@ -134,7 +134,7 @@ function normalizeStoredDeal(deal: Deal): Deal {
       ...event,
       description: event.description.replaceAll(
         legacyCurrencyLabel,
-        "test MATIC",
+        "POL",
       ),
     })),
   };

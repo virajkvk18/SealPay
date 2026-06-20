@@ -6,8 +6,9 @@ import ApplyDealButton from "@/components/ApplyDealButton";
 import DealStatusTracker from "@/components/DealStatusTracker";
 import Navbar from "@/components/Navbar";
 import RoleGuard from "@/components/RoleGuard";
+import StatusBadge from "@/components/StatusBadge";
 import { useSealPay } from "@/lib/store";
-import { formatAmount, formatDate } from "@/lib/utils";
+import { formatAmount, formatDate, formatWallet } from "@/lib/utils";
 import { useWallet } from "@/lib/wallet";
 
 export default function OpenDealsPage() {
@@ -60,6 +61,12 @@ export default function OpenDealsPage() {
                   <p className="mt-4 line-clamp-3 text-sm leading-6 text-slate-400">
                     {deal.description}
                   </p>
+                  <div className="mt-4 flex flex-wrap items-center gap-3">
+                    <StatusBadge status={deal.status} compact />
+                    <span className="font-mono text-xs text-slate-500">
+                      Client {formatWallet(deal.clientWallet)}
+                    </span>
+                  </div>
                   <div className="mt-5 flex flex-wrap gap-4 text-sm font-bold text-slate-300">
                     <span className="flex items-center gap-2">
                       <Coins className="size-4 text-emerald-300" />
@@ -87,7 +94,7 @@ export default function OpenDealsPage() {
             ) : (
               <div className="dashboard-panel rounded-[2rem] p-10 text-center lg:col-span-2">
                 <p className="font-bold text-slate-400">
-                  No open public deals are available right now.
+                  No open deals available right now.
                 </p>
               </div>
             )}

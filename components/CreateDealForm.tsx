@@ -20,7 +20,6 @@ import {
   formatWallet,
   makeDealId,
   makeTimelineEvent,
-  makeTxHash,
   riskTone,
 } from "@/lib/utils";
 
@@ -128,7 +127,6 @@ export default function CreateDealForm({
     }
     setIsSubmitting(true);
     const id = createUniqueDealId();
-    const txHash = makeTxHash();
     const risk = calculateRiskScore({
       amount,
       deadline: form.deadline,
@@ -155,7 +153,7 @@ export default function CreateDealForm({
       deliverableType: form.deliverableType as Deal["deliverableType"],
       status: dealKind === "direct" ? "Assigned" : "Created",
       risk,
-      createdTxHash: txHash,
+      createdTxHash: "",
       timeline: [
         makeTimelineEvent({
           title: "Deal created",
@@ -165,7 +163,6 @@ export default function CreateDealForm({
               : `${form.clientName.trim()} posted a public SealPay opportunity.`,
           actor: "Client",
           status: "Created",
-          txHash,
         }),
       ],
     };

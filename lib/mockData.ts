@@ -60,7 +60,7 @@ export interface WorkProof {
   fileHash: string;
   gatewayUrl?: string;
   storageProvider?: "pinata";
-  txHash: string;
+  txHash?: string;
   submittedAt: string;
 }
 

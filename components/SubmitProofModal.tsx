@@ -1,7 +1,8 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { CheckCircle2, FileUp, Link2, Loader2, X } from "lucide-react";
+import { CheckCircle2, Copy, FileUp, Link2, Loader2, X } from "lucide-react";
+import Toast from "@/components/Toast";
 import { deliverableTypes, type DeliverableType } from "@/lib/mockData";
 
 export interface ProofFormValues {
@@ -85,6 +86,7 @@ export default function SubmitProofModal({
   const [uploading, setUploading] = useState(false);
   const [submitStage, setSubmitStage] = useState<ProofSubmitStage>("idle");
   const [generatedCid, setGeneratedCid] = useState("");
+  const [copyMessage, setCopyMessage] = useState("");
 
   if (!open) return null;
 
@@ -199,10 +201,10 @@ export default function SubmitProofModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-[#010b13]/45 px-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 grid place-items-center bg-[#010b13]/80 px-4 backdrop-blur-md">
       <form
         onSubmit={handleSubmit}
-        className="glass-panel max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-3xl p-6"
+        className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-cyan-300/15 bg-[#071722] p-6 text-white shadow-2xl"
       >
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -210,10 +212,10 @@ export default function SubmitProofModal({
               <FileUp className="size-5" />
             </span>
             <div>
-              <h2 className="text-2xl font-black text-[#010b13]">
+              <h2 className="text-2xl font-black text-white">
                 Submit work proof
               </h2>
-              <p className="text-sm text-[#53606a]">
+              <p className="text-sm text-slate-400">
                 Share a protected preview and keep the final file locked until
                 release.
               </p>
@@ -222,7 +224,7 @@ export default function SubmitProofModal({
           <button
             type="button"
             onClick={onClose}
-            className="grid size-10 place-items-center rounded-full border border-[#101d25]/10 bg-white/70 text-[#43474b] transition hover:text-[#010b13]"
+            className="grid size-10 place-items-center rounded-full border border-white/10 bg-white/5 text-slate-400 transition hover:bg-white/10 hover:text-white"
             aria-label="Close submit proof modal"
           >
             <X className="size-4" />
@@ -274,7 +276,7 @@ export default function SubmitProofModal({
             />
           </label>
           {formError ? (
-            <p className="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm font-bold text-red-700">
+            <p className="rounded-2xl border border-red-300/25 bg-red-400/10 p-3 text-sm font-bold text-red-200">
               {formError}
             </p>
           ) : null}
@@ -332,9 +334,22 @@ export default function SubmitProofModal({
               </div>
 
               {generatedCid ? (
-                <p className="mt-4 break-all rounded-2xl border border-cyan-200/20 bg-cyan-200/10 p-3 text-xs font-bold text-cyan-100">
-                  CID: {generatedCid}
-                </p>
+                <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-cyan-200/20 bg-cyan-200/10 p-3 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="min-w-0 break-all text-xs font-bold text-cyan-100">
+                    CID: {generatedCid}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void navigator.clipboard.writeText(generatedCid);
+                      setCopyMessage("CID copied.");
+                    }}
+                    className="secondary-button shrink-0 px-3 py-2 text-xs"
+                  >
+                    <Copy className="size-3.5" />
+                    Copy CID
+                  </button>
+                </div>
               ) : null}
             </div>
           ) : null}
@@ -427,6 +442,7 @@ export default function SubmitProofModal({
           </button>
         </div>
       </form>
+      <Toast message={copyMessage} onClose={() => setCopyMessage("")} />
     </div>
   );
 }

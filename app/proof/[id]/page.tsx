@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
+  Copy,
+  ExternalLink,
   FileSearch,
   Fingerprint,
   Search,
@@ -14,14 +16,18 @@ import Navbar from "@/components/Navbar";
 import StatusBadge from "@/components/StatusBadge";
 import Timeline from "@/components/Timeline";
 import DealStatusTracker from "@/components/DealStatusTracker";
-import { demoModeNotice } from "@/lib/mockData";
+import Toast from "@/components/Toast";
 import {
   getLatestProofFromSupabase,
   type ProofRecord,
 } from "@/lib/proofs";
 import { useSealPay } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
-import { formatAmount, formatWallet } from "@/lib/utils";
+import {
+  formatAmount,
+  formatWallet,
+  getExplorerTxUrl,
+} from "@/lib/utils";
 
 export default function ProofPage() {
   const params = useParams();
@@ -31,6 +37,7 @@ export default function ProofPage() {
   const { deals } = useSealPay();
   const [lookup, setLookup] = useState(dealId);
   const [remoteProof, setRemoteProof] = useState<ProofRecord | null>(null);
+  const [copyMessage, setCopyMessage] = useState("");
   const deal = deals.find((candidate) => candidate.id === dealId);
   const currentRemoteProof =
     remoteProof?.deal_id === dealId ? remoteProof : null;
@@ -114,13 +121,14 @@ export default function ProofPage() {
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/25 bg-cyan-300/10 px-4 py-2 text-sm font-black text-[#00566a]">
                 <FileSearch className="size-4" />
-                Public proof explorer
+                Public Proof Timeline
               </div>
               <h1 className="mt-5 text-4xl font-black tracking-normal text-[#010b13] sm:text-5xl">
-                Verify SealPay timeline
+                Verify the complete deal record
               </h1>
               <p className="mt-4 max-w-3xl text-base leading-7 text-[#43474b]">
-                {demoModeNotice}
+                Review escrow activity, decentralized proof references, and
+                blockchain records in one transparent timeline.
               </p>
             </div>
             <form
@@ -149,15 +157,14 @@ export default function ProofPage() {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <p className="text-sm font-black uppercase tracking-normal text-[#00677f]">
-                  Supabase proof record
+                  Blockchain Proof
                 </p>
                 <h2 className="mt-2 text-2xl font-black text-[#010b13]">
                   Proof found for {currentRemoteProof.deal_id}
                 </h2>
                 <p className="mt-3 text-sm leading-6 text-[#53606a]">
-                  This proof was loaded from the shared Supabase proofs table,
-                  so it can be verified from another laptop without local
-                  browser state.
+                  This shared proof record can be independently reviewed from
+                  any device using its decentralized storage reference.
                 </p>
               </div>
               <StatusBadge status="Work Submitted" compact />
@@ -279,15 +286,17 @@ export default function ProofPage() {
                 </div>
                 <div className="rounded-2xl border border-[#101d25]/10 bg-white/70 p-4">
                   <p className="text-xs font-bold uppercase tracking-normal text-[#74777b]">
-                    Created transaction
+                    On-chain Record
                   </p>
                   <p className="mt-2 break-all font-mono text-sm text-[#101d25]">
-                    {formatWallet(deal.createdTxHash)}
+                    {deal.createdTxHash
+                      ? formatWallet(deal.createdTxHash)
+                      : "Blockchain record will appear after confirmation."}
                   </p>
                 </div>
                 <div className="rounded-2xl border border-[#101d25]/10 bg-white/70 p-4">
                   <p className="text-xs font-bold uppercase tracking-normal text-[#74777b]">
-                    Proof hash
+                    Proof CID
                   </p>
                   <p className="mt-2 break-all font-mono text-sm text-[#101d25]">
                     {deal.proof ? deal.proof.fileHash : "Pending proof"}
@@ -296,7 +305,7 @@ export default function ProofPage() {
                 {deal.proof?.gatewayUrl ? (
                   <div className="rounded-2xl border border-[#101d25]/10 bg-white/70 p-4">
                     <p className="text-xs font-bold uppercase tracking-normal text-[#74777b]">
-                      IPFS proof
+                    Decentralized Storage
                     </p>
                     <a
                       href={deal.proof.gatewayUrl}
@@ -310,20 +319,44 @@ export default function ProofPage() {
                 ) : null}
                 <div className="rounded-2xl border border-[#101d25]/10 bg-white/70 p-4">
                   <p className="text-xs font-bold uppercase tracking-normal text-[#74777b]">
-                    Latest transaction
+                    Latest On-chain Record
                   </p>
                   <p className="mt-2 break-all font-mono text-sm text-[#101d25]">
                     {latestTxHash
                       ? formatWallet(latestTxHash)
-                      : "No transaction yet"}
+                      : "Blockchain record will appear after confirmation."}
                   </p>
+                  {latestTxHash ? (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          void navigator.clipboard.writeText(latestTxHash);
+                          setCopyMessage("Transaction hash copied.");
+                        }}
+                        className="secondary-button px-3 py-2 text-xs"
+                      >
+                        <Copy className="size-3.5" />
+                        Copy Transaction Hash
+                      </button>
+                      <a
+                        href={getExplorerTxUrl(latestTxHash)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="primary-button px-3 py-2 text-xs"
+                      >
+                        View Blockchain Record
+                        <ExternalLink className="size-3.5" />
+                      </a>
+                    </div>
+                  ) : null}
                 </div>
               </div>
 
               <div className="mt-6 rounded-2xl border border-cyan-300/20 bg-cyan-300/[0.06] p-4">
                 <div className="flex items-center gap-2 text-sm font-black text-[#00566a]">
                   <ShieldCheck className="size-4" />
-                  Blockchain verification
+                  Smart Contract Escrow
                 </div>
                 <p className="mt-2 text-sm leading-6 text-[#43474b]">
                   Deal events include transaction references for independent
@@ -397,7 +430,7 @@ export default function ProofPage() {
                   Timeline
                 </p>
                 <h2 className="mt-2 text-3xl font-black text-[#010b13]">
-                  Blockchain-style proof trail
+                  Blockchain Proof Trail
                 </h2>
               </div>
               <Timeline events={deal.timeline} explorerMode />
@@ -405,6 +438,7 @@ export default function ProofPage() {
           </div>
         )}
       </section>
+      <Toast message={copyMessage} onClose={() => setCopyMessage("")} />
     </main>
   );
 }

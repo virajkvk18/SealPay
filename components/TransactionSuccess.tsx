@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { CheckCircle2, Copy, ExternalLink, X } from "lucide-react";
+import Toast from "@/components/Toast";
 import { formatAmount, formatWallet, getExplorerTxUrl } from "@/lib/utils";
 
 export default function TransactionSuccess({
@@ -19,6 +21,14 @@ export default function TransactionSuccess({
   onClose: () => void;
 }) {
   const locked = type === "locked";
+  const [copyMessage, setCopyMessage] = useState("");
+
+  async function copyTransactionHash() {
+    if (!txHash) return;
+    await navigator.clipboard.writeText(txHash);
+    setCopyMessage("Transaction hash copied.");
+  }
+
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-[#010b13]/75 p-4 backdrop-blur-sm">
       <article className="w-full max-w-lg rounded-[2rem] border border-emerald-300/20 bg-[#071722] p-6 text-white shadow-2xl">
@@ -58,12 +68,12 @@ export default function TransactionSuccess({
         {txHash ? (
           <div className="mt-4 rounded-2xl bg-white/5 p-4">
             <p className="text-xs font-bold uppercase text-slate-500">
-              Blockchain record generated
+              Transaction hash
             </p>
             <p className="mt-2 font-mono text-sm">{formatWallet(txHash)}</p>
             <div className="mt-4 flex flex-wrap gap-3">
               <button
-                onClick={() => navigator.clipboard.writeText(txHash)}
+                onClick={() => void copyTransactionHash()}
                 className="secondary-button border-white/10 bg-white/5 px-4 py-2 text-sm text-white"
               >
                 <Copy className="size-4" />
@@ -86,6 +96,7 @@ export default function TransactionSuccess({
           </p>
         )}
       </article>
+      <Toast message={copyMessage} onClose={() => setCopyMessage("")} />
     </div>
   );
 }

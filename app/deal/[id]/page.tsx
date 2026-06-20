@@ -19,7 +19,6 @@ import {
   ShieldCheck,
   TriangleAlert,
   UnlockKeyhole,
-  UserRoundCheck,
 } from "lucide-react";
 import DisputeModal, {
   type DisputeFormValues,
@@ -34,9 +33,19 @@ import SubmitProofModal, {
   type ProofFormValues,
 } from "@/components/SubmitProofModal";
 import Timeline from "@/components/Timeline";
-import { analyzeWorkProof, summarizeDispute } from "@/lib/aiEngine";
-import { lockPayment } from "@/lib/blockchain";
-import { demoModeNotice, roles, type Deal, type Role } from "@/lib/mockData";
+import Toast from "@/components/Toast";
+import TransactionPending, {
+  type TransactionUiPhase,
+} from "@/components/TransactionPending";
+import TransactionSuccess from "@/components/TransactionSuccess";
+import {
+  approveWork as approveWorkOnChain,
+  lockPayment,
+  submitProofCID,
+} from "@/lib/blockchain";
+import { useDashboardMode } from "@/lib/dashboardMode";
+import { type Deal, type Role } from "@/lib/mockData";
+import { saveProofToSupabase } from "@/lib/proofs";
 import { useSealPay } from "@/lib/store";
 import { useWallet } from "@/lib/wallet";
 import {
@@ -46,7 +55,6 @@ import {
   formatWallet,
   makeFileHash,
   makeTimelineEvent,
-  makeTxHash,
   proofPath,
   riskTone,
 } from "@/lib/utils";
@@ -205,6 +213,17 @@ export default function DealDetailsPage() {
   const [disputeOpen, setDisputeOpen] = useState(false);
   const [isLockingPayment, setIsLockingPayment] = useState(false);
   const [lockPaymentError, setLockPaymentError] = useState("");
+  const [actionError, setActionError] = useState("");
+  const [actionMessage, setActionMessage] = useState("");
+  const [transactionResult, setTransactionResult] = useState<{
+    type: "locked" | "released";
+    txHash?: string;
+  } | null>(null);
+  const [transactionProgress, setTransactionProgress] = useState<{
+    action: string;
+    phase: TransactionUiPhase;
+    txHash?: string;
+  } | null>(null);
   const deal = deals.find((candidate) => candidate.id === dealId);
   const normalizedWallet = address.toLowerCase();
   const arbitratorWallet = (
@@ -248,7 +267,7 @@ export default function DealDetailsPage() {
     title: string,
     description: string,
     actor: Role,
-    txHash = makeTxHash(),
+    txHash?: string,
     onChainDealId?: string,
   ) {
     if (!deal) return;
@@ -269,29 +288,31 @@ export default function DealDetailsPage() {
     }));
   }
 
-  function handleMockLockPayment() {
-    if (!deal) return;
-    appendStatusEvent(
-      "Payment Locked",
-      "Payment locked",
-      `${formatAmount(deal.amount)} locked in mock escrow.`,
-      "Client",
-    );
-  }
-
   async function handleLockPayment() {
     if (!deal) return;
 
     if (!process.env.NEXT_PUBLIC_CONTRACT_ADDRESS) {
-      handleMockLockPayment();
+      setLockPaymentError(
+        "Smart contract is not configured. Payment locking will be available after deployment configuration.",
+      );
       return;
     }
 
     setIsLockingPayment(true);
     setLockPaymentError("");
+    setTransactionProgress({ action: "Lock Payment", phase: "wallet" });
 
     try {
-      const result = await lockPayment(deal.freelancerWallet, deal.amount);
+      const result = await lockPayment(
+        deal.freelancerWallet,
+        deal.amount,
+        (phase, txHash) =>
+          setTransactionProgress({
+            action: "Lock Payment",
+            phase: phase === "wallet" ? "wallet" : "confirming",
+            txHash,
+          }),
+      );
       appendStatusEvent(
         "Payment Locked",
         "Payment locked",
@@ -300,22 +321,45 @@ export default function DealDetailsPage() {
         result.txHash,
         result.onChainDealId,
       );
+      setTransactionResult({ type: "locked", txHash: result.txHash });
     } catch (error) {
       const message =
         error instanceof Error
           ? error.message
-          : "Payment lock failed. You can use demo lock to keep testing.";
-      setLockPaymentError(`${message} You can use demo lock to keep testing.`);
+          : "Payment could not be locked. Please try again.";
+      setLockPaymentError(message);
     } finally {
+      setTransactionProgress(null);
       setIsLockingPayment(false);
     }
   }
 
-  function handleApproveWork() {
+  async function handleApproveWork() {
     if (!deal) return;
-    const approvalTx = makeTxHash();
-    const releaseTx = makeTxHash();
+    setActionError("");
+
+    if (!process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || !deal.onChainDealId) {
+      setActionError(
+        "Blockchain deal record is not available yet. Approve and release will be enabled after the lock transaction is confirmed.",
+      );
+      return;
+    }
+
+    setTransactionProgress({
+      action: "Approve & Release",
+      phase: "wallet",
+    });
+
     try {
+      const result = await approveWorkOnChain(
+        deal.onChainDealId,
+        (phase, txHash) =>
+          setTransactionProgress({
+            action: "Approve & Release",
+            phase: phase === "wallet" ? "wallet" : "confirming",
+            txHash,
+          }),
+      );
       updateDeal(deal.id, (current) => ({
         ...current,
         status: "Payment Released",
@@ -327,50 +371,31 @@ export default function DealDetailsPage() {
               "Client approved the submitted proof and authorized release.",
             status: "Approved",
             actor: "Client",
-            txHash: approvalTx,
+            txHash: result.txHash,
           }),
           makeTimelineEvent({
             title: "Payment released",
             description: `${formatAmount(current.amount)} released to the freelancer wallet.`,
             status: "Payment Released",
             actor: "System",
-            txHash: releaseTx,
+            txHash: result.txHash,
           }),
         ],
       }));
-      setTransactionResult({ type: "released", txHash: releaseTx });
-    } catch {
-      window.alert("Payment release failed. Please try again.");
-    }
-  }
-
-  function handleLockPayment() {
-    if (!deal) return;
-    const txHash = makeTxHash();
-    try {
-      updateDeal(deal.id, (current) => ({
-        ...current,
-        status: "Payment Locked",
-        timeline: [
-          ...current.timeline,
-          makeTimelineEvent({
-            title: "Payment locked",
-            description: `${formatAmount(current.amount)} protected by smart contract escrow.`,
-            status: "Payment Locked",
-            actor: "Client",
-            txHash,
-          }),
-        ],
-      }));
-      setTransactionResult({ type: "locked", txHash });
-    } catch {
-      window.alert("Payment could not be locked. Please try again.");
+      setTransactionResult({ type: "released", txHash: result.txHash });
+    } catch (error) {
+      setActionError(
+        error instanceof Error
+          ? error.message
+          : "Payment release failed. Please try again.",
+      );
+    } finally {
+      setTransactionProgress(null);
     }
   }
 
   function handleRejectDeal() {
     if (!deal) return;
-    const txHash = makeTxHash();
 
     updateDeal(deal.id, (current) => ({
       ...current,
@@ -383,7 +408,6 @@ export default function DealDetailsPage() {
           description: "Freelancer declined the wallet assignment.",
           status: current.status,
           actor: "Freelancer",
-          txHash,
         }),
       ],
     }));
@@ -391,9 +415,28 @@ export default function DealDetailsPage() {
 
   async function handleSubmitProof(values: ProofFormValues) {
     if (!deal) return;
-    const txHash = makeTxHash();
     const fileHash = values.proofCid || makeFileHash();
     const aiProofReview = await requestProofReview(deal, values, fileHash);
+    let txHash: string | undefined;
+
+    if (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS && deal.onChainDealId) {
+      setTransactionProgress({ action: "Submit Work", phase: "wallet" });
+      try {
+        const result = await submitProofCID(
+          deal.onChainDealId,
+          fileHash,
+          (phase, submittedHash) =>
+            setTransactionProgress({
+              action: "Submit Work",
+              phase: phase === "wallet" ? "wallet" : "confirming",
+              txHash: submittedHash,
+            }),
+        );
+        txHash = result.txHash;
+      } finally {
+        setTransactionProgress(null);
+      }
+    }
 
     await saveProofToSupabase({
       dealId: deal.id,
@@ -446,7 +489,6 @@ export default function DealDetailsPage() {
         description: values.reason,
         status: "Disputed",
         actor: "Client",
-        txHash: makeTxHash(),
       }),
     ];
     const aiDispute = await requestDisputeSummary(deal, values, nextTimeline);
@@ -468,7 +510,6 @@ export default function DealDetailsPage() {
     resolution: "Released to freelancer" | "Refunded client",
   ) {
     if (!deal) return;
-    const txHash = makeTxHash();
     updateDeal(deal.id, (current) => ({
       ...current,
       status: "Resolved",
@@ -483,7 +524,6 @@ export default function DealDetailsPage() {
               : "Admin judge resolved the dispute and marked funds as refunded to client.",
           status: "Resolved",
           actor: "Admin/Judge",
-          txHash,
         }),
       ],
     }));
@@ -515,11 +555,6 @@ export default function DealDetailsPage() {
       <main className="page-shell grid-bg">
         <Navbar />
         <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          {actionMessage ? (
-            <div className="mb-5 rounded-2xl border border-emerald-300/20 bg-emerald-400/10 px-5 py-4 text-sm font-bold text-emerald-200">
-              {actionMessage}
-            </div>
-          ) : null}
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
             <Link
               href="/dashboard"
@@ -910,23 +945,21 @@ export default function DealDetailsPage() {
                         <p className="text-sm font-bold leading-6 text-red-100">
                           {lockPaymentError}
                         </p>
-                        <button
-                          type="button"
-                          onClick={handleMockLockPayment}
-                          className="mt-3 inline-flex h-9 items-center justify-center rounded-full bg-white px-4 text-xs font-black text-[#010b13] transition hover:bg-cyan-50"
-                        >
-                          Use Demo Lock
-                        </button>
                       </div>
+                    ) : null}
+                    {actionError ? (
+                      <p className="rounded-2xl border border-red-300/30 bg-red-400/10 p-3 text-sm font-bold leading-6 text-red-100">
+                        {actionError}
+                      </p>
                     ) : null}
                     <button
                       type="button"
-                      onClick={handleApproveWork}
+                      onClick={() => void handleApproveWork()}
                       disabled={deal.status !== "Work Submitted"}
                       className="primary-button"
                     >
                       <CheckCircle2 className="size-4" />
-                      Approve Work
+                      Approve & Release
                     </button>
                     <button
                       type="button"
@@ -938,18 +971,6 @@ export default function DealDetailsPage() {
                       Raise Dispute
                     </button>
                   </>
-                ) : null}
-
-                {activeRole === "Freelancer" ? (
-                  <button
-                    type="button"
-                    onClick={() => setProofOpen(true)}
-                    disabled={deal.status !== "Payment Locked"}
-                    className="primary-button"
-                  >
-                    <FileUp className="size-4" />
-                    Submit Work Proof
-                  </button>
                 ) : null}
 
                   {activeRole === "Freelancer" ? (
@@ -1153,6 +1174,13 @@ export default function DealDetailsPage() {
           onClose={() => setDisputeOpen(false)}
           onSubmit={handleRaiseDispute}
         />
+        {transactionProgress ? (
+          <TransactionPending
+            action={transactionProgress.action}
+            phase={transactionProgress.phase}
+            txHash={transactionProgress.txHash}
+          />
+        ) : null}
         {transactionResult ? (
           <TransactionSuccess
             type={transactionResult.type}
@@ -1163,6 +1191,7 @@ export default function DealDetailsPage() {
             onClose={() => setTransactionResult(null)}
           />
         ) : null}
+        <Toast message={actionMessage} onClose={() => setActionMessage("")} />
       </main>
     </RoleGuard>
   );

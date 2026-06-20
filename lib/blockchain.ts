@@ -2,6 +2,11 @@ import { isAddress, parseEther, type ContractTransactionReceipt } from "ethers";
 import { getContract } from "@/lib/contract";
 import { switchToAmoy } from "@/lib/wallet";
 
+export type TransactionPhaseHandler = (
+  phase: "wallet" | "submitted",
+  txHash?: string,
+) => void;
+
 function getDealIdFromReceipt(receipt: ContractTransactionReceipt | null) {
   const event = receipt?.logs
     .map((log) => {
@@ -17,7 +22,11 @@ function getDealIdFromReceipt(receipt: ContractTransactionReceipt | null) {
   return dealId ? dealId.toString() : "";
 }
 
-export async function lockPayment(freelancerAddress: string, amount: string | number) {
+export async function lockPayment(
+  freelancerAddress: string,
+  amount: string | number,
+  onPhase?: TransactionPhaseHandler,
+) {
   if (!isAddress(freelancerAddress)) {
     throw new Error("Invalid freelancer wallet address.");
   }
@@ -30,9 +39,11 @@ export async function lockPayment(freelancerAddress: string, amount: string | nu
   await switchToAmoy();
 
   const contract = await getContract();
+  onPhase?.("wallet");
   const tx = await contract.createDeal(freelancerAddress, {
     value: parseEther(numericAmount),
   });
+  onPhase?.("submitted", tx.hash);
   const receipt = await tx.wait();
 
   return {
@@ -42,7 +53,11 @@ export async function lockPayment(freelancerAddress: string, amount: string | nu
   };
 }
 
-export async function submitProofCID(dealId: string | number | bigint, cid: string) {
+export async function submitProofCID(
+  dealId: string | number | bigint,
+  cid: string,
+  onPhase?: TransactionPhaseHandler,
+) {
   const normalizedCid = cid.trim();
 
   if (!normalizedCid) {
@@ -52,7 +67,9 @@ export async function submitProofCID(dealId: string | number | bigint, cid: stri
   await switchToAmoy();
 
   const contract = await getContract();
+  onPhase?.("wallet");
   const tx = await contract.submitWork(BigInt(dealId), normalizedCid);
+  onPhase?.("submitted", tx.hash);
   const receipt = await tx.wait();
 
   return {
@@ -61,11 +78,16 @@ export async function submitProofCID(dealId: string | number | bigint, cid: stri
   };
 }
 
-export async function approveWork(dealId: string | number | bigint) {
+export async function approveWork(
+  dealId: string | number | bigint,
+  onPhase?: TransactionPhaseHandler,
+) {
   await switchToAmoy();
 
   const contract = await getContract();
+  onPhase?.("wallet");
   const tx = await contract.approveWork(BigInt(dealId));
+  onPhase?.("submitted", tx.hash);
   const receipt = await tx.wait();
 
   return {

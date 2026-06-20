@@ -26,7 +26,13 @@ export default function TestPage() {
 
   // 2. DEBUG DEALS
   async function debugDeals() {
-    const { data: deals, error } = await supabase
+    const client = supabase;
+    if (!client) {
+      alert("Supabase is not configured");
+      return;
+    }
+
+    const { data: deals, error } = await client
       .from("deals")
       .select("*");
 
@@ -44,7 +50,13 @@ export default function TestPage() {
   async function createTestApplication() {
     console.log("CREATING APPLICATION...");
 
-    const { data: deals, error: dealError } = await supabase
+    const client = supabase;
+    if (!client) {
+      alert("Supabase is not configured");
+      return null;
+    }
+
+    const { data: deals, error: dealError } = await client
       .from("deals")
       .select("*")
       .limit(1);
@@ -55,7 +67,7 @@ export default function TestPage() {
       return null;
     }
 
-    const { data: profiles, error: profileError } = await supabase
+    const { data: profiles, error: profileError } = await client
       .from("profiles")
       .select("*")
       .limit(1);
@@ -71,7 +83,7 @@ export default function TestPage() {
 
     console.log("USING:", dealId, freelancerId);
 
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from("applications")
       .insert([
         {

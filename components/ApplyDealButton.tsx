@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { CheckCircle2, Send, X } from "lucide-react";
+import { Send, X } from "lucide-react";
+import Toast from "@/components/Toast";
 import type { Deal } from "@/lib/mockData";
 import { useSealPay } from "@/lib/store";
 import { makeTimelineEvent } from "@/lib/utils";
@@ -19,6 +20,7 @@ export default function ApplyDealButton({
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const applied = deal.applications?.some(
     (item) => item.freelancerWallet.toLowerCase() === wallet.toLowerCase(),
   );
@@ -30,6 +32,8 @@ export default function ApplyDealButton({
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
+    setIsSubmitting(true);
+    setError("");
     try {
       updateDeal(deal.id, (current) => ({
         ...current,
@@ -59,6 +63,8 @@ export default function ApplyDealButton({
       setOpen(false);
     } catch {
       setError("Application could not be submitted. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -71,12 +77,6 @@ export default function ApplyDealButton({
   if (!eligible && !applied) return null;
   return (
     <>
-      {message ? (
-        <p className="mb-3 flex items-center gap-2 text-sm font-bold text-emerald-700">
-          <CheckCircle2 className="size-4" />
-          {message}
-        </p>
-      ) : null}
       <button
         type="button"
         disabled={applied}
@@ -145,11 +145,17 @@ export default function ApplyDealButton({
               >
                 Cancel
               </button>
-              <button className="primary-button">Submit Application</button>
+              <button
+                disabled={isSubmitting}
+                className="primary-button"
+              >
+                {isSubmitting ? "Submitting..." : "Submit Application"}
+              </button>
             </div>
           </form>
         </div>
       ) : null}
+      <Toast message={message} onClose={() => setMessage("")} />
     </>
   );
 }

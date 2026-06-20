@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle2, UserRoundCheck, X } from "lucide-react";
+import { UserRoundCheck, X } from "lucide-react";
 import type { Deal, DealApplication } from "@/lib/mockData";
 import { useSealPay } from "@/lib/store";
 import { formatWallet, makeTimelineEvent } from "@/lib/utils";
+import Toast from "@/components/Toast";
 
 export default function ApplicationsList({
   deals,
@@ -89,16 +90,9 @@ export default function ApplicationsList({
           Review proposals and assign one freelancer.
         </p>
       </div>
-      {message ? (
-        <p
-          className={
-            dark
-              ? "mx-6 mt-5 flex items-center gap-2 text-sm font-bold text-emerald-300"
-              : "mt-5 flex items-center gap-2 text-sm font-bold text-emerald-700"
-          }
-        >
-          <CheckCircle2 className="size-4" />
-          {message}
+      {message === "Freelancer selected successfully." ? (
+        <p className={dark ? "mx-6 mt-5 text-sm font-bold text-cyan-200" : "mt-5 text-sm font-bold text-[#00677f]"}>
+          Next step: Lock payment in escrow.
         </p>
       ) : null}
       <div className={dark ? "space-y-4 p-6" : "mt-6 space-y-4"}>
@@ -187,7 +181,7 @@ export default function ApplicationsList({
             </div>
             <p className="mt-4 leading-7 text-slate-300">
               This will assign the deal to this freelancer. Only the selected
-              freelancer will be able to submit proof.
+              freelancer will be able to submit work.
             </p>
             <div className="mt-6 flex justify-end gap-3">
               <button
@@ -203,6 +197,7 @@ export default function ApplicationsList({
           </div>
         </div>
       ) : null}
+      <Toast message={message} onClose={() => setMessage("")} />
     </section>
   );
 }

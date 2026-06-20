@@ -37,6 +37,7 @@ export async function createDeal(deal: Record<string, unknown>) {
 }
 
 export async function updateDeal(id: string, updates: Partial<Deal>) {
+  if (!supabase) return [];
   const { data, error } = await supabase
     .from("deals")
     .update(updates)
@@ -66,6 +67,7 @@ export async function deleteDeal(id: string) {
 /* ---------------- APPLICATIONS ---------------- */
 
 export async function getApplicationsByDeal(dealId: string) {
+  if (!supabase) return [];
   const { data, error } = await supabase
     .from("applications")
     .select("*")
@@ -83,6 +85,7 @@ export async function updateApplication(
   id: string,
   updates: Record<string, unknown>
 ) {
+  if (!supabase) return undefined;
   const { data, error } = await supabase
     .from("applications")
     .update(updates)
@@ -98,6 +101,7 @@ export async function updateApplication(
 }
 
 export async function deleteApplication(id: string) {
+  if (!supabase) return false;
   const { error } = await supabase
     .from("applications")
     .delete()
