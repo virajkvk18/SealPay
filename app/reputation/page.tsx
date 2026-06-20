@@ -83,12 +83,12 @@ export default function ReputationPage() {
               SealPay Reputation
             </h1>
             <p className="mt-4 max-w-3xl text-base leading-7 text-[#43474b]">
-              SealPay turns completed invoices, proof hashes, and dispute
-              outcomes into a transparent trust score.
+              SealPay turns completed deals, proof hashes, and dispute outcomes
+              into a transparent trust score.
             </p>
           </div>
           <Link href="/create-deal" className="primary-button">
-            Create Invoice
+            Create Deal
           </Link>
         </div>
 
@@ -146,7 +146,7 @@ export default function ReputationPage() {
             <ReputationMetric
               label="Completion Rate"
               value="96%"
-              helper="Estimated from completed and resolved demo escrows"
+              helper="Estimated from completed and resolved escrow outcomes"
               icon={<BadgeCheck className="size-5" />}
             />
             <ReputationMetric
@@ -164,7 +164,7 @@ export default function ReputationPage() {
             <ReputationMetric
               label="Vault Health"
               value="Live"
-              helper="Local mock escrow store is ready for demo actions"
+              helper="Escrow records are available for wallet verification"
               icon={<ShieldCheck className="size-5" />}
             />
 

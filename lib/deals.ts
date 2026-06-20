@@ -2,9 +2,9 @@ import { supabase } from "./supabase";
 import type { Deal } from "./mockData";
 
 export async function getDeals() {
-  const { data, error } = await supabase
-    .from("deals")
-    .select("*");
+  if (!supabase) return [];
+
+  const { data, error } = await supabase.from("deals").select("*");
 
   if (error) {
     console.log("ERROR CODE:", error.code);

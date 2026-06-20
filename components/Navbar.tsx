@@ -3,15 +3,30 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Activity, Hexagon } from "lucide-react";
+import { Activity } from "lucide-react";
 import WalletButton from "@/components/WalletButton";
 import { cn } from "@/lib/utils";
 
-const navItems = [
+interface NavItem {
+  href: string;
+  label: string;
+  matches?: string[];
+}
+
+const appNavItems: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", matches: ["/dashboard"] },
   { href: "/create-deal", label: "Create Deal", matches: ["/create-deal"] },
   { href: "/deal/SP-1003", label: "Disputes", matches: ["/deal"] },
   { href: "/reputation", label: "Reputation", matches: ["/reputation"] },
+];
+
+const landingNavItems: NavItem[] = [
+  { href: "/#how-it-works", label: "How It Works" },
+  { href: "/#for-clients", label: "For Clients" },
+  { href: "/#for-freelancers", label: "For Freelancers" },
+  { href: "/#security", label: "Security" },
+  { href: "/#proof-timeline", label: "Proof Timeline" },
+  { href: "/#faq", label: "FAQ" },
 ];
 
 export default function Navbar() {
@@ -38,17 +53,19 @@ export default function Navbar() {
               </span>
             </span>
           ) : null}
-          <span className="chain-chip nav-chain-chip">
-            <Activity className="size-3" />
-            Polygon Amoy
-          </span>
+          {!isLandingPage ? (
+            <span className="chain-chip nav-chain-chip">
+              <Activity className="size-3" />
+              Web3 Network
+            </span>
+          ) : null}
         </Link>
 
         <div className="hidden items-center gap-8 md:flex">
-          {navItems.map((item) => {
-            const isActive = item.matches.some((match) =>
-              pathname.startsWith(match),
-            );
+          {(isLandingPage ? landingNavItems : appNavItems).map((item) => {
+            const isActive =
+              item.matches?.some((match) => pathname.startsWith(match)) ??
+              false;
 
             return (
               <Link
@@ -66,10 +83,7 @@ export default function Navbar() {
           })}
         </div>
 
-        <div className="flex items-center gap-2">
-          <Hexagon className="hidden size-5 text-cyan-300 sm:block" />
-          <WalletButton />
-        </div>
+        <WalletButton compactOnly />
       </nav>
     </header>
   );

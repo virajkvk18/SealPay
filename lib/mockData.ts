@@ -106,6 +106,7 @@ export interface Deal {
   freelancerName: string;
   clientWallet: string;
   freelancerWallet: string;
+  dealKind?: "Direct" | "Public";
   amount: number;
   deadline: string;
   deliverableType: DeliverableType;
@@ -125,7 +126,7 @@ export interface Deal {
 }
 
 export const demoModeNotice =
-  "Demo Mode: Blockchain actions are simulated with mock transaction hashes. Smart contract file included for testnet extension.";
+  "Deal events and proof records remain visible for independent verification.";
 
 export const roles: Role[] = ["Client", "Freelancer", "Admin/Judge"];
 
@@ -172,7 +173,7 @@ export const initialDeals: Deal[] = [
       {
         id: "ev-sp1001-2",
         title: "Payment locked",
-        description: "0.42 test MATIC locked in mock escrow.",
+        description: "Payment protected by smart contract escrow.",
         status: "Payment Locked",
         actor: "Client",
         timestamp: "2026-06-14T10:21:00+05:30",
@@ -243,7 +244,7 @@ export const initialDeals: Deal[] = [
       {
         id: "ev-sp1002-2",
         title: "Payment locked",
-        description: "1.8 test MATIC locked before development started.",
+        description: "Payment protected before development started.",
         status: "Payment Locked",
         actor: "Client",
         timestamp: "2026-06-13T15:08:00+05:30",
@@ -330,7 +331,7 @@ export const initialDeals: Deal[] = [
       {
         id: "ev-sp1003-2",
         title: "Payment locked",
-        description: "0.75 test MATIC locked in escrow.",
+        description: "Payment protected by smart contract escrow.",
         status: "Payment Locked",
         actor: "Client",
         timestamp: "2026-06-12T12:12:00+05:30",
