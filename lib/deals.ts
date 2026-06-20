@@ -18,12 +18,10 @@ export async function getDeals() {
 }
 
 export async function createDeal(deal: Record<string, unknown>) {
+  if (!supabase) return [];
   console.log("INSERTING DEAL:", deal);
 
-  const { data, error } = await supabase
-    .from("deals")
-    .insert([deal])
-    .select();
+  const { data, error } = await supabase.from("deals").insert([deal]).select();
 
   if (error) {
     console.log("ERROR CODE:", error.code);
@@ -36,10 +34,8 @@ export async function createDeal(deal: Record<string, unknown>) {
   return data;
 }
 
-export async function updateDeal(
-  id: string,
-  updates: Partial<Deal>
-) {
+export async function updateDeal(id: string, updates: Partial<Deal>) {
+  if (!supabase) return [];
   const { data, error } = await supabase
     .from("deals")
     .update(updates)
@@ -58,10 +54,8 @@ export async function updateDeal(
 }
 
 export async function deleteDeal(id: string) {
-  const { error } = await supabase
-    .from("deals")
-    .delete()
-    .eq("id", id);
+  if (!supabase) return;
+  const { error } = await supabase.from("deals").delete().eq("id", id);
 
   if (error) {
     console.log("ERROR CODE:", error.code);

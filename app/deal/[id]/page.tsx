@@ -22,12 +22,16 @@ import {
 import DisputeModal, {
   type DisputeFormValues,
 } from "@/components/DisputeModal";
+import ApplicationsList from "@/components/ApplicationsList";
+import ApplyDealButton from "@/components/ApplyDealButton";
+import DealStatusTracker from "@/components/DealStatusTracker";
 import Navbar from "@/components/Navbar";
 import StatusBadge from "@/components/StatusBadge";
 import SubmitProofModal, {
   type ProofFormValues,
 } from "@/components/SubmitProofModal";
 import Timeline from "@/components/Timeline";
+import TransactionSuccess from "@/components/TransactionSuccess";
 import type { Deal, Role } from "@/lib/mockData";
 import { saveProofToSupabase } from "@/lib/proofs";
 import { useSealPay } from "@/lib/store";
@@ -185,6 +189,10 @@ export default function DealDetailsPage() {
   const { address } = useWallet();
   const [proofOpen, setProofOpen] = useState(false);
   const [disputeOpen, setDisputeOpen] = useState(false);
+  const [transactionResult, setTransactionResult] = useState<{
+    type: "locked" | "released";
+    txHash: string;
+  } | null>(null);
   const deal = deals.find((candidate) => candidate.id === dealId);
   const normalizedWallet = address.toLowerCase();
   const arbitratorWallet = (
@@ -238,28 +246,57 @@ export default function DealDetailsPage() {
     if (!deal) return;
     const approvalTx = makeTxHash();
     const releaseTx = makeTxHash();
-    updateDeal(deal.id, (current) => ({
-      ...current,
-      status: "Payment Released",
-      timeline: [
-        ...current.timeline,
-        makeTimelineEvent({
-          title: "Work approved",
-          description:
-            "Client approved the submitted proof and authorized release.",
-          status: "Approved",
-          actor: "Client",
-          txHash: approvalTx,
-        }),
-        makeTimelineEvent({
-          title: "Payment released",
-          description: `${formatAmount(current.amount)} released to the freelancer wallet.`,
-          status: "Payment Released",
-          actor: "System",
-          txHash: releaseTx,
-        }),
-      ],
-    }));
+    try {
+      updateDeal(deal.id, (current) => ({
+        ...current,
+        status: "Payment Released",
+        timeline: [
+          ...current.timeline,
+          makeTimelineEvent({
+            title: "Work approved",
+            description:
+              "Client approved the submitted proof and authorized release.",
+            status: "Approved",
+            actor: "Client",
+            txHash: approvalTx,
+          }),
+          makeTimelineEvent({
+            title: "Payment released",
+            description: `${formatAmount(current.amount)} released to the freelancer wallet.`,
+            status: "Payment Released",
+            actor: "System",
+            txHash: releaseTx,
+          }),
+        ],
+      }));
+      setTransactionResult({ type: "released", txHash: releaseTx });
+    } catch {
+      window.alert("Payment release failed. Please try again.");
+    }
+  }
+
+  function handleLockPayment() {
+    if (!deal) return;
+    const txHash = makeTxHash();
+    try {
+      updateDeal(deal.id, (current) => ({
+        ...current,
+        status: "Payment Locked",
+        timeline: [
+          ...current.timeline,
+          makeTimelineEvent({
+            title: "Payment locked",
+            description: `${formatAmount(current.amount)} protected by smart contract escrow.`,
+            status: "Payment Locked",
+            actor: "Client",
+            txHash,
+          }),
+        ],
+      }));
+      setTransactionResult({ type: "locked", txHash });
+    } catch {
+      window.alert("Payment could not be locked. Please try again.");
+    }
   }
 
   function handleRejectDeal() {
@@ -441,6 +478,10 @@ export default function DealDetailsPage() {
                 <StatusBadge status={deal.status} />
               </div>
 
+              <div className="mt-8 rounded-3xl border border-[#101d25]/10 bg-white/65 p-5">
+                <DealStatusTracker deal={deal} />
+              </div>
+
               <div className="mt-8 grid gap-4 md:grid-cols-3">
                 <div className="rounded-2xl border border-emerald-300/20 bg-emerald-300/[0.06] p-5">
                   <p className="text-sm font-bold text-emerald-800">
@@ -482,6 +523,10 @@ export default function DealDetailsPage() {
                 ))}
               </div>
             </article>
+
+            {activeRole === "Client" && deal.dealKind === "Public" ? (
+              <ApplicationsList deals={[deal]} />
+            ) : null}
 
             <article className="glass-panel rounded-3xl p-6 sm:p-8">
               <div className="flex flex-wrap items-start justify-between gap-4">
@@ -599,9 +644,7 @@ export default function DealDetailsPage() {
                           rel="noreferrer"
                           className="mt-1 block break-all text-[#00677f] underline"
                         >
-                          {deal.proof.storageProvider === "mock-pinata"
-                            ? "Mock CID preview"
-                            : "Open pinned proof"}
+                          Open pinned proof
                         </a>
                       ) : (
                         <p className="mt-1">pending</p>
@@ -727,15 +770,13 @@ export default function DealDetailsPage() {
                     ) : null}
                     <button
                       type="button"
-                      onClick={() =>
-                        appendStatusEvent(
-                          "Payment Locked",
-                          "Payment locked",
-                          `${formatAmount(deal.amount)} protected by smart contract escrow.`,
-                          "Client",
-                        )
+                      onClick={handleLockPayment}
+                      disabled={
+                        !(["Created", "Assigned"] as Deal["status"][]).includes(
+                          deal.status,
+                        ) ||
+                        (deal.dealKind === "Public" && !deal.freelancerWallet)
                       }
-                      disabled={deal.status !== "Created"}
                       className="primary-button"
                     >
                       <LockKeyhole className="size-4" />
@@ -848,13 +889,17 @@ export default function DealDetailsPage() {
                 ) : null}
 
                 {activeRole === "Public Viewer" ? (
-                  <Link
-                    href={`/proof/${deal.id}`}
-                    className="secondary-button border-white/15 bg-white/5 text-white"
-                  >
-                    <Fingerprint className="size-4" />
-                    View Proof Timeline
-                  </Link>
+                  deal.dealKind === "Public" && deal.status === "Created" ? (
+                    <ApplyDealButton deal={deal} wallet={address} />
+                  ) : (
+                    <Link
+                      href={`/proof/${deal.id}`}
+                      className="secondary-button border-white/15 bg-white/5 text-white"
+                    >
+                      <Fingerprint className="size-4" />
+                      View Proof Timeline
+                    </Link>
+                  )
                 ) : null}
               </div>
               <p className="mt-4 rounded-2xl border border-white/10 bg-white/10 p-3 text-sm leading-6 text-white/70">
@@ -953,6 +998,16 @@ export default function DealDetailsPage() {
         onClose={() => setDisputeOpen(false)}
         onSubmit={handleRaiseDispute}
       />
+      {transactionResult ? (
+        <TransactionSuccess
+          type={transactionResult.type}
+          amount={deal.amount}
+          dealTitle={deal.title}
+          freelancerWallet={deal.freelancerWallet}
+          txHash={transactionResult.txHash}
+          onClose={() => setTransactionResult(null)}
+        />
+      ) : null}
     </main>
   );
 }

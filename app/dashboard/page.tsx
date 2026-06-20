@@ -19,6 +19,7 @@ import {
   Wallet,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import ApplicationsList from "@/components/ApplicationsList";
 import StatusBadge from "@/components/StatusBadge";
 import { generateSealTrustScore } from "@/lib/aiEngine";
 import {
@@ -51,6 +52,12 @@ function mapSupabaseDeal(row: SupabaseDeal): Deal {
     freelancerName: String(row.freelancer_name ?? "Unassigned"),
     clientWallet: String(row.client_wallet ?? ""),
     freelancerWallet: String(row.freelancer_wallet ?? ""),
+    selectedFreelancerWallet: row.selected_freelancer_wallet
+      ? String(row.selected_freelancer_wallet)
+      : undefined,
+    applications: Array.isArray(row.applications)
+      ? (row.applications as Deal["applications"])
+      : [],
     amount: Number(row.amount ?? 0),
     deadline: String(row.deadline ?? new Date().toISOString()),
     deliverableType:
@@ -241,11 +248,17 @@ export default function DashboardPage() {
   const openDeals = useMemo(
     () =>
       deals.filter(
-        (deal) => deal.status === "Created" && !deal.freelancerWallet,
+        (deal) =>
+          deal.dealKind === "Public" &&
+          deal.status === "Created" &&
+          !deal.freelancerWallet,
       ),
     [deals],
   );
   const activeDeals = mode === "client" ? clientDeals : freelancerDeals;
+  const receivedApplications = clientDeals.flatMap(
+    (deal) => deal.applications ?? [],
+  );
   const pendingApprovals = clientDeals.filter(
     (deal) => deal.status === "Work Submitted",
   );
@@ -283,7 +296,9 @@ export default function DashboardPage() {
     },
     {
       label: "Applications Received",
-      value: "0",
+      value: String(
+        receivedApplications.filter((item) => item.status === "pending").length,
+      ),
       helper: "Applications awaiting selection",
       icon: <Inbox className="size-5" />,
     },
@@ -356,7 +371,7 @@ export default function DashboardPage() {
   ];
   const freelancerActions = [
     {
-      href: "/dashboard?mode=freelancer#open-deals",
+      href: "/open-deals",
       title: "Browse Open Deals",
       detail: "Find public opportunities to apply for.",
       icon: <Search className="size-5" />,
@@ -459,6 +474,7 @@ export default function DashboardPage() {
                   deals={clientDeals}
                   emptyMessage="No created deals yet. Create a direct or public deal to begin."
                 />
+                <ApplicationsList deals={clientDeals} dark />
                 <DealList
                   title="Pending Proof Reviews"
                   helper="Proof submissions waiting for your decision"

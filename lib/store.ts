@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useSyncExternalStore } from "react";
 import type { Deal, Role } from "@/lib/mockData";
 import { initialDeals, roles } from "@/lib/mockData";
+import { supabase } from "@/lib/supabase";
 
 const dealsKey = "sealpay-deals-v1";
 const roleKey = "sealpay-role-v1";
@@ -31,6 +32,24 @@ function readRole(): Role {
 function writeDeals(deals: Deal[]) {
   window.localStorage.setItem(dealsKey, JSON.stringify(deals));
   window.dispatchEvent(new Event(dealsChangedEvent));
+}
+
+function syncDeal(deal: Deal) {
+  if (!supabase) return;
+
+  void supabase
+    .from("deals")
+    .update({
+      status: deal.status,
+      freelancer_wallet: deal.freelancerWallet,
+      selected_freelancer_wallet: deal.selectedFreelancerWallet ?? null,
+      applications: deal.applications ?? [],
+      timeline: deal.timeline,
+    })
+    .eq("id", deal.id)
+    .then(({ error }) => {
+      if (error) console.error("Deal sync failed", error);
+    });
 }
 
 function writeRole(role: Role) {
@@ -86,6 +105,7 @@ function normalizeStoredDeal(deal: Deal): Deal {
 
   return {
     ...deal,
+    applications: deal.applications ?? seedDeal?.applications ?? [],
     finalFileName,
     previewUrl,
     proof: deal.proof
@@ -154,9 +174,15 @@ export function useSealPay() {
 
   const updateDeal = useCallback(
     (dealId: string, updater: (deal: Deal) => Deal) => {
+      let updatedDeal: Deal | undefined;
       persistDeals((currentDeals) =>
-        currentDeals.map((deal) => (deal.id === dealId ? updater(deal) : deal)),
+        currentDeals.map((deal) => {
+          if (deal.id !== dealId) return deal;
+          updatedDeal = updater(deal);
+          return updatedDeal;
+        }),
       );
+      if (updatedDeal) syncDeal(updatedDeal);
     },
     [persistDeals],
   );

@@ -13,6 +13,7 @@ import {
 import Navbar from "@/components/Navbar";
 import StatusBadge from "@/components/StatusBadge";
 import Timeline from "@/components/Timeline";
+import DealStatusTracker from "@/components/DealStatusTracker";
 import { demoModeNotice } from "@/lib/mockData";
 import { useSealPay } from "@/lib/store";
 import { formatAmount, formatWallet } from "@/lib/utils";
@@ -171,9 +172,7 @@ export default function ProofPage() {
                       rel="noreferrer"
                       className="mt-2 block break-all text-sm font-bold text-[#00677f] underline"
                     >
-                      {deal.proof.storageProvider === "mock-pinata"
-                        ? "Mock CID gateway URL"
-                        : "Open pinned proof"}
+                      Open pinned proof
                     </a>
                   </div>
                 ) : null}
@@ -192,11 +191,11 @@ export default function ProofPage() {
               <div className="mt-6 rounded-2xl border border-cyan-300/20 bg-cyan-300/[0.06] p-4">
                 <div className="flex items-center gap-2 text-sm font-black text-[#00566a]">
                   <ShieldCheck className="size-4" />
-                  Mock verification
+                  Blockchain verification
                 </div>
                 <p className="mt-2 text-sm leading-6 text-[#43474b]">
-                  Every action below includes a fake transaction hash for demo
-                  proof.
+                  Deal events include transaction references for independent
+                  verification.
                 </p>
               </div>
 
@@ -256,6 +255,12 @@ export default function ProofPage() {
             </aside>
 
             <section className="glass-panel rounded-3xl p-5 sm:p-7">
+              <div className="mb-8 rounded-3xl border border-[#101d25]/10 bg-white/65 p-5">
+                <p className="mb-5 text-sm font-black uppercase tracking-normal text-[#00677f]">
+                  Deal status
+                </p>
+                <DealStatusTracker deal={deal} />
+              </div>
               <div className="mb-6">
                 <p className="text-sm font-black uppercase tracking-normal text-emerald-700">
                   Timeline
