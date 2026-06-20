@@ -59,7 +59,7 @@ export interface WorkProof {
   previewUrl: string;
   fileHash: string;
   gatewayUrl?: string;
-  storageProvider?: "pinata" | "mock-pinata";
+  storageProvider?: "pinata";
   txHash: string;
   submittedAt: string;
 }

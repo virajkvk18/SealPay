@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const body = (await request.json()) as {
+  let body: {
     dealTitle?: string;
     dealDescription?: string;
     clientName?: string;
@@ -67,47 +67,72 @@ export async function POST(request: Request) {
       timestamp: string;
     }>;
   };
+  try {
+    body = (await request.json()) as typeof body;
+  } catch {
+    return NextResponse.json(
+      {
+        error: "Invalid dispute summary request.",
+        details: "The AI dispute summary endpoint expects a JSON body.",
+      },
+      { status: 400 },
+    );
+  }
 
-  const response = await fetch(groqChatUrl, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      temperature: 0.2,
-      response_format: { type: "json_object" },
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are SealPay's dispute summarizer. Return only valid JSON with keys: title, summary, recommendation. title must be AI Dispute Summary. Do not make the final decision; recommend what a human admin/judge should compare.",
-        },
-        {
-          role: "user",
-          content: JSON.stringify({
-            task: "Summarize this escrow dispute for an admin/judge.",
-            deal: {
-              title: body.dealTitle,
-              description: body.dealDescription,
-              clientName: body.clientName,
-              freelancerName: body.freelancerName,
-            },
-            dispute: {
-              reason: body.reason,
-              evidence: body.evidence,
-            },
-            proof: {
-              cid: body.proofCid,
-              gatewayUrl: body.proofUrl,
-            },
-            timeline: body.timeline,
-          }),
-        },
-      ],
-    }),
-  });
+  let response: Response;
+  try {
+    response = await fetch(groqChatUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model,
+        temperature: 0.2,
+        response_format: { type: "json_object" },
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are SealPay's dispute summarizer. Return only valid JSON with keys: title, summary, recommendation. title must be AI Dispute Summary. Do not make the final decision; recommend what a human admin/judge should compare.",
+          },
+          {
+            role: "user",
+            content: JSON.stringify({
+              task: "Summarize this escrow dispute for an admin/judge.",
+              deal: {
+                title: body.dealTitle,
+                description: body.dealDescription,
+                clientName: body.clientName,
+                freelancerName: body.freelancerName,
+              },
+              dispute: {
+                reason: body.reason,
+                evidence: body.evidence,
+              },
+              proof: {
+                cid: body.proofCid,
+                gatewayUrl: body.proofUrl,
+              },
+              timeline: body.timeline,
+            }),
+          },
+        ],
+      }),
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error: "Groq dispute summary request failed.",
+        details:
+          error instanceof Error
+            ? error.message
+            : "The Groq API could not be reached.",
+      },
+      { status: 502 },
+    );
+  }
 
   if (!response.ok) {
     const details = await response.text();
@@ -129,9 +154,15 @@ export async function POST(request: Request) {
 
   try {
     return NextResponse.json(normalizeSummary(parseJsonObject(content)));
-  } catch {
+  } catch (error) {
     return NextResponse.json(
-      { error: "Groq returned invalid dispute summary JSON." },
+      {
+        error: "Groq returned invalid dispute summary JSON.",
+        details:
+          error instanceof Error
+            ? error.message
+            : "The response could not be parsed.",
+      },
       { status: 502 },
     );
   }

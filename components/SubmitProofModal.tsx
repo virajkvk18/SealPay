@@ -13,7 +13,7 @@ export interface ProofFormValues {
   proofCid: string;
   proofGatewayUrl: string;
   uploadedFileName: string;
-  storageProvider: "pinata" | "mock-pinata";
+  storageProvider: "pinata";
 }
 
 function normalizePreviewUrl(value: string) {

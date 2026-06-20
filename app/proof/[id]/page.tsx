@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -15,7 +15,12 @@ import StatusBadge from "@/components/StatusBadge";
 import Timeline from "@/components/Timeline";
 import DealStatusTracker from "@/components/DealStatusTracker";
 import { demoModeNotice } from "@/lib/mockData";
+import {
+  getLatestProofFromSupabase,
+  type ProofRecord,
+} from "@/lib/proofs";
 import { useSealPay } from "@/lib/store";
+import { supabase } from "@/lib/supabase";
 import { formatAmount, formatWallet } from "@/lib/utils";
 
 export default function ProofPage() {
@@ -25,13 +30,56 @@ export default function ProofPage() {
   const dealId = routeId ? decodeURIComponent(routeId) : "";
   const { deals } = useSealPay();
   const [lookup, setLookup] = useState(dealId);
+  const [remoteProof, setRemoteProof] = useState<ProofRecord | null>(null);
   const deal = deals.find((candidate) => candidate.id === dealId);
+  const currentRemoteProof =
+    remoteProof?.deal_id === dealId ? remoteProof : null;
+  const proofReview = deal?.aiProofReview ?? currentRemoteProof?.ai_review ?? null;
   const latestTxHash = deal?.timeline
     .filter((event) => event.txHash)
     .sort(
       (a, b) =>
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
     )[0]?.txHash;
+
+  useEffect(() => {
+    let active = true;
+
+    if (!dealId) return;
+
+    void getLatestProofFromSupabase(dealId).then((proof) => {
+      if (active) setRemoteProof(proof);
+    });
+
+    const client = supabase;
+    if (!client) {
+      return () => {
+        active = false;
+      };
+    }
+
+    const channel = client
+      .channel(`proofs-${dealId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "proofs",
+          filter: `deal_id=eq.${dealId}`,
+        },
+        (payload) => {
+          const nextProof = payload.new as ProofRecord | null;
+          if (nextProof) setRemoteProof(nextProof);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      active = false;
+      void client.removeChannel(channel);
+    };
+  }, [dealId]);
 
   function handleLookup(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -96,7 +144,91 @@ export default function ProofPage() {
           </div>
         </article>
 
-        {!deal ? (
+        {!deal && currentRemoteProof ? (
+          <article className="mt-6 glass-panel rounded-3xl p-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="text-sm font-black uppercase tracking-normal text-[#00677f]">
+                  Supabase proof record
+                </p>
+                <h2 className="mt-2 text-2xl font-black text-[#010b13]">
+                  Proof found for {currentRemoteProof.deal_id}
+                </h2>
+                <p className="mt-3 text-sm leading-6 text-[#53606a]">
+                  This proof was loaded from the shared Supabase proofs table,
+                  so it can be verified from another laptop without local
+                  browser state.
+                </p>
+              </div>
+              <StatusBadge status="Work Submitted" compact />
+            </div>
+
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
+              <div className="rounded-2xl border border-[#101d25]/10 bg-white/70 p-4">
+                <p className="text-xs font-bold uppercase tracking-normal text-[#74777b]">
+                  Proof CID
+                </p>
+                <p className="mt-2 break-all font-mono text-sm text-[#101d25]">
+                  {currentRemoteProof.proof_cid}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-[#101d25]/10 bg-white/70 p-4">
+                <p className="text-xs font-bold uppercase tracking-normal text-[#74777b]">
+                  File name
+                </p>
+                <p className="mt-2 text-sm font-bold text-[#101d25]">
+                  {currentRemoteProof.file_name ?? "Proof file"}
+                </p>
+              </div>
+              <a
+                href={currentRemoteProof.proof_url}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-2xl border border-cyan-300/25 bg-cyan-300/[0.08] p-4 text-sm font-black text-[#00677f] underline md:col-span-2"
+              >
+                Open pinned proof
+              </a>
+            </div>
+
+            {currentRemoteProof.ai_review ? (
+              <div className="mt-6 rounded-3xl border border-cyan-300/20 bg-[#061f2a] p-5 text-white">
+                <p className="text-sm font-black uppercase tracking-[0.18em] text-cyan-200">
+                  AI Proof Review
+                </p>
+                <div className="mt-4 grid gap-4 md:grid-cols-[180px_1fr]">
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                    <p className="text-xs font-bold uppercase text-slate-400">
+                      SealTrust Score
+                    </p>
+                    <p className="mt-2 text-4xl font-black text-white">
+                      {currentRemoteProof.ai_review.score}/100
+                    </p>
+                    <p className="mt-2 text-sm font-bold text-cyan-100">
+                      {currentRemoteProof.ai_review.verdict ??
+                        currentRemoteProof.ai_review.status}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                    <p className="text-sm font-black text-white">
+                      {currentRemoteProof.ai_review.status}
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-slate-300">
+                      {currentRemoteProof.ai_review.summary ??
+                        "AI reviewed the uploaded proof for relevance."}
+                    </p>
+                    {currentRemoteProof.ai_review.reasons.length ? (
+                      <ul className="mt-4 grid gap-2 text-sm text-slate-200">
+                        {currentRemoteProof.ai_review.reasons.map((reason) => (
+                          <li key={reason}>- {reason}</li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </article>
+        ) : !deal ? (
           <article className="mt-6 glass-panel rounded-3xl p-6 text-center">
             <h2 className="text-2xl font-black text-[#010b13]">
               No public proof found
@@ -214,29 +346,28 @@ export default function ProofPage() {
                   <p>
                     AI proof review:{" "}
                     <span className="font-black text-[#010b13]">
-                      {deal.aiProofReview?.status ?? "Pending proof submission"}
+                      {proofReview?.status ?? "Pending proof submission"}
                     </span>
                   </p>
-                  {deal.aiProofReview ? (
+                  {proofReview ? (
                     <>
                       <p>
                         AI review score:{" "}
                         <span className="font-black text-[#010b13]">
-                          {deal.aiProofReview.score}/100
+                          {proofReview.score}/100
                         </span>
                       </p>
                       <p>
                         AI verdict:{" "}
                         <span className="font-black text-[#010b13]">
-                          {deal.aiProofReview.verdict ??
-                            deal.aiProofReview.status}
+                          {proofReview.verdict ?? proofReview.status}
                         </span>
                       </p>
-                      {deal.aiProofReview.summary ? (
+                      {proofReview.summary ? (
                         <p>
                           AI summary:{" "}
                           <span className="font-semibold">
-                            {deal.aiProofReview.summary}
+                            {proofReview.summary}
                           </span>
                         </p>
                       ) : null}
