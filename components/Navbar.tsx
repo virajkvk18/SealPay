@@ -32,7 +32,7 @@ const clientItems: NavItem[] = [
   { href: "/dashboard#my-deals", label: "My Deals" },
   { href: "/dashboard#applications", label: "Applications Received" },
   { href: "/dashboard#pending-approvals", label: "Pending Approvals" },
-  { href: "/proof/SP-1001", label: "Proof Timeline" },
+  { href: "/dashboard#submitted-proofs", label: "Proof Timeline" },
   { href: "/reputation", label: "Trust Score" },
 ];
 

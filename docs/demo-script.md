@@ -34,9 +34,10 @@ Supabase is only an optional cache for proof records. If Supabase fails, the app
 
 ## Failure Handling
 
-- If Pinata is not configured, the UI shows a clear IPFS upload error, or mock mode can provide a mock CID for local demos.
+- If Pinata is not configured, the UI shows a clear IPFS upload setup error instead of generating a fake CID.
 - If Groq is not configured, the UI shows an AI review error that points to the missing or failing API key.
 - If Supabase proof caching fails, the app logs the cache error but does not block the proof submission flow.
+- The public proof page can load the saved proof and AI review from Supabase by deal ID, so another laptop can verify the same proof record.
 
 ## Final Line
 

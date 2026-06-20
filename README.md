@@ -103,10 +103,11 @@ AI is only an assistant. Final approval and dispute decisions stay with a human 
 The proof submission flow calls `POST /api/pinata/upload` before AI review and shows the user a clear three-step state: Uploading to IPFS, CID Generated, and AI Reviewing.
 
 - With `PINATA_JWT` configured, the server uploads the selected proof file to Pinata and returns a CID plus gateway URL.
-- With `NEXT_PUBLIC_ENABLE_MOCK_MODE=true` and no `PINATA_JWT`, the route returns a mock CID so the demo remains fully usable.
+- If `PINATA_JWT` is missing, proof upload stops with a clear setup error instead of creating fake CIDs.
 - The returned CID is stored as the deal proof hash and shown in both the Deal Vault and Public Proof Explorer.
 - Supabase proof saving is treated as an optional cache. If that insert fails, the IPFS CID and AI review flow can still continue.
 - Groq and Pinata failures are surfaced with clearer messages so demo operators can quickly identify missing keys or provider errors.
+- The Public Proof Explorer can read the latest proof row from Supabase, so another laptop can verify the CID and AI result by deal ID.
 
 Local setup:
 
@@ -170,14 +171,7 @@ with check (true);
 | `/proof/[id]`  | Public proof explorer for a deal timeline              |
 | `/reputation`  | Wallet and workspace reputation view                   |
 
-Seeded demo routes:
-
-| Route            | Demo State                   |
-| ---------------- | ---------------------------- |
-| `/deal/SP-1001`  | Payment locked sample        |
-| `/deal/SP-1002`  | Work submitted sample        |
-| `/deal/SP-1003`  | Disputed sample              |
-| `/proof/SP-1001` | Public proof explorer sample |
+Create a deal from `/create-deal`, then open its deal vault and proof explorer using the generated deal ID.
 
 ## Why This MVP Is Feasible
 
@@ -244,7 +238,7 @@ components/
 
 lib/
   aiEngine.ts           Risk, proof, dispute, and trust scoring
-  mockData.ts           Seeded demo deals
+  mockData.ts           Shared deal, proof, role, and timeline types
   store.ts              Local mock persistence
   utils.ts              Formatting and hash helpers
 
@@ -307,7 +301,7 @@ SealPay currently runs in demo mode by default. It includes:
 - LocalStorage deal database
 - Mock transaction hashes
 - Real Pinata uploads when `PINATA_JWT` is configured
-- Mock proof CIDs only when Pinata is not configured and mock mode is enabled
+- No fake proof CIDs in the Teammate 4 proof upload path
 - Real Groq AI proof and dispute review when `GROQ_API_KEY` is configured
 - Test MATIC labels for Polygon Amoy-style demo flow
 

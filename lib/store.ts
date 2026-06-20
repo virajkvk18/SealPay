@@ -45,6 +45,15 @@ function syncDeal(deal: Deal) {
       selected_freelancer_wallet: deal.selectedFreelancerWallet ?? null,
       applications: deal.applications ?? [],
       timeline: deal.timeline,
+      preview_url: deal.previewUrl ?? deal.proof?.previewUrl ?? null,
+      final_file_name:
+        deal.finalFileName ?? deal.proof?.finalFileName ?? null,
+      proof: deal.proof ?? null,
+      ai_proof_review: deal.aiProofReview ?? null,
+      dispute_reason: deal.disputeReason ?? null,
+      dispute_evidence: deal.disputeEvidence ?? null,
+      ai_dispute_summary: deal.aiDisputeSummary ?? null,
+      resolution: deal.resolution ?? null,
     })
     .eq("id", deal.id)
     .then(({ error }) => {

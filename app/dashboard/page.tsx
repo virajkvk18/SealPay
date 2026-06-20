@@ -284,6 +284,11 @@ export default function DashboardPage() {
   const readyToSubmit = freelancerDeals.find(
     (deal) => deal.status === "Payment Locked",
   );
+  const proofTimelineDeal =
+    submittedProofs[0] ?? pendingApprovals[0] ?? activeDeals[0];
+  const proofTimelineHref = proofTimelineDeal
+    ? `/proof/${encodeURIComponent(proofTimelineDeal.id)}`
+    : "/dashboard#my-deals";
   const earnings = freelancerDeals
     .filter((deal) =>
       ["Approved", "Payment Released", "Resolved"].includes(deal.status),
@@ -384,9 +389,11 @@ export default function DashboardPage() {
       icon: <UserRoundCheck className="size-5" />,
     },
     {
-      href: "/proof/SP-1001",
+      href: proofTimelineHref,
       title: "View Proof Timeline",
-      detail: "Verify deal and payment history.",
+      detail: proofTimelineDeal
+        ? `Verify ${proofTimelineDeal.id} history.`
+        : "Create a deal first to verify its history.",
       icon: <Fingerprint className="size-5" />,
     },
   ];
@@ -584,7 +591,7 @@ export default function DashboardPage() {
                 )}
               </div>
               <Link
-                href="/proof/SP-1001"
+                href={proofTimelineHref}
                 className="secondary-button mt-5 w-full border-white/10 bg-white/5 text-white"
               >
                 Public Proof Timeline <ArrowRight className="size-4" />
