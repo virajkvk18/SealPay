@@ -1,6 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import {
+  createContext,
+  createElement,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { BrowserProvider } from "ethers";
 
 export const AMOY_CHAIN_ID = 80002;
@@ -102,7 +110,7 @@ export function getBrowserProvider() {
   return new BrowserProvider(getEthereumProvider());
 }
 
-export function useWallet() {
+function useWalletState() {
   const [address, setAddress] = useState("");
   const [error, setError] = useState("");
   const [isConnecting, setIsConnecting] = useState(false);
@@ -205,4 +213,24 @@ export function useWallet() {
     disconnect,
     switchToAmoy: switchNetworkToAmoy,
   };
+}
+
+type WalletContextValue = ReturnType<typeof useWalletState>;
+
+const WalletContext = createContext<WalletContextValue | null>(null);
+
+export function WalletProvider({ children }: { children: ReactNode }) {
+  const wallet = useWalletState();
+
+  return createElement(WalletContext.Provider, { value: wallet }, children);
+}
+
+export function useWallet() {
+  const wallet = useContext(WalletContext);
+
+  if (!wallet) {
+    throw new Error("useWallet must be used within WalletProvider.");
+  }
+
+  return wallet;
 }

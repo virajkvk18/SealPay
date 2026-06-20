@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Inter, Sora } from "next/font/google";
+import { WalletProvider } from "@/lib/wallet";
 import "./globals.css";
 
 const inter = Inter({
@@ -40,7 +41,7 @@ export default function RootLayout({
         className="min-h-full bg-[#02070c] text-slate-50"
         suppressHydrationWarning
       >
-        {children}
+        <WalletProvider>{children}</WalletProvider>
       </body>
     </html>
   );
