@@ -63,6 +63,7 @@ export interface Deal {
   status: DealStatus;
   risk: RiskScore;
   createdTxHash: string;
+  onChainDealId?: string;
   previewUrl?: string;
   finalFileName?: string;
   proof?: WorkProof;

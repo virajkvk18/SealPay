@@ -23,6 +23,7 @@ import StatusBadge from "@/components/StatusBadge";
 import SubmitProofModal, { type ProofFormValues } from "@/components/SubmitProofModal";
 import Timeline from "@/components/Timeline";
 import { analyzeWorkProof, summarizeDispute } from "@/lib/aiEngine";
+import { lockPayment } from "@/lib/blockchain";
 import { demoModeNotice, roles, type Deal, type Role } from "@/lib/mockData";
 import { useSealPay } from "@/lib/store";
 import {
@@ -89,6 +90,8 @@ export default function DealDetailsPage() {
   const { deals, activeRole, setActiveRole, updateDeal } = useSealPay();
   const [proofOpen, setProofOpen] = useState(false);
   const [disputeOpen, setDisputeOpen] = useState(false);
+  const [isLockingPayment, setIsLockingPayment] = useState(false);
+  const [lockPaymentError, setLockPaymentError] = useState("");
   const deal = deals.find((candidate) => candidate.id === dealId);
 
   const isDeliverableUnlocked = useMemo(() => {
@@ -104,12 +107,14 @@ export default function DealDetailsPage() {
     title: string,
     description: string,
     actor: Role,
+    txHash = makeTxHash(),
+    onChainDealId?: string,
   ) {
     if (!deal) return;
-    const txHash = makeTxHash();
     updateDeal(deal.id, (current) => ({
       ...current,
       status: nextStatus,
+      onChainDealId: onChainDealId ?? current.onChainDealId,
       timeline: [
         ...current.timeline,
         makeTimelineEvent({
@@ -121,6 +126,48 @@ export default function DealDetailsPage() {
         }),
       ],
     }));
+  }
+
+  function handleMockLockPayment() {
+    if (!deal) return;
+    appendStatusEvent(
+      "Payment Locked",
+      "Payment locked",
+      `${formatAmount(deal.amount)} locked in mock escrow.`,
+      "Client",
+    );
+  }
+
+  async function handleLockPayment() {
+    if (!deal) return;
+
+    if (!process.env.NEXT_PUBLIC_CONTRACT_ADDRESS) {
+      handleMockLockPayment();
+      return;
+    }
+
+    setIsLockingPayment(true);
+    setLockPaymentError("");
+
+    try {
+      const result = await lockPayment(deal.freelancerWallet, deal.amount);
+      appendStatusEvent(
+        "Payment Locked",
+        "Payment locked",
+        `${formatAmount(deal.amount)} locked in smart contract escrow.`,
+        "Client",
+        result.txHash,
+        result.onChainDealId,
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Payment lock failed. You can use demo lock to keep testing.";
+      setLockPaymentError(`${message} You can use demo lock to keep testing.`);
+    } finally {
+      setIsLockingPayment(false);
+    }
   }
 
   function handleApproveWork() {
@@ -536,20 +583,27 @@ export default function DealDetailsPage() {
                   <>
                     <button
                       type="button"
-                      onClick={() =>
-                        appendStatusEvent(
-                          "Payment Locked",
-                          "Payment locked",
-                          `${formatAmount(deal.amount)} locked in mock escrow.`,
-                          "Client",
-                        )
-                      }
-                      disabled={deal.status !== "Created"}
+                      onClick={handleLockPayment}
+                      disabled={deal.status !== "Created" || isLockingPayment}
                       className="primary-button"
                     >
                       <LockKeyhole className="size-4" />
-                      Lock Payment
+                      {isLockingPayment ? "Locking..." : "Lock Payment"}
                     </button>
+                    {lockPaymentError && deal.status === "Created" ? (
+                      <div className="rounded-2xl border border-red-300/30 bg-red-400/10 p-3">
+                        <p className="text-sm font-bold leading-6 text-red-100">
+                          {lockPaymentError}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={handleMockLockPayment}
+                          className="mt-3 inline-flex h-9 items-center justify-center rounded-full bg-white px-4 text-xs font-black text-[#010b13] transition hover:bg-cyan-50"
+                        >
+                          Use Demo Lock
+                        </button>
+                      </div>
+                    ) : null}
                     <button
                       type="button"
                       onClick={handleApproveWork}
