@@ -19,19 +19,16 @@ import {
   Wallet,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import RoleGuard from "@/components/RoleGuard";
+import ApplicationsList from "@/components/ApplicationsList";
 import StatusBadge from "@/components/StatusBadge";
 import { generateSealTrustScore } from "@/lib/aiEngine";
-import {
-  setDashboardMode,
-  useDashboardMode,
-  type DashboardMode,
-} from "@/lib/dashboardMode";
+import { useDashboardMode } from "@/lib/dashboardMode";
 import type { Deal } from "@/lib/mockData";
 import { useSealPay } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
 import { useWallet } from "@/lib/wallet";
 import {
-  cn,
   formatAmount,
   formatDate,
   formatDateTime,
@@ -51,6 +48,20 @@ function mapSupabaseDeal(row: SupabaseDeal): Deal {
     freelancerName: String(row.freelancer_name ?? "Unassigned"),
     clientWallet: String(row.client_wallet ?? ""),
     freelancerWallet: String(row.freelancer_wallet ?? ""),
+    dealKind:
+      (row.deal_kind as Deal["dealKind"]) ??
+      (row.freelancer_wallet ? "Direct" : "Public"),
+    category: row.category
+      ? String(row.category)
+      : row.deliverable_type
+        ? String(row.deliverable_type)
+        : undefined,
+    selectedFreelancerWallet: row.selected_freelancer_wallet
+      ? String(row.selected_freelancer_wallet)
+      : undefined,
+    applications: Array.isArray(row.applications)
+      ? (row.applications as Deal["applications"])
+      : [],
     amount: Number(row.amount ?? 0),
     deadline: String(row.deadline ?? new Date().toISOString()),
     deliverableType:
@@ -141,11 +152,13 @@ function DealList({
   helper,
   deals,
   emptyMessage,
+  submitWork = false,
 }: {
   title: string;
   helper: string;
   deals: Deal[];
   emptyMessage: string;
+  submitWork?: boolean;
 }) {
   return (
     <section className="dashboard-panel overflow-hidden rounded-[2rem]">
@@ -180,6 +193,11 @@ function DealList({
                     Due {formatDate(deal.deadline)}
                   </p>
                 </div>
+                {submitWork && deal.status === "Payment Locked" ? (
+                  <span className="primary-button px-4 py-2 text-xs">
+                    Submit Work
+                  </span>
+                ) : null}
                 <ArrowRight className="size-4 text-cyan-300" />
               </div>
             </Link>
@@ -202,7 +220,14 @@ export default function DashboardPage() {
   const { address } = useWallet();
   const mode = useDashboardMode();
   const [remoteDeals, setRemoteDeals] = useState<Deal[] | null>(null);
-  const deals = remoteDeals ?? localDeals;
+  const deals = useMemo(() => {
+    if (!remoteDeals) return localDeals;
+    const localIds = new Set(localDeals.map((deal) => deal.id));
+    return [
+      ...localDeals,
+      ...remoteDeals.filter((deal) => !localIds.has(deal.id)),
+    ];
+  }, [localDeals, remoteDeals]);
 
   useEffect(() => {
     const client = supabase;
@@ -241,15 +266,29 @@ export default function DashboardPage() {
   const openDeals = useMemo(
     () =>
       deals.filter(
-        (deal) => deal.status === "Created" && !deal.freelancerWallet,
+        (deal) =>
+          deal.dealKind === "Public" &&
+          deal.status === "Created" &&
+          !deal.freelancerWallet,
       ),
     [deals],
   );
   const activeDeals = mode === "client" ? clientDeals : freelancerDeals;
+  const receivedApplications = clientDeals.flatMap(
+    (deal) => deal.applications ?? [],
+  );
   const pendingApprovals = clientDeals.filter(
     (deal) => deal.status === "Work Submitted",
   );
   const submittedProofs = freelancerDeals.filter((deal) => Boolean(deal.proof));
+  const readyToSubmit = freelancerDeals.find(
+    (deal) => deal.status === "Payment Locked",
+  );
+  const proofTimelineDeal =
+    submittedProofs[0] ?? pendingApprovals[0] ?? activeDeals[0];
+  const proofTimelineHref = proofTimelineDeal
+    ? `/proof/${encodeURIComponent(proofTimelineDeal.id)}`
+    : "/dashboard#my-deals";
   const earnings = freelancerDeals
     .filter((deal) =>
       ["Approved", "Payment Released", "Resolved"].includes(deal.status),
@@ -283,7 +322,9 @@ export default function DashboardPage() {
     },
     {
       label: "Applications Received",
-      value: "0",
+      value: String(
+        receivedApplications.filter((item) => item.status === "pending").length,
+      ),
       helper: "Applications awaiting selection",
       icon: <Inbox className="size-5" />,
     },
@@ -342,36 +383,38 @@ export default function DashboardPage() {
       icon: <Search className="size-5" />,
     },
     {
-      href: "/dashboard?mode=client#applications",
+      href: "/dashboard#applications",
       title: "Review Applications",
       detail: "Compare interested freelancer wallets.",
       icon: <UserRoundCheck className="size-5" />,
     },
     {
-      href: "/proof/SP-1001",
+      href: proofTimelineHref,
       title: "View Proof Timeline",
-      detail: "Verify deal and payment history.",
+      detail: proofTimelineDeal
+        ? `Verify ${proofTimelineDeal.id} history.`
+        : "Create a deal first to verify its history.",
       icon: <Fingerprint className="size-5" />,
     },
   ];
   const freelancerActions = [
     {
-      href: "/dashboard?mode=freelancer#open-deals",
+      href: "/open-deals",
       title: "Browse Open Deals",
       detail: "Find public opportunities to apply for.",
       icon: <Search className="size-5" />,
     },
     {
-      href: "/dashboard?mode=freelancer#assigned",
+      href: "/dashboard#assigned",
       title: "View Assigned Deals",
       detail: "Review direct wallet assignments.",
       icon: <BriefcaseBusiness className="size-5" />,
     },
     {
-      href: freelancerDeals[0]
-        ? `/deal/${freelancerDeals[0].id}`
-        : "/dashboard?mode=freelancer#assigned",
-      title: "Submit Proof",
+      href: readyToSubmit
+        ? `/deal/${readyToSubmit.id}?submit=work`
+        : "/dashboard#assigned",
+      title: "Submit Work",
       detail: "Share protected work evidence.",
       icon: <FileKey2 className="size-5" />,
     },
@@ -384,160 +427,179 @@ export default function DashboardPage() {
   ];
   const actions = mode === "client" ? clientActions : freelancerActions;
 
-  function chooseMode(nextMode: DashboardMode) {
-    setDashboardMode(nextMode);
-  }
-
   return (
-    <main className="dashboard-shell min-h-screen">
-      <Navbar />
-      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <div className="chain-chip inline-flex">
-              <Wallet className="size-3.5" />
-              {address ? formatWallet(address) : "Wallet not connected"}
+    <RoleGuard allow={["client", "freelancer"]}>
+      <main className="dashboard-shell min-h-screen">
+        <Navbar />
+        <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <div className="chain-chip inline-flex">
+                <Wallet className="size-3.5" />
+                {address ? formatWallet(address) : "Wallet not connected"}
+              </div>
+              <h1 className="brand-font mt-5 text-4xl font-black text-white sm:text-5xl">
+                Welcome, {mode === "client" ? "Client" : "Freelancer"}
+              </h1>
+              <p className="mt-4 max-w-2xl text-base leading-7 text-slate-400">
+                {mode === "client"
+                  ? "Create deals, protect payment, and approve work with confidence."
+                  : "Find work, submit proof, and get paid securely."}
+              </p>
             </div>
-            <h1 className="brand-font mt-5 text-4xl font-black text-white sm:text-5xl">
-              Welcome, {mode === "client" ? "Client" : "Freelancer"}
-            </h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-400">
-              {mode === "client"
-                ? "Create deals, protect payment, and approve work with confidence."
-                : "Find work, submit proof, and get paid securely."}
-            </p>
           </div>
-          <div className="dashboard-mode-switch">
-            <button
-              type="button"
-              onClick={() => chooseMode("client")}
-              className={cn(mode === "client" && "active")}
-            >
-              <BriefcaseBusiness className="size-4" />
-              Client
-            </button>
-            <button
-              type="button"
-              onClick={() => chooseMode("freelancer")}
-              className={cn(mode === "freelancer" && "active")}
-            >
-              <Search className="size-4" />
-              Freelancer
-            </button>
-          </div>
-        </div>
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {metrics.map((metric) => (
-            <MetricCard key={metric.label} {...metric} />
-          ))}
-        </div>
-
-        <section className="mt-8">
-          <div className="mb-5">
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-cyan-300">
-              Quick actions
-            </p>
-            <h2 className="mt-2 text-2xl font-black text-white">
-              What would you like to do?
-            </h2>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {actions.map((action) => (
-              <ActionCard key={action.title} {...action} />
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {metrics.map((metric) => (
+              <MetricCard key={metric.label} {...metric} />
             ))}
           </div>
-        </section>
 
-        <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.55fr)]">
-          <div className="space-y-6">
-            {mode === "client" ? (
-              <>
-                <DealList
-                  title="My Created Deals"
-                  helper="Deals created by your connected wallet"
-                  deals={clientDeals}
-                  emptyMessage="No created deals yet. Create a direct or public deal to begin."
-                />
-                <DealList
-                  title="Pending Proof Reviews"
-                  helper="Proof submissions waiting for your decision"
-                  deals={pendingApprovals}
-                  emptyMessage="No proof submissions are waiting for approval."
-                />
-              </>
-            ) : (
-              <>
-                <div id="open-deals">
-                  <DealList
-                    title="Open Public Deals"
-                    helper="Opportunities available for applications"
-                    deals={openDeals}
-                    emptyMessage="No open public deals are available right now."
-                  />
-                </div>
-                <div id="assigned">
-                  <DealList
-                    title="Assigned Work"
-                    helper="Deals assigned to your connected wallet"
-                    deals={freelancerDeals}
-                    emptyMessage="No direct deals have been assigned to this wallet."
-                  />
-                </div>
-              </>
-            )}
-          </div>
-          <aside className="dashboard-panel rounded-[2rem] p-6">
-            <div className="flex items-center gap-3">
-              <span className="grid size-11 place-items-center rounded-2xl bg-emerald-400/10 text-emerald-300">
-                <Fingerprint className="size-5" />
-              </span>
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">
-                  On-chain activity
-                </p>
-                <h2 className="mt-1 text-xl font-black text-white">
-                  Recent events
-                </h2>
-              </div>
+          <section className="mt-8">
+            <div className="mb-5">
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-cyan-300">
+                Quick actions
+              </p>
+              <h2 className="mt-2 text-2xl font-black text-white">
+                What would you like to do?
+              </h2>
             </div>
-            <div className="mt-6 space-y-3">
-              {recentActivity.length ? (
-                recentActivity.map((event) => (
-                  <Link
-                    key={`${event.dealId}-${event.id}`}
-                    href={`/deal/${event.dealId}`}
-                    className="block rounded-2xl border border-white/8 bg-white/[0.025] p-4 transition hover:bg-white/[0.05]"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <p className="text-sm font-black text-white">
-                        {event.title}
-                      </p>
-                      <StatusBadge status={event.status} compact />
-                    </div>
-                    <p className="mt-2 text-xs text-slate-500">
-                      {event.dealTitle}
-                    </p>
-                    <p className="mt-3 text-xs font-bold text-cyan-300">
-                      {formatDateTime(event.timestamp)}
-                    </p>
-                  </Link>
-                ))
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {actions.map((action) => (
+                <ActionCard key={action.title} {...action} />
+              ))}
+            </div>
+          </section>
+
+          <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.55fr)]">
+            <div className="space-y-6">
+              {mode === "client" ? (
+                <>
+                  <div id="my-deals">
+                    <DealList
+                      title="My Created Deals"
+                      helper="Deals created by your connected wallet"
+                      deals={clientDeals}
+                      emptyMessage="No created deals yet. Create a direct or public deal to begin."
+                    />
+                  </div>
+                  <ApplicationsList deals={clientDeals} dark />
+                  <div id="pending-approvals">
+                    <DealList
+                      title="Pending Proof Reviews"
+                      helper="Proof submissions waiting for your decision"
+                      deals={pendingApprovals}
+                      emptyMessage="No proof submissions are waiting for approval."
+                    />
+                  </div>
+                </>
               ) : (
-                <p className="rounded-2xl border border-dashed border-white/10 p-5 text-center text-sm text-slate-500">
-                  Wallet activity will appear here.
-                </p>
+                <>
+                  <div id="open-deals">
+                    <DealList
+                      title="Open Public Deals"
+                      helper="Opportunities available for applications"
+                      deals={openDeals}
+                      emptyMessage="No open public deals are available right now."
+                    />
+                  </div>
+                  <div id="assigned">
+                    <DealList
+                      title="Assigned Work"
+                      helper="Deals assigned to your connected wallet"
+                      deals={freelancerDeals}
+                      emptyMessage="No direct deals have been assigned to this wallet."
+                      submitWork
+                    />
+                  </div>
+                  <div
+                    id="submit-work"
+                    className="dashboard-panel rounded-[2rem] p-6"
+                  >
+                    <h2 className="text-xl font-black text-white">
+                      Submit Work
+                    </h2>
+                    <p className="mt-2 text-sm text-slate-500">
+                      Open a payment-locked assignment to upload proof and your
+                      final deliverable.
+                    </p>
+                    {readyToSubmit ? (
+                      <Link
+                        href={`/deal/${readyToSubmit.id}?submit=work`}
+                        className="primary-button mt-5"
+                      >
+                        Submit Work for {readyToSubmit.title}
+                        <ArrowRight className="size-4" />
+                      </Link>
+                    ) : (
+                      <p className="mt-5 rounded-2xl border border-dashed border-white/10 p-5 text-center text-sm font-bold text-slate-500">
+                        No assigned work ready for submission.
+                      </p>
+                    )}
+                  </div>
+                  <div id="submitted-proofs">
+                    <DealList
+                      title="Submitted Proofs"
+                      helper="Work already sent for client review"
+                      deals={submittedProofs}
+                      emptyMessage="No work has been submitted yet."
+                    />
+                  </div>
+                </>
               )}
             </div>
-            <Link
-              href="/proof/SP-1001"
-              className="secondary-button mt-5 w-full border-white/10 bg-white/5 text-white"
-            >
-              Public Proof Timeline <ArrowRight className="size-4" />
-            </Link>
-          </aside>
-        </div>
-      </section>
-    </main>
+            <aside className="dashboard-panel rounded-[2rem] p-6">
+              <div className="flex items-center gap-3">
+                <span className="grid size-11 place-items-center rounded-2xl bg-emerald-400/10 text-emerald-300">
+                  <Fingerprint className="size-5" />
+                </span>
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">
+                    On-chain activity
+                  </p>
+                  <h2 className="mt-1 text-xl font-black text-white">
+                    Recent events
+                  </h2>
+                </div>
+              </div>
+              <div className="mt-6 space-y-3">
+                {recentActivity.length ? (
+                  recentActivity.map((event) => (
+                    <Link
+                      key={`${event.dealId}-${event.id}`}
+                      href={`/deal/${event.dealId}`}
+                      className="block rounded-2xl border border-white/8 bg-white/[0.025] p-4 transition hover:bg-white/[0.05]"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <p className="text-sm font-black text-white">
+                          {event.title}
+                        </p>
+                        <StatusBadge status={event.status} compact />
+                      </div>
+                      <p className="mt-2 text-xs text-slate-500">
+                        {event.dealTitle}
+                      </p>
+                      <p className="mt-3 text-xs font-bold text-cyan-300">
+                        {formatDateTime(event.timestamp)}
+                      </p>
+                    </Link>
+                  ))
+                ) : (
+                  <p className="rounded-2xl border border-dashed border-white/10 p-5 text-center text-sm text-slate-500">
+                    Wallet activity will appear here.
+                  </p>
+                )}
+              </div>
+              <Link
+                href={proofTimelineHref}
+                className="secondary-button mt-5 w-full border-white/10 bg-white/5 text-white"
+              >
+                Public Proof Timeline <ArrowRight className="size-4" />
+              </Link>
+            </aside>
+          </div>
+        </section>
+      </main>
+    </RoleGuard>
   );
 }

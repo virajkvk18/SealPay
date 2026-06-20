@@ -100,11 +100,14 @@ AI is only an assistant. Final approval and dispute decisions stay with a human 
 
 ## IPFS Proof Storage
 
-The proof submission flow calls `POST /api/pinata/upload` before AI review.
+The proof submission flow calls `POST /api/pinata/upload` before AI review and shows the user a clear three-step state: Uploading to IPFS, CID Generated, and AI Reviewing.
 
 - With `PINATA_JWT` configured, the server uploads the selected proof file to Pinata and returns a CID plus gateway URL.
-- With `NEXT_PUBLIC_ENABLE_MOCK_MODE=true` and no `PINATA_JWT`, the route returns a mock CID so the demo remains fully usable.
+- If `PINATA_JWT` is missing, proof upload stops with a clear setup error instead of creating fake CIDs.
 - The returned CID is stored as the deal proof hash and shown in both the Deal Vault and Public Proof Explorer.
+- Supabase proof saving is treated as an optional cache. If that insert fails, the IPFS CID and AI review flow can still continue.
+- Groq and Pinata failures are surfaced with clearer messages so demo operators can quickly identify missing keys or provider errors.
+- The Public Proof Explorer can read the latest proof row from Supabase, so another laptop can verify the CID and AI result by deal ID.
 
 Local setup:
 
@@ -125,7 +128,7 @@ GROQ_MODEL=llama-3.3-70b-versatile
 
 ## IPFS + AI Proof Flow
 
-Freelancer uploads work proof -> SealPay uploads it to Pinata IPFS -> Pinata returns a CID -> CID is saved in Supabase and submitted on-chain -> AI reviews proof relevance -> client approves or raises dispute.
+Freelancer uploads work proof -> SealPay uploads it to Pinata IPFS -> Pinata returns a CID -> the UI confirms CID Generated -> Groq reviews proof relevance -> the CID and AI review are cached when Supabase is configured -> client approves or raises dispute.
 
 - IPFS gives the deal an immutable proof reference.
 - The CID changes if the uploaded file changes.
@@ -168,14 +171,7 @@ with check (true);
 | `/proof/[id]`  | Public proof explorer for a deal timeline              |
 | `/reputation`  | Wallet and workspace reputation view                   |
 
-Seeded demo routes:
-
-| Route            | Demo State                   |
-| ---------------- | ---------------------------- |
-| `/deal/SP-1001`  | Payment locked sample        |
-| `/deal/SP-1002`  | Work submitted sample        |
-| `/deal/SP-1003`  | Disputed sample              |
-| `/proof/SP-1001` | Public proof explorer sample |
+Create a deal from `/create-deal`, then open its deal vault and proof explorer using the generated deal ID.
 
 ## Why This MVP Is Feasible
 
@@ -184,9 +180,9 @@ SealPay is feasible for a hackathon because the demo focuses on the core trust w
 | MVP Decision                  | Why It Works                                                            |
 | ----------------------------- | ----------------------------------------------------------------------- |
 | LocalStorage mock store       | Fast to demo without backend setup                                      |
-| Mock wallet connection        | Shows wallet-based UX without requiring every judge to connect MetaMask |
+| Wallet-first identity flow    | Lets judges understand the Web3 identity model from the first screen    |
 | Mock transaction hashes       | Demonstrates proof trail behavior before testnet deployment             |
-| Deterministic AI helper logic | Reliable, free, and demo-ready without paid APIs                        |
+| Server-side Groq AI routes    | Gives real AI proof review while keeping API keys off the frontend      |
 | Solidity contract included    | Gives a clear path to real testnet escrow                               |
 | Deliverable Lock UI           | Demonstrates a real freelancer pain point with low technical overhead   |
 
@@ -194,11 +190,11 @@ SealPay is feasible for a hackathon because the demo focuses on the core trust w
 
 ```mermaid
 flowchart TB
-  MVP["Current MVP"] --> Auth["Real authentication"]
-  MVP --> DB["Server database"]
+  MVP["Current MVP"] --> Roles["Wallet-based role gating"]
+  MVP --> DB["Optional Supabase cache"]
   MVP --> Wallet["MetaMask wallet signing"]
   MVP --> Chain["Polygon Amoy escrow deployment"]
-  Auth --> Ownership["Server-side ownership checks"]
+  Roles --> Ownership["Server-side ownership checks"]
   DB --> Ownership
   Chain --> Proof["On-chain proof and payout events"]
   Wallet --> Proof
@@ -242,7 +238,7 @@ components/
 
 lib/
   aiEngine.ts           Risk, proof, dispute, and trust scoring
-  mockData.ts           Seeded demo deals
+  mockData.ts           Shared deal, proof, role, and timeline types
   store.ts              Local mock persistence
   utils.ts              Formatting and hash helpers
 
@@ -285,26 +281,28 @@ npm run lint
 4. Open `/create-deal` and create a new invoice.
 5. Open the new deal and lock payment as Client.
 6. Switch to Freelancer and submit proof with preview URL and final file name.
-7. Attach a proof file and show the generated IPFS CID/gateway link.
-8. Show the Deliverable Lock card before release.
-9. Switch back to Client and approve work.
-10. Show the unlocked deliverable state.
-11. Open `/proof/[id]` to show the public proof timeline.
-12. Open `/deal/SP-1003` to show dispute and admin/judge resolution.
+7. Attach a proof file and show the states: Uploading to IPFS, CID Generated, and AI Reviewing.
+8. Show the generated IPFS CID, gateway link, SealTrust score, AI verdict, reasons, and issues.
+9. Show the Deliverable Lock card before release.
+10. Switch back to Client and approve work.
+11. Show the unlocked deliverable state.
+12. Open `/proof/[id]` to show the public proof timeline.
+13. Open a disputed deal to show the AI dispute summary and admin/judge resolution.
 
 Role explanation:
 
 > My role was IPFS proof storage and AI verification. When the freelancer uploads proof, SealPay sends the file to Pinata IPFS and receives a unique CID. This CID is saved in our backend and can also be submitted on-chain, so the proof cannot be silently changed later. AI checks whether the proof looks relevant to the deal and creates a short dispute summary if conflict happens.
 
-## Mock Mode
+## Demo Mode
 
-SealPay currently runs in mock mode by default. It includes:
+SealPay currently runs in demo mode by default. It includes:
 
-- Mock wallet address
+- Wallet-first identity and role-based UI
 - LocalStorage deal database
 - Mock transaction hashes
-- Pinata uploads when `PINATA_JWT` is configured
-- Mock proof CIDs when Pinata is not configured
+- Real Pinata uploads when `PINATA_JWT` is configured
+- No fake proof CIDs in the Teammate 4 proof upload path
+- Real Groq AI proof and dispute review when `GROQ_API_KEY` is configured
 - Test MATIC labels for Polygon Amoy-style demo flow
 
 No real money moves in the MVP.
@@ -359,9 +357,9 @@ Before using SealPay with real users, add server-side authentication and enforce
 
 ## Future Scope
 
-- MetaMask integration
+- Contract write integration for lock payment, submit proof, approve, refund
 - Polygon Amoy deployment
-- IPFS/Filecoin proof storage
+- Encrypted final deliverables and stronger IPFS/Filecoin proof storage
 - Milestone-based smart contract payouts
 - Backend API with ownership checks
 - Admin dashboard for dispute review

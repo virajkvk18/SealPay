@@ -35,9 +35,10 @@ const initialForm = {
   freelancerName: "",
   clientWallet: "",
   freelancerWallet: "",
-  amount: "0.25",
+  amount: "0.001",
   deadline: "",
   deliverableType: "Design",
+  category: "Design",
 };
 
 function FieldIcon({ children }: { children: ReactNode }) {
@@ -61,6 +62,8 @@ export default function CreateDealForm({
   );
   const [form, setForm] = useState(initialForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const knownFreelancerWallets = useMemo(
     () => deals.map((deal) => deal.freelancerWallet),
@@ -106,11 +109,38 @@ export default function CreateDealForm({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setFormError("");
+    setSuccessMessage("");
+    const amount = Number(form.amount);
+    const clientWallet = (form.clientWallet.trim() || address).trim();
+    if (!/^0x[a-fA-F0-9]{40}$/.test(clientWallet)) {
+      setFormError("Enter a valid client wallet address.");
+      return;
+    }
+    if (
+      dealKind === "direct" &&
+      !/^0x[a-fA-F0-9]{40}$/.test(form.freelancerWallet.trim())
+    ) {
+      setFormError(
+        "Enter a valid freelancer wallet address for a direct deal.",
+      );
+      return;
+    }
+    if (!Number.isFinite(amount) || amount <= 0) {
+      setFormError("Escrow amount must be greater than zero.");
+      return;
+    }
+    if (!form.description.trim()) {
+      setFormError("Add a clear milestone description.");
+      return;
+    }
+    if (!form.deadline || new Date(form.deadline).getTime() <= Date.now()) {
+      setFormError("Choose a future deadline.");
+      return;
+    }
     setIsSubmitting(true);
-    console.log("SUBMIT CLICKED");
     const id = createUniqueDealId();
     const txHash = makeTxHash();
-    const amount = Number(form.amount);
     const risk = calculateRiskScore({
       amount,
       deadline: form.deadline,
@@ -127,14 +157,15 @@ export default function CreateDealForm({
       clientName: form.clientName.trim(),
       freelancerName:
         dealKind === "direct" ? form.freelancerName.trim() : "Open Application",
-      clientWallet: form.clientWallet.trim() || address,
+      clientWallet,
       freelancerWallet:
         dealKind === "direct" ? form.freelancerWallet.trim() : "",
       dealKind: dealKind === "direct" ? "Direct" : "Public",
+      category: form.category,
       amount,
       deadline: form.deadline,
       deliverableType: form.deliverableType as Deal["deliverableType"],
-      status: "Created",
+      status: dealKind === "direct" ? "Assigned" : "Created",
       risk,
       createdTxHash: txHash,
       timeline: [
@@ -152,36 +183,38 @@ export default function CreateDealForm({
     };
 
     try {
-  await createDeal({
-    id: deal.id,
-    title: deal.title,
-    description: deal.description,
-    client_name: deal.clientName,
-    freelancer_name: deal.freelancerName,
-    client_wallet: deal.clientWallet,
-    freelancer_wallet: deal.freelancerWallet,
-    amount: deal.amount,
-    deadline: deal.deadline,
-    deliverable_type: deal.deliverableType,
-    status: deal.status,
-    risk: deal.risk,
-    created_tx_hash: deal.createdTxHash,
-    preview_url: deal.previewUrl ?? null,
-    final_file_name: deal.finalFileName ?? null,
-    proof: deal.proof,
-    ai_proof_review: deal.aiProofReview ?? null,
-    dispute_reason: deal.disputeReason ?? null,
-    dispute_evidence: deal.disputeEvidence ?? null,
-    ai_dispute_summary: deal.aiDisputeSummary ?? null,
-    resolution: deal.resolution,
-  });
-
-  addDeal(deal);
-  router.push(`/deal/${id}`);
-} catch (err) {
-  console.error("Failed to save deal:");
-  console.dir(err);
-}
+      await createDeal({
+        id: deal.id,
+        title: deal.title,
+        description: deal.description,
+        client_name: deal.clientName,
+        freelancer_name: deal.freelancerName,
+        client_wallet: deal.clientWallet,
+        freelancer_wallet: deal.freelancerWallet,
+        amount: deal.amount,
+        deadline: deal.deadline,
+        deliverable_type: deal.deliverableType,
+        status: deal.status,
+        risk: deal.risk,
+        created_tx_hash: deal.createdTxHash,
+        preview_url: null,
+        final_file_name: null,
+        proof: null,
+        ai_proof_review: null,
+        dispute_reason: null,
+        dispute_evidence: null,
+        ai_dispute_summary: null,
+        resolution: null,
+      });
+    } catch (error) {
+      console.error(
+        "Remote deal save failed; retaining wallet-local record.",
+        error,
+      );
+    }
+    addDeal(deal);
+    setSuccessMessage("Deal created successfully.");
+    window.setTimeout(() => router.push(`/deal/${id}`), 700);
   }
 
   return (
@@ -226,6 +259,25 @@ export default function CreateDealForm({
               ))}
             </div>
           </div>
+          {dealKind === "public" ? (
+            <label className="sm:col-span-2">
+              <span className="mb-2 block text-sm font-bold text-[#43474b]">
+                Category
+              </span>
+              <select
+                required
+                className="input-field"
+                value={form.category}
+                onChange={(event) =>
+                  updateField("category", event.target.value)
+                }
+              >
+                {deliverableTypes.map((type) => (
+                  <option key={type}>{type}</option>
+                ))}
+              </select>
+            </label>
+          ) : null}
           <label className="sm:col-span-2">
             <span className="mb-2 block text-sm font-bold text-[#43474b]">
               Deal Title
@@ -318,8 +370,8 @@ export default function CreateDealForm({
             </FieldIcon>
             <input
               required
-              min="0.01"
-              step="0.01"
+              min="0.001"
+              step="0.001"
               type="number"
               className="input-field pl-11"
               value={form.amount}
@@ -516,9 +568,20 @@ export default function CreateDealForm({
           disabled={isSubmitting}
           className="primary-button w-full"
         >
-          Create Deal
+          {isSubmitting ? "Creating Deal..." : "Create Deal"}
           <ArrowRight className="size-4" />
         </button>
+
+        {formError ? (
+          <p className="rounded-2xl border border-red-300/25 bg-red-500/10 p-4 text-sm font-bold text-red-200">
+            {formError}
+          </p>
+        ) : null}
+        {successMessage ? (
+          <p className="rounded-2xl border border-emerald-300/25 bg-emerald-500/10 p-4 text-sm font-bold text-emerald-200">
+            {successMessage}
+          </p>
+        ) : null}
 
         <div className="flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-bold text-emerald-800">
           <BadgeCheck className="size-4" />

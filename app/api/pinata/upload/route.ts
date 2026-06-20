@@ -13,20 +13,20 @@ function getGatewayUrl(cid: string) {
   return `${gateway.replace(/\/$/, "")}/${cid}`;
 }
 
-function createMockCid(fileName: string) {
-  const safeName = fileName
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, "")
-    .slice(0, 12);
-  const suffix = Array.from({ length: 18 }, () =>
-    Math.floor(Math.random() * 16).toString(16),
-  ).join("");
-
-  return `bafyseal${safeName || "proof"}${suffix}`;
-}
-
 export async function POST(request: Request) {
-  const formData = await request.formData();
+  let formData: FormData;
+  try {
+    formData = await request.formData();
+  } catch {
+    return NextResponse.json(
+      {
+        error: "Invalid upload request.",
+        details: "The proof upload must be sent as multipart form data.",
+      },
+      { status: 400 },
+    );
+  }
+
   const file = formData.get("file");
 
   if (!(file instanceof File)) {
@@ -37,21 +37,14 @@ export async function POST(request: Request) {
   }
 
   const pinataJwt = process.env.PINATA_JWT;
-  const mockMode = process.env.NEXT_PUBLIC_ENABLE_MOCK_MODE !== "false";
-
-  if (!pinataJwt && mockMode) {
-    const cid = createMockCid(file.name);
-
-    return NextResponse.json({
-      cid,
-      gatewayUrl: getGatewayUrl(cid),
-      fileName: file.name,
-    });
-  }
 
   if (!pinataJwt) {
     return NextResponse.json(
-      { error: "PINATA_JWT is not configured on the server." },
+      {
+        error: "PINATA_JWT is not configured on the server.",
+        details:
+          "Add a real Pinata JWT to .env.local and restart the dev server.",
+      },
       { status: 500 },
     );
   }
@@ -59,13 +52,27 @@ export async function POST(request: Request) {
   const uploadData = new FormData();
   uploadData.append("file", file, file.name);
 
-  const response = await fetch(pinataUploadUrl, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${pinataJwt}`,
-    },
-    body: uploadData,
-  });
+  let response: Response;
+  try {
+    response = await fetch(pinataUploadUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${pinataJwt}`,
+      },
+      body: uploadData,
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error: "Pinata upload request failed.",
+        details:
+          error instanceof Error
+            ? error.message
+            : "The Pinata API could not be reached.",
+      },
+      { status: 502 },
+    );
+  }
 
   if (!response.ok) {
     const details = await response.text();
@@ -75,7 +82,17 @@ export async function POST(request: Request) {
     );
   }
 
-  const result = (await response.json()) as PinataResponse;
+  const result = (await response.json()) as Partial<PinataResponse>;
+
+  if (!result.IpfsHash) {
+    return NextResponse.json(
+      {
+        error: "Pinata upload response was missing a CID.",
+        details: "Pinata did not return IpfsHash for the uploaded proof file.",
+      },
+      { status: 502 },
+    );
+  }
 
   return NextResponse.json({
     cid: result.IpfsHash,

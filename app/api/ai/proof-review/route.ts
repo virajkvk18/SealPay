@@ -74,7 +74,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const body = (await request.json()) as {
+  let body: {
     dealTitle?: string;
     dealDescription?: string;
     deliverableType?: string;
@@ -85,45 +85,70 @@ export async function POST(request: Request) {
     proofCid?: string;
     proofUrl?: string;
   };
+  try {
+    body = (await request.json()) as typeof body;
+  } catch {
+    return NextResponse.json(
+      {
+        error: "Invalid proof review request.",
+        details: "The AI proof review endpoint expects a JSON body.",
+      },
+      { status: 400 },
+    );
+  }
 
-  const response = await fetch(groqChatUrl, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      temperature: 0.2,
-      response_format: { type: "json_object" },
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are SealPay's AI proof reviewer. Return only valid JSON with keys: status, score, verdict, issues, summary, reasons. status must be one of: Proof looks valid, Proof may be incomplete, Proof mismatch detected. score must be 0-100. verdict must be Looks valid or Needs manual review. Do not approve payment; only advise human review.",
-        },
-        {
-          role: "user",
-          content: JSON.stringify({
-            task: "Review whether the freelancer proof appears relevant to the deal.",
-            deal: {
-              title: body.dealTitle,
-              description: body.dealDescription,
-              deliverableType: body.deliverableType,
-            },
-            proof: {
-              title: body.proofTitle,
-              note: body.proofNote,
-              fileName: body.fileName,
-              previewUrl: body.previewUrl,
-              cid: body.proofCid,
-              gatewayUrl: body.proofUrl,
-            },
-          }),
-        },
-      ],
-    }),
-  });
+  let response: Response;
+  try {
+    response = await fetch(groqChatUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model,
+        temperature: 0.2,
+        response_format: { type: "json_object" },
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are SealPay's AI proof reviewer. Return only valid JSON with keys: status, score, verdict, issues, summary, reasons. status must be one of: Proof looks valid, Proof may be incomplete, Proof mismatch detected. score must be 0-100. verdict must be Looks valid or Needs manual review. Do not approve payment; only advise human review.",
+          },
+          {
+            role: "user",
+            content: JSON.stringify({
+              task: "Review whether the freelancer proof appears relevant to the deal.",
+              deal: {
+                title: body.dealTitle,
+                description: body.dealDescription,
+                deliverableType: body.deliverableType,
+              },
+              proof: {
+                title: body.proofTitle,
+                note: body.proofNote,
+                fileName: body.fileName,
+                previewUrl: body.previewUrl,
+                cid: body.proofCid,
+                gatewayUrl: body.proofUrl,
+              },
+            }),
+          },
+        ],
+      }),
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error: "Groq proof review request failed.",
+        details:
+          error instanceof Error
+            ? error.message
+            : "The Groq API could not be reached.",
+      },
+      { status: 502 },
+    );
+  }
 
   if (!response.ok) {
     const details = await response.text();
@@ -145,9 +170,15 @@ export async function POST(request: Request) {
 
   try {
     return NextResponse.json(normalizeReview(parseJsonObject(content)));
-  } catch {
+  } catch (error) {
     return NextResponse.json(
-      { error: "Groq returned invalid proof review JSON." },
+      {
+        error: "Groq returned invalid proof review JSON.",
+        details:
+          error instanceof Error
+            ? error.message
+            : "The response could not be parsed.",
+      },
       { status: 502 },
     );
   }

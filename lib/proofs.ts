@@ -9,6 +9,17 @@ export interface ProofInsertInput {
   aiReview: AiProofReview;
 }
 
+export interface ProofRecord {
+  id?: string;
+  deal_id: string;
+  proof_cid: string;
+  proof_url: string;
+  file_name: string | null;
+  ai_review: AiProofReview | null;
+  status: string | null;
+  created_at: string | null;
+}
+
 export async function saveProofToSupabase({
   dealId,
   proofCid,
@@ -30,8 +41,32 @@ export async function saveProofToSupabase({
   });
 
   if (error) {
-    throw new Error(`Supabase proof save failed: ${error.message}`);
+    console.warn("Supabase proof cache failed:", error.message);
+    return { skipped: true, error: error.message };
   }
 
   return { skipped: false };
+}
+
+export async function getLatestProofFromSupabase(dealId: string) {
+  if (!isSupabaseConfigured || !supabase) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("proofs")
+    .select(
+      "id, deal_id, proof_cid, proof_url, file_name, ai_review, status, created_at",
+    )
+    .eq("deal_id", dealId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.warn("Supabase proof fetch failed:", error.message);
+    return null;
+  }
+
+  return (data as ProofRecord | null) ?? null;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { FileUp, Link2, X } from "lucide-react";
+import { CheckCircle2, FileUp, Link2, Loader2, X } from "lucide-react";
 import { deliverableTypes, type DeliverableType } from "@/lib/mockData";
 
 export interface ProofFormValues {
@@ -13,7 +13,7 @@ export interface ProofFormValues {
   proofCid: string;
   proofGatewayUrl: string;
   uploadedFileName: string;
-  storageProvider: "pinata" | "mock-pinata";
+  storageProvider: "pinata";
 }
 
 function normalizePreviewUrl(value: string) {
@@ -45,6 +45,30 @@ function makeEmptyProof(deliverableType: DeliverableType) {
   };
 }
 
+type ProofSubmitStage = "idle" | "uploading" | "cid-generated" | "ai-reviewing";
+
+const proofStages = [
+  {
+    key: "uploading",
+    label: "Uploading to IPFS",
+    description: "Pinata is pinning the selected proof file.",
+  },
+  {
+    key: "cid-generated",
+    label: "CID Generated",
+    description: "The immutable IPFS proof reference is ready.",
+  },
+  {
+    key: "ai-reviewing",
+    label: "AI Reviewing",
+    description: "Groq is checking the proof against deal requirements.",
+  },
+] as const;
+
+function stageIndex(stage: ProofSubmitStage) {
+  return proofStages.findIndex((item) => item.key === stage);
+}
+
 export default function SubmitProofModal({
   open,
   onClose,
@@ -57,7 +81,10 @@ export default function SubmitProofModal({
   );
   const [formError, setFormError] = useState("");
   const [proofFile, setProofFile] = useState<File | null>(null);
+  const [finalDeliverable, setFinalDeliverable] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [submitStage, setSubmitStage] = useState<ProofSubmitStage>("idle");
+  const [generatedCid, setGeneratedCid] = useState("");
 
   if (!open) return null;
 
@@ -81,10 +108,15 @@ export default function SubmitProofModal({
       gatewayUrl?: string;
       fileName?: string;
       error?: string;
+      details?: string;
     };
 
     if (!response.ok || !result.cid || !result.gatewayUrl) {
-      throw new Error(result.error ?? "Proof upload failed.");
+      throw new Error(
+        result.details
+          ? `${result.error ?? "Proof upload failed."} ${result.details}`
+          : (result.error ?? "Proof upload failed."),
+      );
     }
 
     return {
@@ -112,24 +144,35 @@ export default function SubmitProofModal({
     }
 
     setUploading(true);
+    setSubmitStage("uploading");
+    setGeneratedCid("");
     let upload;
     try {
       upload = await uploadProofFile(proofFile);
+      setGeneratedCid(upload.cid);
+      setSubmitStage("cid-generated");
     } catch (error) {
       setFormError(
-        error instanceof Error ? error.message : "Proof upload failed.",
+        error instanceof Error
+          ? `IPFS upload failed: ${error.message}`
+          : "IPFS upload failed. Check Pinata configuration and try again.",
       );
       setUploading(false);
+      setSubmitStage("idle");
       return;
     }
 
     try {
+      setSubmitStage("ai-reviewing");
       await onSubmit({
         ...form,
         title: form.title.trim(),
         note: form.note.trim(),
         previewUrl,
-        finalFileName: form.finalFileName.trim(),
+        finalFileName:
+          form.finalFileName.trim() ||
+          finalDeliverable?.name ||
+          upload.fileName,
         proofCid: upload.cid,
         proofGatewayUrl: upload.gatewayUrl,
         uploadedFileName: upload.fileName,
@@ -137,15 +180,21 @@ export default function SubmitProofModal({
       });
     } catch (error) {
       setFormError(
-        error instanceof Error ? error.message : "Proof save failed.",
+        error instanceof Error
+          ? error.message
+          : "AI review or proof save failed. Please try again.",
       );
       setUploading(false);
+      setSubmitStage("cid-generated");
       return;
     }
     setForm(makeEmptyProof(defaultDeliverableType));
     setProofFile(null);
+    setFinalDeliverable(null);
     setFormError("");
     setUploading(false);
+    setSubmitStage("idle");
+    setGeneratedCid("");
     onClose();
   }
 
@@ -230,12 +279,71 @@ export default function SubmitProofModal({
             </p>
           ) : null}
 
+          {uploading || generatedCid ? (
+            <div className="rounded-3xl border border-cyan-300/25 bg-[#061f2a] p-4 text-white shadow-[0_20px_50px_rgba(0,14,25,0.18)]">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-black uppercase tracking-[0.18em] text-cyan-200">
+                    Proof submission
+                  </p>
+                  <p className="mt-1 text-xs font-bold text-slate-300">
+                    {"Uploading -> CID Generated -> AI Reviewing"}
+                  </p>
+                </div>
+                {uploading ? (
+                  <Loader2 className="size-5 animate-spin text-cyan-200" />
+                ) : (
+                  <CheckCircle2 className="size-5 text-emerald-300" />
+                )}
+              </div>
+
+              <div className="mt-4 grid gap-3">
+                {proofStages.map((item) => {
+                  const currentIndex = stageIndex(submitStage);
+                  const itemIndex = stageIndex(item.key);
+                  const isCurrent = submitStage === item.key;
+                  const isDone = currentIndex > itemIndex;
+
+                  return (
+                    <div
+                      key={item.key}
+                      className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3"
+                    >
+                      <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full border border-cyan-200/30 bg-cyan-200/10">
+                        {isDone ? (
+                          <CheckCircle2 className="size-4 text-emerald-300" />
+                        ) : isCurrent ? (
+                          <Loader2 className="size-4 animate-spin text-cyan-200" />
+                        ) : (
+                          <span className="size-2 rounded-full bg-slate-500" />
+                        )}
+                      </span>
+                      <span>
+                        <span className="block text-sm font-black text-white">
+                          {item.label}
+                        </span>
+                        <span className="text-xs font-bold text-slate-300">
+                          {item.description}
+                        </span>
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {generatedCid ? (
+                <p className="mt-4 break-all rounded-2xl border border-cyan-200/20 bg-cyan-200/10 p-3 text-xs font-bold text-cyan-100">
+                  CID: {generatedCid}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+
           <label>
             <span className="mb-2 block text-sm font-bold text-[#43474b]">
-              Final file name
+              Final file name (optional)
             </span>
             <input
-              required
               className="input-field"
               value={form.finalFileName}
               onChange={(event) =>
@@ -243,6 +351,25 @@ export default function SubmitProofModal({
               }
               placeholder="final-deliverable.zip"
             />
+          </label>
+
+          <label>
+            <span className="mb-2 block text-sm font-bold text-[#43474b]">
+              Final deliverable file (optional)
+            </span>
+            <input
+              type="file"
+              className="input-field"
+              onChange={(event) =>
+                setFinalDeliverable(event.target.files?.[0] ?? null)
+              }
+            />
+            {finalDeliverable ? (
+              <p className="mt-2 text-xs font-bold text-[#53606a]">
+                {finalDeliverable.name} will remain protected until payment
+                release.
+              </p>
+            ) : null}
           </label>
 
           <label>
@@ -290,7 +417,13 @@ export default function SubmitProofModal({
             Cancel
           </button>
           <button type="submit" disabled={uploading} className="primary-button">
-            {uploading ? "Uploading..." : "Submit Proof"}
+            {submitStage === "uploading"
+              ? "Uploading..."
+              : submitStage === "cid-generated"
+                ? "CID Generated..."
+                : submitStage === "ai-reviewing"
+                  ? "AI Reviewing..."
+                  : "Submit Work"}
           </button>
         </div>
       </form>

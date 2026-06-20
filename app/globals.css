@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #eef5f7;
-  --foreground: #191c1e;
+  --background: #02070c;
+  --foreground: #f8fafc;
   --surface: #ffffff;
   --surface-soft: #f2f4f6;
   --primary-ink: #010b13;
@@ -65,7 +65,13 @@ select {
       rgba(112, 45, 145, 0.15),
       transparent 30%
     ),
-    linear-gradient(180deg, #f9fcfd 0%, #eef6f8 48%, #e6f0f3 100%);
+    radial-gradient(
+      circle at 12% 82%,
+      rgba(109, 40, 217, 0.12),
+      transparent 30%
+    ),
+    linear-gradient(150deg, #02070c 0%, #06131c 48%, #030b12 100%);
+  color: #f8fafc;
 }
 
 .web3-shell {
@@ -117,11 +123,15 @@ select {
 }
 
 .glass-panel {
-  border: 1px solid rgba(255, 255, 255, 0.66);
-  background: rgba(255, 255, 255, 0.64);
+  border: 1px solid rgba(148, 229, 255, 0.12);
+  background: linear-gradient(
+    145deg,
+    rgba(10, 27, 38, 0.92),
+    rgba(7, 17, 28, 0.9)
+  );
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.8),
-    0 24px 70px rgba(1, 11, 19, 0.1);
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 24px 70px rgba(0, 0, 0, 0.24);
   backdrop-filter: blur(24px) saturate(145%);
 }
 
@@ -139,9 +149,9 @@ select {
 }
 
 .soft-panel {
-  border: 1px solid rgba(16, 29, 37, 0.08);
-  background: rgba(255, 255, 255, 0.74);
-  box-shadow: 0 14px 34px rgba(1, 11, 19, 0.035);
+  border: 1px solid rgba(148, 229, 255, 0.1);
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.16);
   backdrop-filter: blur(18px);
 }
 
@@ -155,10 +165,10 @@ select {
 .input-field {
   width: 100%;
   border-radius: 0.75rem;
-  border: 1px solid rgba(16, 29, 37, 0.1);
-  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(148, 229, 255, 0.15);
+  background: rgba(255, 255, 255, 0.055);
   padding: 0.9rem 1rem;
-  color: #191c1e;
+  color: #f8fafc;
   box-shadow: inset 0 1px 2px rgba(1, 11, 19, 0.04);
   transition:
     border-color 160ms ease,
@@ -167,12 +177,12 @@ select {
 }
 
 .input-field::placeholder {
-  color: rgba(67, 71, 75, 0.52);
+  color: rgba(148, 163, 184, 0.72);
 }
 
 .input-field:focus {
   border-color: rgba(0, 103, 127, 0.45);
-  background: rgba(255, 255, 255, 0.98);
+  background: rgba(255, 255, 255, 0.08);
   box-shadow: 0 0 0 4px rgba(0, 210, 255, 0.12);
 }
 
@@ -499,43 +509,6 @@ select {
   background: rgba(255, 255, 255, 0.05);
 }
 
-.dashboard-mode-switch {
-  display: inline-grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.25rem;
-  align-self: flex-start;
-  border: 1px solid rgba(148, 229, 255, 0.1);
-  border-radius: 999px;
-  background: rgba(2, 11, 16, 0.7);
-  padding: 0.3rem;
-}
-
-.dashboard-mode-switch button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
-  border-radius: 999px;
-  padding: 0.65rem 1rem;
-  color: #64748b;
-  font-size: 0.75rem;
-  font-weight: 800;
-  transition:
-    color 160ms ease,
-    background 160ms ease,
-    box-shadow 160ms ease;
-}
-
-.dashboard-mode-switch button.active {
-  color: #ffffff;
-  background: linear-gradient(
-    135deg,
-    rgba(109, 40, 217, 0.9),
-    rgba(8, 145, 178, 0.9)
-  );
-  box-shadow: 0 8px 24px rgba(8, 145, 178, 0.16);
-}
-
 @keyframes hero-dashboard-float {
   0%,
   100% {
@@ -625,10 +598,10 @@ select {
   justify-content: center;
   gap: 0.5rem;
   border-radius: 999px;
-  border: 1px solid rgba(1, 11, 19, 0.18);
-  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid #ffffff !important;
+  background: #ffffff !important;
   padding: 0.8rem 1.15rem;
-  color: #010b13;
+  color: #010b13 !important;
   font-weight: 700;
   transition:
     border-color 160ms ease,
@@ -637,8 +610,10 @@ select {
 }
 
 .secondary-button:hover {
-  border-color: rgba(0, 103, 127, 0.35);
-  background: rgba(255, 255, 255, 0.86);
+  border-color: #ffffff !important;
+  background: #ffffff !important;
+  color: #010b13 !important;
+  box-shadow: 0 12px 30px rgba(255, 255, 255, 0.2);
   transform: translateY(-1px);
 }
 
@@ -671,4 +646,65 @@ select {
   cursor: not-allowed;
   opacity: 0.42;
   transform: none;
+}
+
+.page-shell [class~="text-[#010b13]"],
+.page-shell [class~="text-[#101d25]"] {
+  color: #f8fafc !important;
+}
+
+.page-shell [class~="text-[#43474b]"],
+.page-shell [class~="text-[#53606a]"],
+.page-shell [class~="text-[#74777b]"] {
+  color: #94a3b8 !important;
+}
+
+.page-shell [class~="text-[#00566a]"],
+.page-shell [class~="text-[#00677f]"] {
+  color: #67e8f9 !important;
+}
+
+.page-shell [class~="bg-white/70"],
+.page-shell [class~="bg-white/65"],
+.page-shell [class~="bg-white/60"],
+.page-shell [class~="bg-white/55"] {
+  border-color: rgba(148, 229, 255, 0.1) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+.page-shell .secondary-button {
+  border-color: #ffffff;
+  background: #ffffff;
+  color: #010b13;
+}
+
+.page-shell .secondary-button:hover {
+  border-color: #ffffff;
+  background: #ffffff;
+  color: #010b13;
+}
+
+.page-shell .danger-button {
+  border-color: rgba(248, 113, 113, 0.3);
+  background: rgba(127, 29, 29, 0.24);
+  color: #fca5a5;
+}
+
+.input-field option {
+  background: #071722;
+  color: #f8fafc;
+}
+
+.freelancer-cta {
+  border-color: #ffffff !important;
+  background: #ffffff !important;
+  color: #010b13 !important;
+  box-shadow: 0 10px 28px rgba(255, 255, 255, 0.12);
+}
+
+.freelancer-cta:hover {
+  border-color: #ffffff !important;
+  background: #ffffff !important;
+  color: #010b13 !important;
+  box-shadow: 0 14px 34px rgba(255, 255, 255, 0.26);
 }

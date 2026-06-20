@@ -17,7 +17,7 @@ import { useWallet } from "@/lib/wallet";
 const identityRules = [
   "No email, password, OTP, or centralized account",
   "Your connected address is your only identity",
-  "Your role is derived from each escrow deal",
+  "Your role is selected before the wallet session begins",
   "Every value-moving action requires a wallet signature",
 ];
 
@@ -67,9 +67,8 @@ export default function WalletOnboardingPage() {
             <span className="gradient-text">Pure Web3 identity.</span>
           </h1>
           <p className="mt-6 max-w-xl text-base leading-7 text-slate-300">
-            SealPay determines whether you are a client, freelancer, arbitrator,
-            or public viewer from the connected address and the escrow contract
-            itself.
+            SealPay combines your connected address with the client or
+            freelancer path selected on the landing page.
           </p>
 
           <div className="mt-8 grid gap-3">
@@ -150,11 +149,8 @@ export default function WalletOnboardingPage() {
                 Switch to Web3 Network
               </button>
             ) : (
-              <Link
-                href="/dashboard"
-                className="primary-button min-h-13 w-full"
-              >
-                Enter dashboard
+              <Link href="/" className="primary-button min-h-13 w-full">
+                Choose Client or Freelancer
                 <ArrowRight className="size-4" />
               </Link>
             )}

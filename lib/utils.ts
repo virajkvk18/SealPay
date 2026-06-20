@@ -13,7 +13,7 @@ export function formatAmount(amount: number) {
   return `${amount.toLocaleString("en-US", {
     maximumFractionDigits: 3,
     minimumFractionDigits: amount % 1 === 0 ? 0 : 2,
-  })} test MATIC`;
+  })} MATIC`;
 }
 
 export function formatDate(value: string) {
@@ -71,6 +71,7 @@ export function makeTimelineEvent(
 export function statusTone(status: DealStatus) {
   const tones: Record<DealStatus, string> = {
     Created: "border-[#c4c7cb] bg-[#f2f4f6] text-[#43474b]",
+    Assigned: "border-violet-200 bg-violet-100/60 text-violet-800",
     "Payment Locked": "border-amber-200 bg-amber-100/50 text-amber-800",
     "Work Submitted": "border-[#47d6ff]/40 bg-[#b6ebff]/45 text-[#00566a]",
     Approved: "border-emerald-200 bg-emerald-100/60 text-emerald-800",
@@ -80,6 +81,13 @@ export function statusTone(status: DealStatus) {
   };
 
   return tones[status];
+}
+
+export function getExplorerTxUrl(txHash: string) {
+  const base =
+    process.env.NEXT_PUBLIC_EXPLORER_BASE_URL ??
+    "https://amoy.polygonscan.com/tx";
+  return `${base.replace(/\/$/, "")}/${txHash}`;
 }
 
 export function riskTone(level: RiskLevel) {
