@@ -102,7 +102,7 @@ export default function ProofPage() {
               No public proof found
             </h2>
             <p className="mt-3 text-[#53606a]">
-              Try one of the seeded demo IDs: SP-1001, SP-1002, or SP-1003.
+              Enter a deal ID from your dashboard after a deal has been created.
             </p>
           </article>
         ) : (

@@ -170,14 +170,7 @@ with check (true);
 | `/proof/[id]`  | Public proof explorer for a deal timeline              |
 | `/reputation`  | Wallet and workspace reputation view                   |
 
-Seeded demo routes:
-
-| Route            | Demo State                   |
-| ---------------- | ---------------------------- |
-| `/deal/SP-1001`  | Payment locked sample        |
-| `/deal/SP-1002`  | Work submitted sample        |
-| `/deal/SP-1003`  | Disputed sample              |
-| `/proof/SP-1001` | Public proof explorer sample |
+Create a deal from `/create-deal`, then open its deal vault and proof explorer using the generated deal ID.
 
 ## Why This MVP Is Feasible
 
@@ -244,7 +237,7 @@ components/
 
 lib/
   aiEngine.ts           Risk, proof, dispute, and trust scoring
-  mockData.ts           Seeded demo deals
+  mockData.ts           Shared deal, proof, role, and timeline types
   store.ts              Local mock persistence
   utils.ts              Formatting and hash helpers
 
