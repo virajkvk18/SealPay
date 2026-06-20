@@ -57,6 +57,7 @@ export default function SubmitProofModal({
   );
   const [formError, setFormError] = useState("");
   const [proofFile, setProofFile] = useState<File | null>(null);
+  const [finalDeliverable, setFinalDeliverable] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
 
   if (!open) return null;
@@ -129,7 +130,10 @@ export default function SubmitProofModal({
         title: form.title.trim(),
         note: form.note.trim(),
         previewUrl,
-        finalFileName: form.finalFileName.trim(),
+        finalFileName:
+          form.finalFileName.trim() ||
+          finalDeliverable?.name ||
+          upload.fileName,
         proofCid: upload.cid,
         proofGatewayUrl: upload.gatewayUrl,
         uploadedFileName: upload.fileName,
@@ -144,6 +148,7 @@ export default function SubmitProofModal({
     }
     setForm(makeEmptyProof(defaultDeliverableType));
     setProofFile(null);
+    setFinalDeliverable(null);
     setFormError("");
     setUploading(false);
     onClose();
@@ -232,10 +237,9 @@ export default function SubmitProofModal({
 
           <label>
             <span className="mb-2 block text-sm font-bold text-[#43474b]">
-              Final file name
+              Final file name (optional)
             </span>
             <input
-              required
               className="input-field"
               value={form.finalFileName}
               onChange={(event) =>
@@ -243,6 +247,25 @@ export default function SubmitProofModal({
               }
               placeholder="final-deliverable.zip"
             />
+          </label>
+
+          <label>
+            <span className="mb-2 block text-sm font-bold text-[#43474b]">
+              Final deliverable file (optional)
+            </span>
+            <input
+              type="file"
+              className="input-field"
+              onChange={(event) =>
+                setFinalDeliverable(event.target.files?.[0] ?? null)
+              }
+            />
+            {finalDeliverable ? (
+              <p className="mt-2 text-xs font-bold text-[#53606a]">
+                {finalDeliverable.name} will remain protected until payment
+                release.
+              </p>
+            ) : null}
           </label>
 
           <label>
@@ -290,7 +313,7 @@ export default function SubmitProofModal({
             Cancel
           </button>
           <button type="submit" disabled={uploading} className="primary-button">
-            {uploading ? "Uploading..." : "Submit Proof"}
+            {uploading ? "Submitting Work..." : "Submit Work"}
           </button>
         </div>
       </form>

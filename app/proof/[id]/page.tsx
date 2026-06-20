@@ -259,7 +259,7 @@ export default function ProofPage() {
                 <p className="mb-5 text-sm font-black uppercase tracking-normal text-[#00677f]">
                   Deal status
                 </p>
-                <DealStatusTracker deal={deal} />
+                <DealStatusTracker deal={deal} dark />
               </div>
               <div className="mb-6">
                 <p className="text-sm font-black uppercase tracking-normal text-emerald-700">

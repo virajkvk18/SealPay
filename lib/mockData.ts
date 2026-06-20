@@ -84,6 +84,7 @@ export interface Deal {
   selectedFreelancerWallet?: string;
   applications?: DealApplication[];
   dealKind?: "Direct" | "Public";
+  category?: string;
   amount: number;
   deadline: string;
   deliverableType: DeliverableType;

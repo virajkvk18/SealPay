@@ -5,6 +5,7 @@ import { CheckCircle2, Send, X } from "lucide-react";
 import type { Deal } from "@/lib/mockData";
 import { useSealPay } from "@/lib/store";
 import { makeTimelineEvent } from "@/lib/utils";
+import { useDashboardMode } from "@/lib/dashboardMode";
 
 export default function ApplyDealButton({
   deal,
@@ -14,6 +15,7 @@ export default function ApplyDealButton({
   wallet: string;
 }) {
   const { updateDeal } = useSealPay();
+  const mode = useDashboardMode();
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -21,6 +23,7 @@ export default function ApplyDealButton({
     (item) => item.freelancerWallet.toLowerCase() === wallet.toLowerCase(),
   );
   const eligible =
+    mode === "freelancer" &&
     deal.dealKind === "Public" &&
     deal.status === "Created" &&
     wallet.toLowerCase() !== deal.clientWallet.toLowerCase();

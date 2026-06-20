@@ -21,10 +21,14 @@ export function useWallet() {
   const [chainId, setChainId] = useState("");
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState("");
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     const provider = window.ethereum;
-    if (!provider) return;
+    if (!provider) {
+      queueMicrotask(() => setInitialized(true));
+      return;
+    }
 
     void Promise.all([
       provider.request({ method: "eth_accounts" }) as Promise<string[]>,
@@ -37,7 +41,8 @@ export function useWallet() {
       .catch(() => {
         setAddress("");
         setChainId("");
-      });
+      })
+      .finally(() => setInitialized(true));
 
     const handleAccountsChanged = (accounts: unknown) => {
       setAddress(Array.isArray(accounts) ? String(accounts[0] ?? "") : "");
@@ -128,13 +133,29 @@ export function useWallet() {
     }
   }, []);
 
+  const disconnect = useCallback(async () => {
+    try {
+      await window.ethereum?.request({
+        method: "wallet_revokePermissions",
+        params: [{ eth_accounts: {} }],
+      });
+    } catch {
+      // Some wallet providers do not expose permission revocation.
+    }
+    setAddress("");
+    setChainId("");
+    setError("");
+  }, []);
+
   return {
     address,
     chainId,
     error,
     isConnecting,
+    initialized,
     isAmoy: chainId.toLowerCase() === amoyChainId,
     connect,
+    disconnect,
     switchToAmoy,
   };
 }

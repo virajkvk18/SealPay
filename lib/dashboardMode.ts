@@ -5,36 +5,51 @@ import { useSyncExternalStore } from "react";
 export type DashboardMode = "client" | "freelancer";
 
 const dashboardModeKey = "sealpay-dashboard-mode-v1";
-const dashboardModeEvent = "sealpay-dashboard-mode-change";
+const dashboardWalletKey = "sealpay-wallet-v1";
+const dashboardSessionEvent = "sealpay-dashboard-session-change";
 
 function isDashboardMode(value: string | null): value is DashboardMode {
   return value === "client" || value === "freelancer";
 }
 
-function readDashboardMode(): DashboardMode {
+function readMode() {
   const value = window.localStorage.getItem(dashboardModeKey);
-  return isDashboardMode(value) ? value : "client";
+  return isDashboardMode(value) ? value : null;
 }
 
-function subscribeDashboardMode(onStoreChange: () => void) {
-  window.addEventListener("storage", onStoreChange);
-  window.addEventListener(dashboardModeEvent, onStoreChange);
+function readWallet() {
+  return window.localStorage.getItem(dashboardWalletKey) ?? "";
+}
 
+function subscribe(onStoreChange: () => void) {
+  window.addEventListener("storage", onStoreChange);
+  window.addEventListener(dashboardSessionEvent, onStoreChange);
   return () => {
     window.removeEventListener("storage", onStoreChange);
-    window.removeEventListener(dashboardModeEvent, onStoreChange);
+    window.removeEventListener(dashboardSessionEvent, onStoreChange);
   };
 }
 
-export function setDashboardMode(mode: DashboardMode) {
+function notifySessionChange() {
+  window.dispatchEvent(new Event(dashboardSessionEvent));
+}
+
+export function setDashboardSession(mode: DashboardMode, wallet: string) {
   window.localStorage.setItem(dashboardModeKey, mode);
-  window.dispatchEvent(new Event(dashboardModeEvent));
+  window.localStorage.setItem(dashboardWalletKey, wallet);
+  notifySessionChange();
+}
+
+export function clearDashboardSession() {
+  window.localStorage.removeItem(dashboardModeKey);
+  window.localStorage.removeItem(dashboardWalletKey);
+  notifySessionChange();
 }
 
 export function useDashboardMode() {
-  return useSyncExternalStore(
-    subscribeDashboardMode,
-    readDashboardMode,
-    () => "client" as DashboardMode,
-  );
+  return useSyncExternalStore(subscribe, readMode, () => null);
+}
+
+export function useDashboardWallet() {
+  return useSyncExternalStore(subscribe, readWallet, () => "");
 }

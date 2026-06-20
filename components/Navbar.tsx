@@ -1,90 +1,148 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
-import { Activity } from "lucide-react";
-import WalletButton from "@/components/WalletButton";
-import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { LogOut, Wallet } from "lucide-react";
+import WalletIntentActions from "@/components/WalletIntentActions";
+import {
+  clearDashboardSession,
+  useDashboardMode,
+  useDashboardWallet,
+} from "@/lib/dashboardMode";
+import { cn, formatWallet } from "@/lib/utils";
+import { useWallet } from "@/lib/wallet";
 
 interface NavItem {
   href: string;
   label: string;
-  matches?: string[];
 }
 
-const appNavItems: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard", matches: ["/dashboard"] },
-  { href: "/create-deal", label: "Create Deal", matches: ["/create-deal"] },
-  { href: "/deal/SP-1003", label: "Disputes", matches: ["/deal"] },
-  { href: "/reputation", label: "Reputation", matches: ["/reputation"] },
-];
-
-const landingNavItems: NavItem[] = [
+const landingItems: NavItem[] = [
   { href: "/#how-it-works", label: "How It Works" },
   { href: "/#for-clients", label: "For Clients" },
   { href: "/#for-freelancers", label: "For Freelancers" },
   { href: "/#security", label: "Security" },
-  { href: "/#proof-timeline", label: "Proof Timeline" },
   { href: "/#faq", label: "FAQ" },
+];
+
+const clientItems: NavItem[] = [
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/create-deal", label: "Create Deal" },
+  { href: "/dashboard#my-deals", label: "My Deals" },
+  { href: "/dashboard#applications", label: "Applications Received" },
+  { href: "/dashboard#pending-approvals", label: "Pending Approvals" },
+  { href: "/proof/SP-1001", label: "Proof Timeline" },
+  { href: "/reputation", label: "Trust Score" },
+];
+
+const freelancerItems: NavItem[] = [
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/open-deals", label: "Open Deals" },
+  { href: "/dashboard#assigned", label: "Assigned Deals" },
+  { href: "/dashboard#submit-work", label: "Submit Work" },
+  { href: "/dashboard#submitted-proofs", label: "Submitted Proofs" },
+  { href: "/reputation", label: "Earnings" },
+  { href: "/reputation", label: "Trust Score" },
 ];
 
 export default function Navbar() {
   const pathname = usePathname();
-  const isLandingPage = pathname === "/";
+  const router = useRouter();
+  const mode = useDashboardMode();
+  const wallet = useDashboardWallet();
+  const { disconnect } = useWallet();
+  const isLanding = pathname === "/";
+  const isPublicNav = isLanding || !mode;
+  const items = isPublicNav
+    ? landingItems
+    : mode === "freelancer"
+      ? freelancerItems
+      : clientItems;
+
+  function logout() {
+    clearDashboardSession();
+    void disconnect();
+    router.push("/");
+  }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-cyan-200/10 bg-[#020b10]/86 shadow-xl shadow-black/10 backdrop-blur-2xl">
-      <nav className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="flex items-center gap-3">
+    <header className="sticky top-0 z-40 border-b border-cyan-200/10 bg-[#020b10]/92 shadow-xl shadow-black/10 backdrop-blur-2xl">
+      <nav className="mx-auto flex min-h-20 max-w-[1500px] items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+        <Link href="/" className="flex shrink-0 items-center gap-3">
           <Image
             src="/sealpay-mark.png"
             alt="SealPay logo"
-            width={48}
-            height={48}
-            className="size-12 object-contain drop-shadow-[0_10px_24px_rgba(139,92,246,0.28)]"
+            width={44}
+            height={44}
+            className="size-11 object-contain"
             priority
           />
-          {isLandingPage ? (
-            <span className="brand-font text-xl font-black tracking-tight sm:text-2xl">
-              <span className="text-white">Seal</span>
-              <span className="bg-gradient-to-br from-[#c36bff] via-[#8b2cff] to-[#5921d6] bg-clip-text text-transparent">
-                Pay
-              </span>
-            </span>
-          ) : null}
-          {!isLandingPage ? (
-            <span className="chain-chip nav-chain-chip">
-              <Activity className="size-3" />
-              Web3 Network
-            </span>
-          ) : null}
+          <span className="brand-font hidden text-xl font-black sm:inline">
+            <span className="text-white">Seal</span>
+            <span className="text-violet-400">Pay</span>
+          </span>
         </Link>
-
-        <div className="hidden items-center gap-8 md:flex">
-          {(isLandingPage ? landingNavItems : appNavItems).map((item) => {
-            const isActive =
-              item.matches?.some((match) => pathname.startsWith(match)) ??
-              false;
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "rounded-full px-3 py-2 text-sm font-semibold text-slate-300 transition hover:bg-white/6 hover:text-white",
-                  isActive &&
-                    "bg-cyan-300/10 font-black text-cyan-100 ring-1 ring-cyan-200/15",
-                )}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
+        <div className="hidden min-w-0 items-center justify-center gap-1 lg:flex">
+          {items.map((item) => (
+            <Link
+              key={`${item.href}-${item.label}`}
+              href={item.href}
+              className={cn(
+                "rounded-full px-2.5 py-2 text-xs font-semibold text-slate-300 transition hover:bg-white/6 hover:text-white",
+                !isLanding &&
+                  pathname === item.href &&
+                  "bg-cyan-300/10 text-cyan-100",
+              )}
+            >
+              {item.label}
+            </Link>
+          ))}
         </div>
-
-        <WalletButton compactOnly />
+        {isLanding ? (
+          <div className="hidden shrink-0 xl:block">
+            <WalletIntentActions compact />
+          </div>
+        ) : mode ? (
+          <div className="flex shrink-0 items-center gap-2">
+            <span className="hidden rounded-full border border-violet-300/20 bg-violet-400/10 px-3 py-2 text-xs font-black text-violet-200 sm:inline">
+              {mode === "freelancer" ? "Freelancer Mode" : "Client Mode"}
+            </span>
+            <span className="hidden items-center gap-2 rounded-full border border-cyan-300/15 bg-cyan-300/5 px-3 py-2 font-mono text-xs text-cyan-100 md:flex">
+              <Wallet className="size-3.5" />
+              {formatWallet(wallet)}
+            </span>
+            <button
+              type="button"
+              onClick={logout}
+              className="secondary-button border-white/10 bg-white/5 px-3 py-2 text-xs text-white hover:bg-white/10"
+            >
+              <LogOut className="size-4" />
+              Logout
+            </button>
+          </div>
+        ) : (
+          <Link
+            href="/"
+            className="secondary-button border-white/10 bg-white/5 px-4 py-2 text-xs text-white"
+          >
+            Choose Role
+          </Link>
+        )}
       </nav>
+      {!isPublicNav ? (
+        <div className="flex gap-2 overflow-x-auto border-t border-white/5 px-4 py-2 lg:hidden">
+          {items.map((item) => (
+            <Link
+              key={`${item.href}-${item.label}-mobile`}
+              href={item.href}
+              className="shrink-0 rounded-full bg-white/5 px-3 py-1.5 text-xs font-bold text-slate-300"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </div>
+      ) : null}
     </header>
   );
 }
