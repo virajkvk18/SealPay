@@ -598,8 +598,8 @@ select {
   justify-content: center;
   gap: 0.5rem;
   border-radius: 999px;
-  border: 1px solid rgba(1, 11, 19, 0.18);
-  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid #ffffff;
+  background: #ffffff;
   padding: 0.8rem 1.15rem;
   color: #010b13;
   font-weight: 700;
@@ -610,8 +610,9 @@ select {
 }
 
 .secondary-button:hover {
-  border-color: rgba(0, 103, 127, 0.35);
-  background: rgba(255, 255, 255, 0.86);
+  border-color: #ffffff;
+  background: #ffffff;
+  box-shadow: 0 12px 30px rgba(255, 255, 255, 0.2);
   transform: translateY(-1px);
 }
 
@@ -671,14 +672,15 @@ select {
 }
 
 .page-shell .secondary-button {
-  border-color: rgba(148, 229, 255, 0.14);
-  background: rgba(255, 255, 255, 0.055);
-  color: #f8fafc;
+  border-color: #ffffff;
+  background: #ffffff;
+  color: #010b13;
 }
 
 .page-shell .secondary-button:hover {
-  border-color: rgba(103, 232, 249, 0.3);
-  background: rgba(255, 255, 255, 0.09);
+  border-color: #ffffff;
+  background: #ffffff;
+  color: #010b13;
 }
 
 .page-shell .danger-button {

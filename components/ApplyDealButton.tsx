@@ -25,8 +25,7 @@ export default function ApplyDealButton({
   const eligible =
     mode === "freelancer" &&
     deal.dealKind === "Public" &&
-    deal.status === "Created" &&
-    wallet.toLowerCase() !== deal.clientWallet.toLowerCase();
+    deal.status === "Created";
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
