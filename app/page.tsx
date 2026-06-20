@@ -6,10 +6,14 @@ import {
   BriefcaseBusiness,
   CheckCircle2,
   CircleDollarSign,
+  Database,
   Eye,
   FileCheck2,
   FileKey2,
   Fingerprint,
+  Gauge,
+  GitBranch,
+  Layers3,
   LockKeyhole,
   Search,
   ShieldCheck,
@@ -176,12 +180,70 @@ const protocolSignals = [
   "Public proof history",
 ];
 
+const protocolOverview = [
+  {
+    value: "2-sided",
+    label: "Client and freelancer workflow",
+    icon: UserRoundCheck,
+  },
+  {
+    value: "7-stage",
+    label: "Traceable deal lifecycle",
+    icon: GitBranch,
+  },
+  {
+    value: "Wallet-first",
+    label: "Identity without passwords",
+    icon: Wallet,
+  },
+  {
+    value: "Proof-linked",
+    label: "Evidence tied to each deal",
+    icon: Fingerprint,
+  },
+];
+
+const protocolLayers = [
+  {
+    eyebrow: "Identity layer",
+    title: "Wallets establish who acts",
+    description:
+      "Clients and freelancers connect a wallet and use its address as their deal identity, removing the need for a password account.",
+    note: "Used for role and ownership checks",
+    icon: Wallet,
+  },
+  {
+    eyebrow: "Settlement layer",
+    title: "Escrow protects the payment",
+    description:
+      "Deal funds can be locked before delivery and released according to approval or dispute outcomes instead of informal promises.",
+    note: "Transparent payment state",
+    icon: Blocks,
+  },
+  {
+    eyebrow: "Evidence layer",
+    title: "Content identifiers preserve proof",
+    description:
+      "Submitted files are linked through decentralized storage identifiers and hashes, making later verification possible for both parties.",
+    note: "Verifiable submission history",
+    icon: Database,
+  },
+  {
+    eyebrow: "Review layer",
+    title: "AI explains risk, not outcomes",
+    description:
+      "AI can summarize evidence and flag inconsistencies, but it cannot sign transactions or independently release escrowed funds.",
+    note: "Advisory assistance only",
+    icon: Gauge,
+  },
+];
+
 export default function Home() {
   return (
     <main className="web3-shell protocol-grid relative overflow-hidden">
       <Navbar />
 
-      <section className="relative z-10 mx-auto grid max-w-7xl gap-10 px-5 pb-20 pt-10 sm:px-8 lg:grid-cols-[1.02fr_0.98fr] lg:items-start lg:pb-24 lg:pt-12">
+      <section className="landing-section relative z-10 grid gap-12 pb-16 pt-10 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:pb-20 lg:pt-16">
         <div>
           <div className="chain-chip inline-flex">
             <ShieldCheck className="size-3.5" />
@@ -251,6 +313,30 @@ export default function Home() {
       </section>
 
       <section
+        aria-label="SealPay protocol overview"
+        className="landing-section relative z-10 pb-16 lg:pb-20"
+      >
+        <div className="protocol-overview-grid overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/[0.035]">
+          {protocolOverview.map((item) => {
+            const Icon = item.icon;
+            return (
+              <article key={item.value} className="protocol-overview-item">
+                <Icon className="size-5 text-cyan-300" />
+                <div>
+                  <p className="brand-font text-base font-black text-white">
+                    {item.value}
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-slate-400">
+                    {item.label}
+                  </p>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <section
         aria-label="SealPay benefits"
         className="relative z-10 mb-20 overflow-hidden border-y border-cyan-100/10 bg-black/20 py-4"
       >
@@ -268,7 +354,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="relative z-10 mx-auto grid max-w-7xl gap-5 px-5 pb-20 sm:px-8 lg:grid-cols-2">
+      <section className="landing-section relative z-10 grid gap-5 pb-20 lg:grid-cols-2">
         <article className="glass-panel-dark rounded-[2rem] p-7 sm:p-9">
           <p className="text-xs font-black uppercase tracking-[0.18em] text-rose-300">
             The payment trust problem
@@ -299,8 +385,73 @@ export default function Home() {
       </section>
 
       <section
+        id="architecture"
+        className="landing-section relative z-10 pb-20"
+      >
+        <div className="landing-heading-grid mb-9">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-violet-300">
+              <Layers3 className="size-4" />
+              Protocol architecture
+            </div>
+            <h2 className="brand-font mt-3 max-w-2xl text-3xl font-black text-white sm:text-4xl">
+              Know what protects every part of the deal.
+            </h2>
+          </div>
+          <p className="max-w-lg text-sm leading-7 text-slate-400">
+            SealPay separates identity, settlement, evidence, and review so one
+            service does not silently control the entire workflow.
+          </p>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          {protocolLayers.map((layer, index) => {
+            const Icon = layer.icon;
+            return (
+              <article
+                key={layer.title}
+                className="architecture-card group rounded-[1.75rem] border border-white/10 bg-white/[0.035] p-6 sm:p-7"
+              >
+                <div className="flex items-start justify-between gap-5">
+                  <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-cyan-300/15 to-violet-400/15 text-cyan-200 ring-1 ring-white/10">
+                    <Icon className="size-5" />
+                  </span>
+                  <span className="font-mono text-xs font-black text-slate-600">
+                    LAYER 0{index + 1}
+                  </span>
+                </div>
+                <p className="mt-6 text-xs font-black uppercase tracking-[0.16em] text-violet-300">
+                  {layer.eyebrow}
+                </p>
+                <h3 className="brand-font mt-2 text-xl font-black text-white">
+                  {layer.title}
+                </h3>
+                <p className="mt-3 text-sm leading-7 text-slate-400">
+                  {layer.description}
+                </p>
+                <div className="mt-5 flex items-center gap-2 border-t border-white/8 pt-4 text-xs font-bold text-slate-300">
+                  <CheckCircle2 className="size-4 text-cyan-300" />
+                  {layer.note}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+
+        <div className="mt-5 flex gap-3 rounded-2xl border border-amber-300/15 bg-amber-300/[0.045] p-5 text-sm leading-6 text-slate-300">
+          <ShieldCheck className="mt-0.5 size-5 shrink-0 text-amber-200" />
+          <p>
+            <strong className="text-white">Decentralization is progressive.</strong>{" "}
+            Wallet identity, smart-contract escrow, and verifiable proof reduce
+            trust in intermediaries. Optional storage gateways and AI providers
+            remain supporting services, not payment authorities.
+          </p>
+        </div>
+      </section>
+
+      <section
         id="how-it-works"
-        className="relative z-10 mx-auto max-w-7xl px-5 pb-20 sm:px-8"
+        className="landing-section relative z-10 pb-20"
       >
         <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
@@ -344,7 +495,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="relative z-10 mx-auto grid max-w-7xl gap-5 px-5 pb-20 sm:px-8 lg:grid-cols-2">
+      <section className="landing-section relative z-10 grid gap-5 pb-20 lg:grid-cols-2">
         <article
           id="for-clients"
           className="audience-panel rounded-[2rem] border border-cyan-200/10 p-7 sm:p-9"
@@ -399,7 +550,7 @@ export default function Home() {
 
       <section
         id="security"
-        className="relative z-10 mx-auto max-w-7xl px-5 pb-20 sm:px-8"
+        className="landing-section relative z-10 pb-20"
       >
         <div className="text-center">
           <p className="text-xs font-black uppercase tracking-[0.18em] text-violet-300">
@@ -432,7 +583,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="relative z-10 mx-auto grid max-w-7xl gap-5 px-5 pb-20 sm:px-8 lg:grid-cols-2">
+      <section className="landing-section relative z-10 grid gap-5 pb-20 lg:grid-cols-2">
         <article className="glass-panel-dark rounded-[2rem] p-7 sm:p-9">
           <FileKey2 className="size-7 text-cyan-300" />
           <p className="mt-6 text-xs font-black uppercase tracking-[0.18em] text-cyan-300">
@@ -465,7 +616,7 @@ export default function Home() {
 
       <section
         id="proof-timeline"
-        className="relative z-10 mx-auto max-w-7xl px-5 pb-20 sm:px-8"
+        className="landing-section relative z-10 pb-20"
       >
         <div className="glass-panel-dark rounded-[2rem] p-7 sm:p-9">
           <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">
@@ -521,7 +672,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="relative z-10 mx-auto max-w-7xl px-5 pb-24 sm:px-8">
+      <section className="landing-section relative z-10 pb-24">
         <div className="landing-cta relative overflow-hidden rounded-[2rem] border border-violet-300/15 px-6 py-10 sm:px-10 sm:py-12">
           <div className="relative z-10 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
             <div>
