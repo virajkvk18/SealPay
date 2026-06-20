@@ -57,8 +57,8 @@ export function useWallet() {
 
   const connect = useCallback(async () => {
     if (!window.ethereum) {
-      setError("Install MetaMask or another injected wallet to continue.");
-      return;
+      setError("Please install a Web3 wallet to continue.");
+      return null;
     }
 
     setIsConnecting(true);
@@ -74,12 +74,10 @@ export function useWallet() {
 
       setAddress(accounts[0] ?? "");
       setChainId(currentChain);
-    } catch (caughtError) {
-      setError(
-        caughtError instanceof Error
-          ? caughtError.message
-          : "Wallet connection was cancelled.",
-      );
+      return accounts[0] ?? null;
+    } catch {
+      setError("Wallet connection failed. Please try again.");
+      return null;
     } finally {
       setIsConnecting(false);
     }

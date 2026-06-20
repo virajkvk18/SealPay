@@ -10,12 +10,14 @@ import {
   ExternalLink,
   FileLock2,
   FileUp,
+  Fingerprint,
   LockKeyhole,
   RotateCcw,
   Scale,
   Send,
   ShieldCheck,
   UnlockKeyhole,
+  UserRoundCheck,
 } from "lucide-react";
 import DisputeModal, {
   type DisputeFormValues,
@@ -26,9 +28,10 @@ import SubmitProofModal, {
   type ProofFormValues,
 } from "@/components/SubmitProofModal";
 import Timeline from "@/components/Timeline";
-import { demoModeNotice, roles, type Deal, type Role } from "@/lib/mockData";
+import type { Deal, Role } from "@/lib/mockData";
 import { saveProofToSupabase } from "@/lib/proofs";
 import { useSealPay } from "@/lib/store";
+import { useWallet } from "@/lib/wallet";
 import {
   cn,
   formatAmount,
@@ -52,7 +55,13 @@ function detailRows(deal: Deal) {
   ];
 }
 
-function getActionHelper(deal: Deal, activeRole: Role) {
+type DealViewerRole = Role | "Public Viewer";
+
+function getActionHelper(deal: Deal, activeRole: DealViewerRole) {
+  if (activeRole === "Public Viewer") {
+    return "This wallet is not a participant in the deal. The proof timeline remains available as a read-only public record.";
+  }
+
   if (activeRole === "Client") {
     if (deal.status === "Created")
       return "Lock payment first so the freelancer can submit work.";
@@ -172,10 +181,25 @@ export default function DealDetailsPage() {
   const params = useParams();
   const routeId = Array.isArray(params.id) ? params.id[0] : params.id;
   const dealId = routeId ? decodeURIComponent(routeId) : "";
-  const { deals, activeRole, setActiveRole, updateDeal } = useSealPay();
+  const { deals, updateDeal } = useSealPay();
+  const { address } = useWallet();
   const [proofOpen, setProofOpen] = useState(false);
   const [disputeOpen, setDisputeOpen] = useState(false);
   const deal = deals.find((candidate) => candidate.id === dealId);
+  const normalizedWallet = address.toLowerCase();
+  const arbitratorWallet = (
+    process.env.NEXT_PUBLIC_ARBITRATOR_ADDRESS ?? ""
+  ).toLowerCase();
+  const activeRole: DealViewerRole =
+    !deal || !normalizedWallet
+      ? "Public Viewer"
+      : deal.clientWallet.toLowerCase() === normalizedWallet
+        ? "Client"
+        : deal.freelancerWallet.toLowerCase() === normalizedWallet
+          ? "Freelancer"
+          : arbitratorWallet && arbitratorWallet === normalizedWallet
+            ? "Admin/Judge"
+            : "Public Viewer";
 
   const isDeliverableUnlocked = useMemo(() => {
     if (!deal) return false;
@@ -233,6 +257,27 @@ export default function DealDetailsPage() {
           status: "Payment Released",
           actor: "System",
           txHash: releaseTx,
+        }),
+      ],
+    }));
+  }
+
+  function handleRejectDeal() {
+    if (!deal) return;
+    const txHash = makeTxHash();
+
+    updateDeal(deal.id, (current) => ({
+      ...current,
+      freelancerName: "Unassigned",
+      freelancerWallet: "",
+      timeline: [
+        ...current.timeline,
+        makeTimelineEvent({
+          title: "Assignment rejected",
+          description: "Freelancer declined the wallet assignment.",
+          status: current.status,
+          actor: "Freelancer",
+          txHash,
         }),
       ],
     }));
@@ -637,7 +682,8 @@ export default function DealDetailsPage() {
                 On-chain Proof Trail
               </h2>
               <p className="mt-2 text-sm leading-6 text-[#53606a]">
-                {demoModeNotice}
+                Deal events, proof records, and transaction references remain
+                visible for independent verification.
               </p>
               <div className="mt-6">
                 <Timeline events={deal.timeline} />
@@ -648,24 +694,17 @@ export default function DealDetailsPage() {
           <aside className="space-y-5">
             <div className="glass-panel rounded-[2rem] p-5">
               <p className="text-sm font-black uppercase tracking-normal text-[#00677f]">
-                Active role
+                Wallet role
               </p>
-              <div className="mt-4 grid gap-2">
-                {roles.map((role) => (
-                  <button
-                    key={role}
-                    type="button"
-                    onClick={() => setActiveRole(role)}
-                    className={cn(
-                      "rounded-2xl border px-4 py-3 text-left text-sm font-black transition",
-                      activeRole === role
-                        ? "border-black bg-black text-white"
-                        : "border-[#101d25]/10 bg-white/70 text-[#43474b] hover:bg-[#f2f4f6]",
-                    )}
-                  >
-                    {role}
-                  </button>
-                ))}
+              <div className="mt-4 rounded-2xl border border-[#101d25]/10 bg-white/70 p-4">
+                <p className="text-sm font-black text-[#010b13]">
+                  {activeRole === "Admin/Judge" ? "Arbitrator" : activeRole}
+                </p>
+                <p className="mt-2 font-mono text-xs text-[#74777b]">
+                  {address
+                    ? formatWallet(address)
+                    : "Connect a wallet to detect your role"}
+                </p>
               </div>
             </div>
 
@@ -677,13 +716,22 @@ export default function DealDetailsPage() {
               <div className="mt-5 grid gap-3">
                 {activeRole === "Client" ? (
                   <>
+                    {deal.dealKind === "Public" && !deal.freelancerWallet ? (
+                      <Link
+                        href="/dashboard?mode=client#applications"
+                        className="secondary-button border-white/15 bg-white/5 text-white"
+                      >
+                        <UserRoundCheck className="size-4" />
+                        View Applications
+                      </Link>
+                    ) : null}
                     <button
                       type="button"
                       onClick={() =>
                         appendStatusEvent(
                           "Payment Locked",
                           "Payment locked",
-                          `${formatAmount(deal.amount)} locked in mock escrow.`,
+                          `${formatAmount(deal.amount)} protected by smart contract escrow.`,
                           "Client",
                         )
                       }
@@ -717,15 +765,61 @@ export default function DealDetailsPage() {
                 ) : null}
 
                 {activeRole === "Freelancer" ? (
-                  <button
-                    type="button"
-                    onClick={() => setProofOpen(true)}
-                    disabled={deal.status !== "Payment Locked"}
-                    className="primary-button"
-                  >
-                    <FileUp className="size-4" />
-                    Submit Work Proof
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        appendStatusEvent(
+                          deal.status,
+                          "Deal accepted",
+                          "Freelancer accepted the wallet assignment.",
+                          "Freelancer",
+                        )
+                      }
+                      disabled={
+                        !(
+                          ["Created", "Payment Locked"] as Deal["status"][]
+                        ).includes(deal.status)
+                      }
+                      className="secondary-button"
+                    >
+                      <CheckCircle2 className="size-4" />
+                      Accept Deal
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleRejectDeal}
+                      disabled={
+                        !(
+                          ["Created", "Payment Locked"] as Deal["status"][]
+                        ).includes(deal.status)
+                      }
+                      className="danger-button"
+                    >
+                      <RotateCcw className="size-4" />
+                      Reject Deal
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setProofOpen(true)}
+                      disabled={deal.status !== "Payment Locked"}
+                      className="primary-button"
+                    >
+                      <FileUp className="size-4" />
+                      Submit Proof
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDisputeOpen(true)}
+                      disabled={["Payment Released", "Resolved"].includes(
+                        deal.status,
+                      )}
+                      className="danger-button"
+                    >
+                      <Scale className="size-4" />
+                      Raise Dispute
+                    </button>
+                  </>
                 ) : null}
 
                 {activeRole === "Admin/Judge" ? (
@@ -751,6 +845,16 @@ export default function DealDetailsPage() {
                       Refund Client
                     </button>
                   </>
+                ) : null}
+
+                {activeRole === "Public Viewer" ? (
+                  <Link
+                    href={`/proof/${deal.id}`}
+                    className="secondary-button border-white/15 bg-white/5 text-white"
+                  >
+                    <Fingerprint className="size-4" />
+                    View Proof Timeline
+                  </Link>
                 ) : null}
               </div>
               <p className="mt-4 rounded-2xl border border-white/10 bg-white/10 p-3 text-sm leading-6 text-white/70">

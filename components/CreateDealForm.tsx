@@ -17,6 +17,7 @@ import {
 import { deliverableTypes, type Deal } from "@/lib/mockData";
 import { calculateRiskScore, suggestMilestones } from "@/lib/aiEngine";
 import { useSealPay } from "@/lib/store";
+import { useWallet } from "@/lib/wallet";
 import {
   formatAmount,
   formatDate,
@@ -47,9 +48,17 @@ function FieldIcon({ children }: { children: ReactNode }) {
   );
 }
 
-export default function CreateDealForm() {
+export default function CreateDealForm({
+  initialDealKind = "direct",
+}: {
+  initialDealKind?: "direct" | "public";
+}) {
   const router = useRouter();
   const { deals, addDeal } = useSealPay();
+  const { address } = useWallet();
+  const [dealKind, setDealKind] = useState<"direct" | "public">(
+    initialDealKind,
+  );
   const [form, setForm] = useState(initialForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -106,7 +115,7 @@ export default function CreateDealForm() {
       amount,
       deadline: form.deadline,
       description: form.description,
-      freelancerWallet: form.freelancerWallet,
+      freelancerWallet: dealKind === "direct" ? form.freelancerWallet : "",
       knownFreelancerWallets,
     });
 
@@ -116,9 +125,12 @@ export default function CreateDealForm() {
       description:
         form.description.trim() || "No detailed description provided.",
       clientName: form.clientName.trim(),
-      freelancerName: form.freelancerName.trim(),
-      clientWallet: form.clientWallet.trim(),
-      freelancerWallet: form.freelancerWallet.trim(),
+      freelancerName:
+        dealKind === "direct" ? form.freelancerName.trim() : "Open Application",
+      clientWallet: form.clientWallet.trim() || address,
+      freelancerWallet:
+        dealKind === "direct" ? form.freelancerWallet.trim() : "",
+      dealKind: dealKind === "direct" ? "Direct" : "Public",
       amount,
       deadline: form.deadline,
       deliverableType: form.deliverableType as Deal["deliverableType"],
@@ -127,8 +139,11 @@ export default function CreateDealForm() {
       createdTxHash: txHash,
       timeline: [
         makeTimelineEvent({
-          title: "Invoice created",
-          description: `${form.clientName.trim()} created a SealPay invoice for ${form.freelancerName.trim()}.`,
+          title: "Deal created",
+          description:
+            dealKind === "direct"
+              ? `${form.clientName.trim()} created a direct SealPay deal for ${form.freelancerName.trim()}.`
+              : `${form.clientName.trim()} posted a public SealPay opportunity.`,
           actor: "Client",
           status: "Created",
           txHash,
@@ -152,7 +167,7 @@ export default function CreateDealForm() {
           </span>
           <div>
             <h2 className="text-2xl font-black tracking-normal text-[#010b13]">
-              Invoice Details
+              Deal Details
             </h2>
             <p className="mt-1 text-sm text-[#53606a]">
               Define the escrow terms before the payment is locked.
@@ -161,9 +176,30 @@ export default function CreateDealForm() {
         </div>
 
         <div className="mt-8 grid gap-5 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <span className="mb-2 block text-sm font-bold text-[#43474b]">
+              Deal Type
+            </span>
+            <div className="grid grid-cols-2 gap-3">
+              {(["direct", "public"] as const).map((kind) => (
+                <button
+                  key={kind}
+                  type="button"
+                  onClick={() => setDealKind(kind)}
+                  className={`rounded-2xl border px-4 py-3 text-left text-sm font-black capitalize transition ${
+                    dealKind === kind
+                      ? "border-black bg-black text-white"
+                      : "border-[#101d25]/10 bg-white/65 text-[#43474b]"
+                  }`}
+                >
+                  {kind === "direct" ? "Direct Deal" : "Public Deal"}
+                </button>
+              ))}
+            </div>
+          </div>
           <label className="sm:col-span-2">
             <span className="mb-2 block text-sm font-bold text-[#43474b]">
-              Invoice Title
+              Deal Title
             </span>
             <input
               required
@@ -182,9 +218,9 @@ export default function CreateDealForm() {
               <Wallet className="size-4" />
             </FieldIcon>
             <input
-              required
+              required={!address}
               className="input-field pl-11 font-mono text-sm"
-              value={form.clientWallet}
+              value={form.clientWallet || address}
               onChange={(event) =>
                 updateField("clientWallet", event.target.value)
               }
@@ -192,23 +228,25 @@ export default function CreateDealForm() {
             />
           </label>
 
-          <label className="relative">
-            <span className="mb-2 block text-sm font-bold text-[#43474b]">
-              Freelancer Wallet Address
-            </span>
-            <FieldIcon>
-              <Wallet className="size-4" />
-            </FieldIcon>
-            <input
-              required
-              className="input-field pl-11 font-mono text-sm"
-              value={form.freelancerWallet}
-              onChange={(event) =>
-                updateField("freelancerWallet", event.target.value)
-              }
-              placeholder="0x..."
-            />
-          </label>
+          {dealKind === "direct" ? (
+            <label className="relative">
+              <span className="mb-2 block text-sm font-bold text-[#43474b]">
+                Freelancer Wallet Address
+              </span>
+              <FieldIcon>
+                <Wallet className="size-4" />
+              </FieldIcon>
+              <input
+                required
+                className="input-field pl-11 font-mono text-sm"
+                value={form.freelancerWallet}
+                onChange={(event) =>
+                  updateField("freelancerWallet", event.target.value)
+                }
+                placeholder="0x..."
+              />
+            </label>
+          ) : null}
 
           <label>
             <span className="mb-2 block text-sm font-bold text-[#43474b]">
@@ -225,24 +263,26 @@ export default function CreateDealForm() {
             />
           </label>
 
-          <label>
-            <span className="mb-2 block text-sm font-bold text-[#43474b]">
-              Freelancer Name
-            </span>
-            <input
-              required
-              className="input-field"
-              value={form.freelancerName}
-              onChange={(event) =>
-                updateField("freelancerName", event.target.value)
-              }
-              placeholder="Freelancer or studio"
-            />
-          </label>
+          {dealKind === "direct" ? (
+            <label>
+              <span className="mb-2 block text-sm font-bold text-[#43474b]">
+                Freelancer Name
+              </span>
+              <input
+                required
+                className="input-field"
+                value={form.freelancerName}
+                onChange={(event) =>
+                  updateField("freelancerName", event.target.value)
+                }
+                placeholder="Freelancer or studio"
+              />
+            </label>
+          ) : null}
 
           <label className="relative">
             <span className="mb-2 block text-sm font-bold text-[#43474b]">
-              Amount in test MATIC
+              Escrow Amount
             </span>
             <FieldIcon>
               <Coins className="size-4" />
@@ -314,7 +354,7 @@ export default function CreateDealForm() {
               <div>
                 <p className="text-sm font-black text-cyan-100">Live Preview</p>
                 <h3 className="mt-2 text-2xl font-black tracking-normal">
-                  {form.title || "Untitled invoice"}
+                  {form.title || "Untitled deal"}
                 </h3>
               </div>
               <span className="grid size-12 place-items-center rounded-2xl bg-cyan-300/15 text-cyan-100">
@@ -341,7 +381,9 @@ export default function CreateDealForm() {
                 Client
               </p>
               <p className="mt-2 font-mono text-sm font-bold text-[#010b13]">
-                {form.clientWallet ? formatWallet(form.clientWallet) : "0x..."}
+                {form.clientWallet || address
+                  ? formatWallet(form.clientWallet || address)
+                  : "0x..."}
               </p>
             </div>
             <div className="rounded-2xl border border-[#101d25]/10 bg-white/60 p-4">
@@ -349,9 +391,11 @@ export default function CreateDealForm() {
                 Freelancer
               </p>
               <p className="mt-2 font-mono text-sm font-bold text-[#010b13]">
-                {form.freelancerWallet
-                  ? formatWallet(form.freelancerWallet)
-                  : "0x..."}
+                {dealKind === "public"
+                  ? "Open to applications"
+                  : form.freelancerWallet
+                    ? formatWallet(form.freelancerWallet)
+                    : "0x..."}
               </p>
             </div>
           </div>
@@ -432,8 +476,8 @@ export default function CreateDealForm() {
           <div className="flex items-start gap-3">
             <Fingerprint className="mt-0.5 size-5 shrink-0 text-[#00677f]" />
             <p className="text-sm leading-6 text-[#43474b]">
-              Creating an invoice generates a local SealPay hash and opens the
-              escrow evidence vault.
+              Creating a deal records its first proof event and opens the deal
+              workspace immediately.
             </p>
           </div>
         </section>
@@ -443,7 +487,7 @@ export default function CreateDealForm() {
           disabled={isSubmitting}
           className="primary-button w-full"
         >
-          Create Invoice Hash
+          Create Deal
           <ArrowRight className="size-4" />
         </button>
 

@@ -147,7 +147,7 @@ export default function WalletOnboardingPage() {
                 className="primary-button min-h-13 w-full"
               >
                 <Network className="size-4" />
-                Switch to Polygon Amoy
+                Switch to Web3 Network
               </button>
             ) : (
               <Link
@@ -165,7 +165,7 @@ export default function WalletOnboardingPage() {
               rel="noreferrer"
               className="secondary-button min-h-12 border-white/10 bg-white/5 text-sm text-slate-200"
             >
-              View Amoy explorer
+              View Blockchain Explorer
               <ExternalLink className="size-4" />
             </a>
           </div>
