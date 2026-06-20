@@ -99,11 +99,12 @@ export default function CreateDealForm({
     setFormError("");
     setSuccessMessage("");
     const amount = Number(form.amount);
-    const clientWallet = (form.clientWallet.trim() || address).trim();
-    if (!/^0x[a-fA-F0-9]{40}$/.test(clientWallet)) {
-      setFormError("Enter a valid client wallet address.");
+    const connectedWallet = address.trim();
+    if (!/^0x[a-fA-F0-9]{40}$/.test(connectedWallet)) {
+      setFormError("Connect a valid client wallet before creating a deal.");
       return;
     }
+    const clientWallet = connectedWallet.toLowerCase();
     if (
       dealKind === "direct" &&
       !/^0x[a-fA-F0-9]{40}$/.test(form.freelancerWallet.trim())
@@ -176,6 +177,9 @@ export default function CreateDealForm({
         freelancer_name: deal.freelancerName,
         client_wallet: deal.clientWallet,
         freelancer_wallet: deal.freelancerWallet,
+        deal_kind: deal.dealKind,
+        category: deal.category,
+        applications: [],
         amount: deal.amount,
         deadline: deal.deadline,
         deliverable_type: deal.deliverableType,
@@ -281,12 +285,11 @@ export default function CreateDealForm({
               Client Wallet Address
             </span>
             <input
-              required={!address}
+              required
+              readOnly
               className="input-field font-mono text-sm"
-              value={form.clientWallet || address}
-              onChange={(event) =>
-                updateField("clientWallet", event.target.value)
-              }
+              value={address}
+              onChange={(event) => updateField("clientWallet", event.target.value)}
               placeholder="0x..."
             />
           </label>

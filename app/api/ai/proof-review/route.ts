@@ -1,4 +1,11 @@
 import { NextResponse } from "next/server";
+import {
+  providerErrorDetails,
+  rejectOversizedBody,
+  rejectUntrustedOrigin,
+  truncateText,
+  logApiSecurityEvent,
+} from "@/lib/serverSecurity";
 
 interface GroqChatResponse {
   choices?: Array<{
@@ -64,6 +71,12 @@ function normalizeReview(
 }
 
 export async function POST(request: Request) {
+  const originRejected = rejectUntrustedOrigin(request);
+  if (originRejected) return originRejected;
+
+  const oversized = rejectOversizedBody(request);
+  if (oversized) return oversized;
+
   const apiKey = process.env.GROQ_API_KEY;
   const model = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
 
@@ -97,6 +110,18 @@ export async function POST(request: Request) {
     );
   }
 
+  const safeBody = {
+    dealTitle: truncateText(body.dealTitle, 160),
+    dealDescription: truncateText(body.dealDescription, 2_000),
+    deliverableType: truncateText(body.deliverableType, 80),
+    proofTitle: truncateText(body.proofTitle, 160),
+    proofNote: truncateText(body.proofNote, 2_000),
+    fileName: truncateText(body.fileName, 240),
+    previewUrl: truncateText(body.previewUrl, 500),
+    proofCid: truncateText(body.proofCid, 160),
+    proofUrl: truncateText(body.proofUrl, 500),
+  };
+
   let response: Response;
   try {
     response = await fetch(groqChatUrl, {
@@ -120,17 +145,17 @@ export async function POST(request: Request) {
             content: JSON.stringify({
               task: "Review whether the freelancer proof appears relevant to the deal.",
               deal: {
-                title: body.dealTitle,
-                description: body.dealDescription,
-                deliverableType: body.deliverableType,
+                title: safeBody.dealTitle,
+                description: safeBody.dealDescription,
+                deliverableType: safeBody.deliverableType,
               },
               proof: {
-                title: body.proofTitle,
-                note: body.proofNote,
-                fileName: body.fileName,
-                previewUrl: body.previewUrl,
-                cid: body.proofCid,
-                gatewayUrl: body.proofUrl,
+                title: safeBody.proofTitle,
+                note: safeBody.proofNote,
+                fileName: safeBody.fileName,
+                previewUrl: safeBody.previewUrl,
+                cid: safeBody.proofCid,
+                gatewayUrl: safeBody.proofUrl,
               },
             }),
           },
@@ -138,6 +163,7 @@ export async function POST(request: Request) {
       }),
     });
   } catch (error) {
+    logApiSecurityEvent("groq_proof_review_request_error", request);
     return NextResponse.json(
       {
         error: "Groq proof review request failed.",
@@ -152,8 +178,14 @@ export async function POST(request: Request) {
 
   if (!response.ok) {
     const details = await response.text();
+    logApiSecurityEvent("groq_proof_review_provider_error", request, {
+      status: response.status,
+    });
     return NextResponse.json(
-      { error: "Groq proof review failed.", details },
+      {
+        error: "Groq proof review failed.",
+        details: providerErrorDetails(details),
+      },
       { status: response.status },
     );
   }

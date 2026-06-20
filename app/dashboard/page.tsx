@@ -231,12 +231,16 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const client = supabase;
-    if (!client) return;
+    if (!client || !/^0x[a-fA-F0-9]{40}$/.test(address)) return;
     let cancelled = false;
+    const wallet = address.toLowerCase();
 
     void client
       .from("deals")
       .select("*")
+      .or(
+        `client_wallet.ilike.${wallet},freelancer_wallet.ilike.${wallet},and(deal_kind.eq.Public,status.eq.Created)`,
+      )
       .then(({ data, error }) => {
         if (!cancelled && !error && data?.length) {
           setRemoteDeals(data.map((row) => mapSupabaseDeal(row)));
@@ -246,7 +250,7 @@ export default function DashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [address]);
 
   const normalizedWallet = address.toLowerCase();
   const clientDeals = useMemo(

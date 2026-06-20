@@ -1,4 +1,11 @@
 import { NextResponse } from "next/server";
+import {
+  logApiSecurityEvent,
+  providerErrorDetails,
+  rejectOversizedBody,
+  rejectUntrustedOrigin,
+  truncateText,
+} from "@/lib/serverSecurity";
 
 interface GroqChatResponse {
   choices?: Array<{
@@ -41,6 +48,12 @@ function normalizeSummary(
 }
 
 export async function POST(request: Request) {
+  const originRejected = rejectUntrustedOrigin(request);
+  if (originRejected) return originRejected;
+
+  const oversized = rejectOversizedBody(request);
+  if (oversized) return oversized;
+
   const apiKey = process.env.GROQ_API_KEY;
   const model = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
 
@@ -79,6 +92,27 @@ export async function POST(request: Request) {
     );
   }
 
+  const safeTimeline = Array.isArray(body.timeline)
+    ? body.timeline.slice(0, 25).map((event) => ({
+        title: truncateText(event.title, 160),
+        status: truncateText(event.status, 80),
+        actor: truncateText(event.actor, 80),
+        timestamp: truncateText(event.timestamp, 80),
+      }))
+    : [];
+
+  const safeBody = {
+    dealTitle: truncateText(body.dealTitle, 160),
+    dealDescription: truncateText(body.dealDescription, 2_000),
+    clientName: truncateText(body.clientName, 160),
+    freelancerName: truncateText(body.freelancerName, 160),
+    reason: truncateText(body.reason, 2_000),
+    evidence: truncateText(body.evidence, 2_000),
+    proofCid: truncateText(body.proofCid, 160),
+    proofUrl: truncateText(body.proofUrl, 500),
+    timeline: safeTimeline,
+  };
+
   let response: Response;
   try {
     response = await fetch(groqChatUrl, {
@@ -102,26 +136,27 @@ export async function POST(request: Request) {
             content: JSON.stringify({
               task: "Summarize this escrow dispute for an admin/judge.",
               deal: {
-                title: body.dealTitle,
-                description: body.dealDescription,
-                clientName: body.clientName,
-                freelancerName: body.freelancerName,
+                title: safeBody.dealTitle,
+                description: safeBody.dealDescription,
+                clientName: safeBody.clientName,
+                freelancerName: safeBody.freelancerName,
               },
               dispute: {
-                reason: body.reason,
-                evidence: body.evidence,
+                reason: safeBody.reason,
+                evidence: safeBody.evidence,
               },
               proof: {
-                cid: body.proofCid,
-                gatewayUrl: body.proofUrl,
+                cid: safeBody.proofCid,
+                gatewayUrl: safeBody.proofUrl,
               },
-              timeline: body.timeline,
+              timeline: safeBody.timeline,
             }),
           },
         ],
       }),
     });
   } catch (error) {
+    logApiSecurityEvent("groq_dispute_summary_request_error", request);
     return NextResponse.json(
       {
         error: "Groq dispute summary request failed.",
@@ -136,8 +171,14 @@ export async function POST(request: Request) {
 
   if (!response.ok) {
     const details = await response.text();
+    logApiSecurityEvent("groq_dispute_summary_provider_error", request, {
+      status: response.status,
+    });
     return NextResponse.json(
-      { error: "Groq dispute summary failed.", details },
+      {
+        error: "Groq dispute summary failed.",
+        details: providerErrorDetails(details),
+      },
       { status: response.status },
     );
   }

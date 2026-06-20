@@ -1,4 +1,11 @@
 import { NextResponse } from "next/server";
+import {
+  getUploadLimitBytes,
+  isValidDealId,
+  logApiSecurityEvent,
+  providerErrorDetails,
+  rejectUntrustedOrigin,
+} from "@/lib/serverSecurity";
 
 interface PinataResponse {
   IpfsHash: string;
@@ -14,6 +21,9 @@ function getGatewayUrl(cid: string) {
 }
 
 export async function POST(request: Request) {
+  const originRejected = rejectUntrustedOrigin(request);
+  if (originRejected) return originRejected;
+
   let formData: FormData;
   try {
     formData = await request.formData();
@@ -28,11 +38,33 @@ export async function POST(request: Request) {
   }
 
   const file = formData.get("file");
+  const dealId = formData.get("dealId");
 
   if (!(file instanceof File)) {
     return NextResponse.json(
       { error: "Proof file is required." },
       { status: 400 },
+    );
+  }
+
+  if (!isValidDealId(dealId)) {
+    logApiSecurityEvent("invalid_upload_deal_id", request);
+    return NextResponse.json(
+      { error: "A valid deal ID is required." },
+      { status: 400 },
+    );
+  }
+
+  const uploadLimitBytes = getUploadLimitBytes();
+  if (file.size <= 0 || file.size > uploadLimitBytes) {
+    logApiSecurityEvent("proof_upload_size_blocked", request, {
+      dealId,
+      fileSize: file.size,
+      uploadLimitBytes,
+    });
+    return NextResponse.json(
+      { error: "Proof file size is not allowed." },
+      { status: 413 },
     );
   }
 
@@ -62,6 +94,7 @@ export async function POST(request: Request) {
       body: uploadData,
     });
   } catch (error) {
+    logApiSecurityEvent("pinata_request_error", request, { dealId });
     return NextResponse.json(
       {
         error: "Pinata upload request failed.",
@@ -76,8 +109,12 @@ export async function POST(request: Request) {
 
   if (!response.ok) {
     const details = await response.text();
+    logApiSecurityEvent("pinata_provider_error", request, {
+      dealId,
+      status: response.status,
+    });
     return NextResponse.json(
-      { error: "Pinata upload failed.", details },
+      { error: "Pinata upload failed.", details: providerErrorDetails(details) },
       { status: response.status },
     );
   }
