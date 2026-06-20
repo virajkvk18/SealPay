@@ -1,3 +1,42 @@
+import { supabase } from "./supabase";
+
+export async function createDeal(deal: Deal) {
+  const { data, error } = await supabase
+    .from("deals")
+    .insert([
+      {
+        id: deal.id,
+        title: deal.title,
+        description: deal.description,
+        client_name: deal.clientName,
+        freelancer_name: deal.freelancerName,
+        client_wallet: deal.clientWallet,
+        freelancer_wallet: deal.freelancerWallet,
+        amount: deal.amount,
+        deadline: deal.deadline,
+        deliverable_type: deal.deliverableType,
+        status: deal.status,
+        risk: deal.risk,
+        created_tx_hash: deal.createdTxHash,
+        preview_url: deal.previewUrl ?? null,
+        final_file_name: deal.finalFileName ?? null,
+        proof: deal.proof ?? null,
+        ai_proof_review: deal.aiProofReview ?? null,
+        dispute_reason: deal.disputeReason ?? null,
+        dispute_evidence: deal.disputeEvidence ?? null,
+        ai_dispute_summary: deal.aiDisputeSummary ?? null,
+        resolution: deal.resolution ?? null,
+      },
+    ])
+    .select();
+
+  if (error) {
+    console.error(error);
+    throw error;
+  }
+
+  return data;
+}
 export type DealStatus =
   | "Created"
   | "Payment Locked"

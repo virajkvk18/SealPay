@@ -1,5 +1,5 @@
 "use client";
-
+import { createDeal } from "@/lib/deals";
 import { FormEvent, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
@@ -95,10 +95,10 @@ export default function CreateDealForm() {
     return id;
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSubmitting(true);
-
+    console.log("SUBMIT CLICKED");
     const id = createUniqueDealId();
     const txHash = makeTxHash();
     const amount = Number(form.amount);
@@ -136,8 +136,37 @@ export default function CreateDealForm() {
       ],
     };
 
-    addDeal(deal);
-    router.push(`/deal/${id}`);
+    try {
+  await createDeal({
+    id: deal.id,
+    title: deal.title,
+    description: deal.description,
+    client_name: deal.clientName,
+    freelancer_name: deal.freelancerName,
+    client_wallet: deal.clientWallet,
+    freelancer_wallet: deal.freelancerWallet,
+    amount: deal.amount,
+    deadline: deal.deadline,
+    deliverable_type: deal.deliverableType,
+    status: deal.status,
+    risk: deal.risk,
+    created_tx_hash: deal.createdTxHash,
+    preview_url: deal.previewUrl ?? null,
+    final_file_name: deal.finalFileName ?? null,
+    proof: deal.proof,
+    ai_proof_review: deal.aiProofReview ?? null,
+    dispute_reason: deal.disputeReason ?? null,
+    dispute_evidence: deal.disputeEvidence ?? null,
+    ai_dispute_summary: deal.aiDisputeSummary ?? null,
+    resolution: deal.resolution,
+  });
+
+  addDeal(deal);
+  router.push(`/deal/${id}`);
+} catch (err) {
+  console.error("Failed to save deal:");
+  console.dir(err);
+}
   }
 
   return (
