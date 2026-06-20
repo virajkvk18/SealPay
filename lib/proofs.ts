@@ -30,7 +30,8 @@ export async function saveProofToSupabase({
   });
 
   if (error) {
-    throw new Error(`Supabase proof save failed: ${error.message}`);
+    console.warn("Supabase proof cache failed:", error.message);
+    return { skipped: true, error: error.message };
   }
 
   return { skipped: false };

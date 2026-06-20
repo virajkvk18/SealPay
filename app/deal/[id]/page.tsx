@@ -138,7 +138,12 @@ async function requestProofReview(
   const result = await response.json();
 
   if (!response.ok) {
-    throw new Error(result.error ?? "AI proof review failed.");
+    throw new Error(
+      result.details
+        ? `AI proof review failed: ${result.error ?? "Groq request failed."} ${result.details}`
+        : (result.error ??
+            "AI proof review failed. Check GROQ_API_KEY and try again."),
+    );
   }
 
   return result;
@@ -175,7 +180,12 @@ async function requestDisputeSummary(
   const result = await response.json();
 
   if (!response.ok) {
-    throw new Error(result.error ?? "AI dispute summary failed.");
+    throw new Error(
+      result.details
+        ? `AI dispute summary failed: ${result.error ?? "Groq request failed."} ${result.details}`
+        : (result.error ??
+            "AI dispute summary failed. Check GROQ_API_KEY and try again."),
+    );
   }
 
   return result as {
