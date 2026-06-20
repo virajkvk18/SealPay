@@ -19,8 +19,8 @@ export const metadata: Metadata = {
   description:
     "SealPay locks invoice payments, verifies work proof, and releases funds transparently with smart-contract escrow.",
   icons: {
-    icon: "/sealpay-logo.png",
-    apple: "/sealpay-logo.png",
+    icon: "/sealpay-mark.png",
+    apple: "/sealpay-mark.png",
   },
 };
 
@@ -32,11 +32,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-scroll-behavior="smooth"
       className={`${inter.variable} ${sora.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body
-        className="min-h-full bg-[#f7f9fb] text-[#191c1e]"
+        className="min-h-full bg-[#02070c] text-slate-50"
         suppressHydrationWarning
       >
         {children}

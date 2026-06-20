@@ -11,7 +11,7 @@ export interface DisputeFormValues {
 interface DisputeModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (values: DisputeFormValues) => void;
+  onSubmit: (values: DisputeFormValues) => void | Promise<void>;
 }
 
 const emptyDispute = {
@@ -19,32 +19,55 @@ const emptyDispute = {
   evidence: "",
 };
 
-export default function DisputeModal({ open, onClose, onSubmit }: DisputeModalProps) {
+export default function DisputeModal({
+  open,
+  onClose,
+  onSubmit,
+}: DisputeModalProps) {
   const [form, setForm] = useState(emptyDispute);
+  const [formError, setFormError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   if (!open) return null;
 
   function updateField(field: keyof DisputeFormValues, value: string) {
+    if (formError) setFormError("");
     setForm((current) => ({ ...current, [field]: value }));
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    onSubmit(form);
+    setSubmitting(true);
+    try {
+      await onSubmit(form);
+    } catch (error) {
+      setFormError(
+        error instanceof Error ? error.message : "AI dispute summary failed.",
+      );
+      setSubmitting(false);
+      return;
+    }
     setForm(emptyDispute);
+    setFormError("");
+    setSubmitting(false);
     onClose();
   }
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-[#010b13]/45 px-4 backdrop-blur-sm">
-      <form onSubmit={handleSubmit} className="glass-panel w-full max-w-xl rounded-3xl p-6">
+      <form
+        onSubmit={handleSubmit}
+        className="glass-panel w-full max-w-xl rounded-3xl p-6"
+      >
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <span className="grid size-11 place-items-center rounded-xl border border-amber-300/40 bg-amber-100/60 text-amber-800">
               <Scale className="size-5" />
             </span>
             <div>
-              <h2 className="text-2xl font-black text-[#010b13]">Raise dispute</h2>
+              <h2 className="text-2xl font-black text-[#010b13]">
+                Raise dispute
+              </h2>
               <p className="text-sm text-[#53606a]">
                 Capture the issue and evidence for an admin judge.
               </p>
@@ -87,13 +110,18 @@ export default function DisputeModal({ open, onClose, onSubmit }: DisputeModalPr
             />
           </label>
         </div>
+        {formError ? (
+          <p className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-3 text-sm font-bold text-red-700">
+            {formError}
+          </p>
+        ) : null}
 
         <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <button type="button" onClick={onClose} className="secondary-button">
             Cancel
           </button>
-          <button type="submit" className="danger-button">
-            Raise Dispute
+          <button type="submit" disabled={submitting} className="danger-button">
+            {submitting ? "Generating Summary..." : "Raise Dispute"}
           </button>
         </div>
       </form>

@@ -1,5 +1,6 @@
 export type DealStatus =
   | "Created"
+  | "Assigned"
   | "Payment Locked"
   | "Work Submitted"
   | "Approved"
@@ -7,7 +8,25 @@ export type DealStatus =
   | "Disputed"
   | "Resolved";
 
-export type DeliverableType = "Design" | "Code" | "Document" | "Video" | "Other";
+export type ApplicationStatus = "pending" | "selected" | "rejected";
+
+export interface DealApplication {
+  id: string;
+  freelancerWallet: string;
+  proposal: string;
+  estimatedDelivery: string;
+  note?: string;
+  trustScore?: number;
+  status: ApplicationStatus;
+  createdAt: string;
+}
+
+export type DeliverableType =
+  | "Design"
+  | "Code"
+  | "Document"
+  | "Video"
+  | "Other";
 
 export type Role = "Client" | "Freelancer" | "Admin/Judge";
 
@@ -39,6 +58,8 @@ export interface WorkProof {
   deliverableType: DeliverableType;
   previewUrl: string;
   fileHash: string;
+  gatewayUrl?: string;
+  storageProvider?: "pinata";
   txHash: string;
   submittedAt: string;
 }
@@ -47,6 +68,9 @@ export interface AiProofReview {
   status: string;
   score: number;
   reasons: string[];
+  verdict?: string;
+  issues?: string[];
+  summary?: string;
 }
 
 export interface Deal {
@@ -57,6 +81,10 @@ export interface Deal {
   freelancerName: string;
   clientWallet: string;
   freelancerWallet: string;
+  selectedFreelancerWallet?: string;
+  applications?: DealApplication[];
+  dealKind?: "Direct" | "Public";
+  category?: string;
   amount: number;
   deadline: string;
   deliverableType: DeliverableType;
@@ -71,12 +99,13 @@ export interface Deal {
   disputeReason?: string;
   disputeEvidence?: string;
   aiDisputeSummary?: string;
+  aiDisputeRecommendation?: string;
   resolution?: "Released to freelancer" | "Refunded client";
   timeline: TimelineEvent[];
 }
 
 export const demoModeNotice =
-  "Demo Mode: Blockchain actions are simulated with mock transaction hashes. Smart contract file included for testnet extension.";
+  "Deal events and proof records remain visible for independent verification.";
 
 export const roles: Role[] = ["Client", "Freelancer", "Admin/Judge"];
 
@@ -123,7 +152,7 @@ export const initialDeals: Deal[] = [
       {
         id: "ev-sp1001-2",
         title: "Payment locked",
-        description: "0.42 test MATIC locked in mock escrow.",
+        description: "Payment protected by smart contract escrow.",
         status: "Payment Locked",
         actor: "Client",
         timestamp: "2026-06-14T10:21:00+05:30",
@@ -148,7 +177,11 @@ export const initialDeals: Deal[] = [
     risk: {
       score: 47,
       level: "Medium Risk",
-      reasons: ["Higher value deal", "Short delivery window", "Detailed description"],
+      reasons: [
+        "Higher value deal",
+        "Short delivery window",
+        "Detailed description",
+      ],
     },
     createdTxHash:
       "0x44db3b8ba04202cf1ca452f02b71fe228273d2ab604ce6c8b852c9002eed9bc2",
@@ -190,7 +223,7 @@ export const initialDeals: Deal[] = [
       {
         id: "ev-sp1002-2",
         title: "Payment locked",
-        description: "1.8 test MATIC locked before development started.",
+        description: "Payment protected before development started.",
         status: "Payment Locked",
         actor: "Client",
         timestamp: "2026-06-13T15:08:00+05:30",
@@ -200,7 +233,8 @@ export const initialDeals: Deal[] = [
       {
         id: "ev-sp1002-3",
         title: "Work proof submitted",
-        description: "Freelancer submitted preview link and source archive hash.",
+        description:
+          "Freelancer submitted preview link and source archive hash.",
         status: "Work Submitted",
         actor: "Freelancer",
         timestamp: "2026-06-15T18:42:00+05:30",
@@ -225,7 +259,11 @@ export const initialDeals: Deal[] = [
     risk: {
       score: 62,
       level: "Medium Risk",
-      reasons: ["Tight deadline", "Revision-heavy scope", "Newer freelancer wallet"],
+      reasons: [
+        "Tight deadline",
+        "Revision-heavy scope",
+        "Newer freelancer wallet",
+      ],
     },
     createdTxHash:
       "0xbf23600f4b436db38c12fd32a909f5040ec2d33ae96ffb723c215f7791dd3122",
@@ -235,7 +273,8 @@ export const initialDeals: Deal[] = [
       fileName: "event-reel-watermarked.mp4",
       finalFileName: "event-reel-final-4k.mp4",
       deliverableType: "Video",
-      previewUrl: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30",
+      previewUrl:
+        "https://images.unsplash.com/photo-1492684223066-81342ee5ff30",
       fileHash: "bafysealpay1829ad4ce3a8",
       txHash:
         "0xe3db9a28f1f64b617d24309ced2496da124fedc8bb9f6cd5fa86001aa5174c2c",
@@ -271,7 +310,7 @@ export const initialDeals: Deal[] = [
       {
         id: "ev-sp1003-2",
         title: "Payment locked",
-        description: "0.75 test MATIC locked in escrow.",
+        description: "Payment protected by smart contract escrow.",
         status: "Payment Locked",
         actor: "Client",
         timestamp: "2026-06-12T12:12:00+05:30",
