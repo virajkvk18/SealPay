@@ -11,11 +11,13 @@ import {
   FileLock2,
   FileUp,
   Fingerprint,
+  ListChecks,
   LockKeyhole,
   RotateCcw,
   Scale,
   Send,
   ShieldCheck,
+  TriangleAlert,
   UnlockKeyhole,
   UserRoundCheck,
 } from "lucide-react";
@@ -704,48 +706,103 @@ export default function DealDetailsPage() {
               </article>
 
               {deal.aiProofReview ? (
-                <article className="glass-panel rounded-3xl p-6 sm:p-8">
-                  <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div>
-                      <p className="text-sm font-black uppercase tracking-normal text-[#00677f]">
-                        AI Trust Engine
-                      </p>
-                      <h2 className="mt-3 text-3xl font-black text-[#010b13]">
-                        AI Proof Review
-                      </h2>
-                      <p className="mt-3 text-sm leading-6 text-[#53606a]">
-                        AI assists the review. Final decision stays with human
-                        admin/judge.
-                      </p>
-                    </div>
-                    <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/[0.08] px-5 py-4 text-right">
-                      <p className="text-sm font-black text-[#00566a]">
-                        {deal.aiProofReview.status}
-                      </p>
-                      <p className="mt-1 text-3xl font-black text-[#010b13]">
-                        {deal.aiProofReview.score}/100
-                      </p>
-                      {deal.aiProofReview.verdict ? (
-                        <p className="mt-1 text-xs font-black text-[#43474b]">
-                          {deal.aiProofReview.verdict}
+                <article className="glass-panel overflow-hidden rounded-3xl">
+                  <div className="border-b border-cyan-100/10 bg-white/[0.025] p-6 sm:p-8">
+                    <div className="flex flex-wrap items-start justify-between gap-5">
+                      <div>
+                        <p className="inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-cyan-200">
+                          <Fingerprint className="size-4" />
+                          AI Trust Engine
                         </p>
-                      ) : null}
+                        <h2 className="mt-4 text-3xl font-black text-white">
+                          AI Proof Review
+                        </h2>
+                        <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">
+                          Groq checks proof metadata against the deal scope. AI assists
+                          the review; payment decisions stay with the client or judge.
+                        </p>
+                      </div>
+                      <div className="min-w-48 rounded-3xl border border-cyan-300/20 bg-cyan-300/[0.08] p-5 text-right shadow-2xl shadow-cyan-950/20">
+                        <p className="text-xs font-black uppercase tracking-[0.16em] text-cyan-200">
+                          SealTrust Score
+                        </p>
+                        <p className="mt-2 text-5xl font-black text-white">
+                          {deal.aiProofReview.score}
+                          <span className="text-xl text-slate-400">/100</span>
+                        </p>
+                        <p className="mt-3 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-black text-cyan-100">
+                          {deal.aiProofReview.verdict ?? deal.aiProofReview.status}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                  {deal.aiProofReview.summary ? (
-                    <p className="mt-5 rounded-2xl border border-cyan-300/25 bg-cyan-50 p-4 text-sm font-bold leading-6 text-[#43474b]">
-                      {deal.aiProofReview.summary}
-                    </p>
-                  ) : null}
-                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                    {deal.aiProofReview.reasons.map((reason) => (
-                      <div
-                        key={reason}
-                        className="rounded-2xl border border-[#101d25]/10 bg-white/65 p-4 text-sm font-bold leading-6 text-[#43474b]"
-                      >
-                        {reason}
+
+                  <div className="grid gap-4 p-6 sm:p-8 lg:grid-cols-[1fr_0.85fr]">
+                    <div className="rounded-3xl border border-cyan-300/15 bg-cyan-300/[0.055] p-5">
+                      <p className="text-xs font-black uppercase tracking-[0.16em] text-cyan-200">
+                        Review Summary
+                      </p>
+                      <p className="mt-3 text-sm font-semibold leading-6 text-slate-200">
+                        {deal.aiProofReview.summary ??
+                          "AI reviewed the uploaded proof for relevance to the deal."}
+                      </p>
+                    </div>
+                    <div className="rounded-3xl border border-white/10 bg-white/[0.045] p-5">
+                      <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">
+                        Status
+                      </p>
+                      <p className="mt-3 text-lg font-black text-cyan-200">
+                        {deal.aiProofReview.status}
+                      </p>
+                      <p className="mt-4 text-xs font-black uppercase tracking-[0.16em] text-slate-500">
+                        Proof CID
+                      </p>
+                      <p className="mt-2 break-all font-mono text-xs font-bold text-slate-300">
+                        {deal.proof?.fileHash ?? "pending"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 px-6 pb-6 sm:px-8 sm:pb-8 lg:grid-cols-2">
+                    <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
+                      <div className="flex items-center gap-2 text-sm font-black text-white">
+                        <ListChecks className="size-4 text-cyan-300" />
+                        Reasons
                       </div>
-                    ))}
+                      <div className="mt-4 grid gap-3">
+                        {deal.aiProofReview.reasons.map((reason) => (
+                          <p
+                            key={reason}
+                            className="rounded-2xl border border-white/8 bg-black/15 p-3 text-sm font-semibold leading-6 text-slate-300"
+                          >
+                            {reason}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="rounded-3xl border border-amber-300/15 bg-amber-300/[0.06] p-5">
+                      <div className="flex items-center gap-2 text-sm font-black text-amber-100">
+                        <TriangleAlert className="size-4" />
+                        Issues To Check
+                      </div>
+                      <div className="mt-4 grid gap-3">
+                        {deal.aiProofReview.issues?.length ? (
+                          deal.aiProofReview.issues.map((issue) => (
+                            <p
+                              key={issue}
+                              className="rounded-2xl border border-amber-200/10 bg-black/15 p-3 text-sm font-semibold leading-6 text-amber-100"
+                            >
+                              {issue}
+                            </p>
+                          ))
+                        ) : (
+                          <p className="rounded-2xl border border-amber-200/10 bg-black/15 p-3 text-sm font-semibold leading-6 text-amber-100">
+                            No major issues returned by AI. The client should still verify the proof manually.
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </article>
               ) : null}
