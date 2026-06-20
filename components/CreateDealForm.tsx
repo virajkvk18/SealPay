@@ -35,7 +35,7 @@ const initialForm = {
   freelancerName: "",
   clientWallet: "",
   freelancerWallet: "",
-  amount: "0.25",
+  amount: "0.001",
   deadline: "",
   deliverableType: "Design",
   category: "Design",
@@ -370,8 +370,8 @@ export default function CreateDealForm({
             </FieldIcon>
             <input
               required
-              min="0.01"
-              step="0.01"
+              min="0.001"
+              step="0.001"
               type="number"
               className="input-field pl-11"
               value={form.amount}
