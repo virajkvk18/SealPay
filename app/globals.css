@@ -598,10 +598,10 @@ select {
   justify-content: center;
   gap: 0.5rem;
   border-radius: 999px;
-  border: 1px solid #ffffff;
-  background: #ffffff;
+  border: 1px solid #ffffff !important;
+  background: #ffffff !important;
   padding: 0.8rem 1.15rem;
-  color: #010b13;
+  color: #010b13 !important;
   font-weight: 700;
   transition:
     border-color 160ms ease,
@@ -610,8 +610,9 @@ select {
 }
 
 .secondary-button:hover {
-  border-color: #ffffff;
-  background: #ffffff;
+  border-color: #ffffff !important;
+  background: #ffffff !important;
+  color: #010b13 !important;
   box-shadow: 0 12px 30px rgba(255, 255, 255, 0.2);
   transform: translateY(-1px);
 }
