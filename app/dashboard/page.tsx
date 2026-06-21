@@ -175,11 +175,11 @@ export default function DashboardPage() {
   const { address } = useWallet();
   const mode = useDashboardMode();
   const [remoteDeals, setRemoteDeals] = useState<Deal[] | null>(null);
-  const deals = remoteDeals ?? [];
+  const deals = useMemo(() => remoteDeals ?? [], [remoteDeals]);
 
   useEffect(() => {
     if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
-      setRemoteDeals([]);
+      Promise.resolve().then(() => setRemoteDeals([]));
       return;
     }
     let cancelled = false;

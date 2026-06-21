@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "compile:contracts": "hardhat compile",
+    "test:contracts": "hardhat test",
     "deploy:amoy": "hardhat run scripts/deploy.ts --network amoy"
   },
   "dependencies": {

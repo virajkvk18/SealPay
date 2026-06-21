@@ -38,7 +38,9 @@ import TransactionPending, {
 import TransactionSuccess from "@/components/TransactionSuccess";
 import {
   approveWork as approveWorkOnChain,
+  acceptDealOnChain,
   lockPayment,
+  raiseDisputeOnChain,
   submitProofCID,
 } from "@/lib/blockchain";
 import { useDashboardMode } from "@/lib/dashboardMode";
@@ -262,6 +264,16 @@ export default function DealDetailsPage() {
       return;
     }
 
+    if (
+      address &&
+      deal.freelancerWallet.toLowerCase() === address.toLowerCase()
+    ) {
+      setLockPaymentError(
+        "Client and freelancer wallets must be different. Switch MetaMask to the client wallet or assign a different freelancer wallet before locking payment.",
+      );
+      return;
+    }
+
     if (!process.env.NEXT_PUBLIC_CONTRACT_ADDRESS) {
       setLockPaymentError(
         "Smart contract is not configured. Payment locking will be available after deployment configuration.",
@@ -277,6 +289,19 @@ export default function DealDetailsPage() {
       const result = await lockPayment(
         deal.freelancerWallet,
         deal.amount,
+        {
+          deadline: deal.deadline,
+          reviewPeriodSeconds: 24 * 60 * 60,
+          requirements: JSON.stringify({
+            dealId: deal.id,
+            title: deal.title,
+            description: deal.description,
+            deliverableType: deal.deliverableType,
+            deadline: deal.deadline,
+          }),
+          autoReleaseEnabled: true,
+          refundOnMissedDeadline: true,
+        },
         (phase, txHash) =>
           setTransactionProgress({
             action: "Lock Payment",
@@ -384,6 +409,50 @@ export default function DealDetailsPage() {
     }));
   }
 
+  async function handleAcceptDeal() {
+    if (!deal) return;
+
+    setActionError("");
+
+    if (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS && deal.onChainDealId) {
+      setTransactionProgress({ action: "Accept Deal", phase: "wallet" });
+      try {
+        const result = await acceptDealOnChain(
+          deal.onChainDealId,
+          (phase, txHash) =>
+            setTransactionProgress({
+              action: "Accept Deal",
+              phase: phase === "wallet" ? "wallet" : "confirming",
+              txHash,
+            }),
+        );
+        appendStatusEvent(
+          deal.status,
+          "Deal accepted",
+          "Freelancer accepted the escrow rules and wallet assignment.",
+          "Freelancer",
+          result.txHash,
+        );
+      } catch (error) {
+        setActionError(
+          error instanceof Error
+            ? error.message
+            : "Deal acceptance failed. Please try again.",
+        );
+      } finally {
+        setTransactionProgress(null);
+      }
+      return;
+    }
+
+    appendStatusEvent(
+      deal.status,
+      "Deal accepted",
+      "Freelancer accepted the wallet assignment.",
+      "Freelancer",
+    );
+  }
+
   async function handleSubmitProof(values: ProofFormValues) {
     if (!deal) return;
     const fileHash = values.proofCid || makeFileHash();
@@ -450,6 +519,27 @@ export default function DealDetailsPage() {
 
   async function handleRaiseDispute(values: DisputeFormValues) {
     if (!deal) return;
+    let txHash: string | undefined;
+
+    if (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS && deal.onChainDealId) {
+      setTransactionProgress({ action: "Raise Dispute", phase: "wallet" });
+      try {
+        const result = await raiseDisputeOnChain(
+          deal.onChainDealId,
+          values.reason,
+          (phase, submittedHash) =>
+            setTransactionProgress({
+              action: "Raise Dispute",
+              phase: phase === "wallet" ? "wallet" : "confirming",
+              txHash: submittedHash,
+            }),
+        );
+        txHash = result.txHash;
+      } finally {
+        setTransactionProgress(null);
+      }
+    }
+
     const nextTimeline = [
       ...deal.timeline,
       makeTimelineEvent({
@@ -457,6 +547,7 @@ export default function DealDetailsPage() {
         description: values.reason,
         status: "Disputed",
         actor: "Client",
+        txHash,
       }),
     ];
     updateDeal(deal.id, (current) => {
@@ -895,14 +986,7 @@ export default function DealDetailsPage() {
                     <>
                       <button
                         type="button"
-                        onClick={() =>
-                          appendStatusEvent(
-                            deal.status,
-                            "Deal accepted",
-                            "Freelancer accepted the wallet assignment.",
-                            "Freelancer",
-                          )
-                        }
+                        onClick={() => void handleAcceptDeal()}
                         disabled={
                           !(
                             [

@@ -116,6 +116,12 @@ export default function CreateDealForm({
       );
       return;
     }
+    if (dealKind === "direct" && freelancerWallet === clientWallet) {
+      setFormError(
+        "Client and freelancer wallets must be different. Connect or enter a separate freelancer wallet.",
+      );
+      return;
+    }
     if (!Number.isFinite(amount) || amount <= 0) {
       setFormError("Escrow amount must be greater than zero.");
       return;

@@ -314,13 +314,42 @@ Before using SealPay with real users, add server-side authentication and enforce
 
 `contracts/SealPayEscrow.sol` is included for Polygon Amoy/Sepolia testnet extension. It supports:
 
-| Contract Function                                          | Purpose                                       |
-| ---------------------------------------------------------- | --------------------------------------------- |
-| `createDeal(address freelancer) payable`                   | Client creates an escrow deal and locks funds |
-| `submitWork(uint256 dealId, string memory proofHash)`      | Freelancer submits proof hash                 |
-| `approveWork(uint256 dealId)`                              | Client approves work and releases funds       |
-| `raiseDispute(uint256 dealId, string memory reason)`       | Client or freelancer raises a dispute         |
-| `resolveDispute(uint256 dealId, bool releaseToFreelancer)` | Admin resolves the dispute                    |
+| Contract Function                                                        | Purpose                                                |
+| ------------------------------------------------------------------------ | ------------------------------------------------------ |
+| `createDeal(...) payable`                                                | Client locks escrow amount plus platform fee           |
+| `acceptDeal(uint256 dealId)`                                             | Freelancer accepts the escrow rules                    |
+| `submitWork(uint256 dealId, string proofCid)`                            | Freelancer submits the IPFS proof CID                  |
+| `approveWork(uint256 dealId)`                                            | Client approves and releases escrow to freelancer      |
+| `autoRelease(uint256 dealId)`                                            | Freelancer releases after review window expires        |
+| `claimRefundAfterMissedDeadline(uint256 dealId)`                         | Client refunds if deadline passes with no proof        |
+| `raiseDispute(uint256 dealId, string reason)`                            | Client or freelancer freezes funds during conflict     |
+| `resolveDispute(uint256 dealId, bool releaseToFreelancer)`               | MVP resolver wallet releases/refunds disputed escrow   |
+
+Rule-engine escrow behavior:
+
+- The contract address is the escrow account.
+- Client pays `escrowAmount + platformFee`.
+- Example with `PLATFORM_FEE_BPS=2500`: `0.001 POL` escrow requires `0.00125 POL` total.
+- On successful release, escrow amount goes to freelancer and fee goes to `PLATFORM_FEE_WALLET`.
+- On missed-deadline refund, the client receives escrow plus fee back.
+- Objective rules cover acceptance, proof CID, deadline, review window, auto-release, and missed-deadline refund.
+- Subjective disputes are frozen and handled by the MVP resolver wallet.
+
+Deployment variables:
+
+```text
+PRIVATE_KEY=deployer_private_key
+PLATFORM_FEE_WALLET=team_revenue_wallet
+RESOLVER_ADDRESS=sealpay_admin_or_judge_wallet
+PLATFORM_FEE_BPS=2500
+```
+
+After redeploying, update:
+
+```text
+NEXT_PUBLIC_CONTRACT_ADDRESS=new_contract_address
+NEXT_PUBLIC_PLATFORM_FEE_BPS=2500
+```
 
 ## What Is Intentionally Not Included Yet
 
