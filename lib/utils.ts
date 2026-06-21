@@ -72,6 +72,7 @@ export function statusTone(status: DealStatus) {
   const tones: Record<DealStatus, string> = {
     Created: "border-[#c4c7cb] bg-[#f2f4f6] text-[#43474b]",
     Assigned: "border-violet-200 bg-violet-100/60 text-violet-800",
+    Locked: "border-amber-200 bg-amber-100/50 text-amber-800",
     "Payment Locked": "border-amber-200 bg-amber-100/50 text-amber-800",
     "Work Submitted": "border-[#47d6ff]/40 bg-[#b6ebff]/45 text-[#00566a]",
     Approved: "border-emerald-200 bg-emerald-100/60 text-emerald-800",

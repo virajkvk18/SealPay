@@ -73,6 +73,9 @@ function detailRows(deal: Deal) {
 type DealViewerRole = Role | "Public Viewer";
 
 function getActionHelper(deal: Deal, activeRole: DealViewerRole) {
+  const isPaymentLocked =
+    deal.status === "Payment Locked" || deal.status === "Locked";
+
   if (activeRole === "Public Viewer") {
     return "This wallet is not a participant in the deal. The proof timeline remains available as a read-only public record.";
   }
@@ -92,7 +95,7 @@ function getActionHelper(deal: Deal, activeRole: DealViewerRole) {
   if (activeRole === "Freelancer") {
     if (deal.status === "Assigned")
       return "Client must lock payment before you can submit proof.";
-    if (deal.status !== "Payment Locked")
+    if (!isPaymentLocked)
       return "Lock payment first before freelancer can submit work.";
     return "Submit proof with a note, file name, and preview URL for AI-assisted review.";
   }
@@ -248,6 +251,9 @@ export default function DealDetailsPage() {
             ? "Admin/Judge"
             : "Public Viewer";
   const hasSelectedFreelancer = Boolean(deal?.freelancerWallet);
+  const isPaymentLocked = Boolean(
+    deal && (deal.status === "Payment Locked" || deal.status === "Locked"),
+  );
   const canLockPayment = Boolean(
     deal &&
       hasSelectedFreelancer &&
@@ -258,12 +264,12 @@ export default function DealDetailsPage() {
     if (
       new URLSearchParams(window.location.search).get("submit") === "work" &&
       activeRole === "Freelancer" &&
-      deal?.status === "Payment Locked"
+      isPaymentLocked
     ) {
       const timer = window.setTimeout(() => setProofOpen(true), 0);
       return () => window.clearTimeout(timer);
     }
-  }, [activeRole, deal?.status]);
+  }, [activeRole, isPaymentLocked]);
 
   const isDeliverableUnlocked = useMemo(() => {
     if (!deal) return false;
@@ -286,6 +292,8 @@ export default function DealDetailsPage() {
     updateDeal(deal.id, (current) => ({
       ...current,
       status: nextStatus,
+      createdTxHash:
+        nextStatus === "Payment Locked" && txHash ? txHash : current.createdTxHash,
       onChainDealId: onChainDealId ?? current.onChainDealId,
       timeline: [
         ...current.timeline,
@@ -1013,6 +1021,7 @@ export default function DealDetailsPage() {
                               "Created",
                               "Assigned",
                               "Payment Locked",
+                              "Locked",
                             ] as Deal["status"][]
                           ).includes(deal.status)
                         }
@@ -1030,6 +1039,7 @@ export default function DealDetailsPage() {
                               "Created",
                               "Assigned",
                               "Payment Locked",
+                              "Locked",
                             ] as Deal["status"][]
                           ).includes(deal.status)
                         }
@@ -1041,7 +1051,7 @@ export default function DealDetailsPage() {
                       <button
                         type="button"
                         onClick={() => setProofOpen(true)}
-                        disabled={deal.status !== "Payment Locked"}
+                        disabled={!isPaymentLocked}
                         className="primary-button"
                       >
                         <FileUp className="size-4" />

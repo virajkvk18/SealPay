@@ -1,6 +1,7 @@
 export type DealStatus =
   | "Created"
   | "Assigned"
+  | "Locked"
   | "Payment Locked"
   | "Work Submitted"
   | "Approved"
