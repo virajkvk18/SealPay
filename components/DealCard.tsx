@@ -41,10 +41,10 @@ export default function DealCard({ deal, activeRole }: DealCardProps) {
     <article className="soft-panel rounded-2xl p-5 transition hover:-translate-y-1 hover:border-emerald-200/35 hover:bg-white/85">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-bold uppercase tracking-normal text-[#00677f]/80">
+          <p className="text-xs font-bold uppercase tracking-normal text-[#7c3aed]/80">
             {deal.id}
           </p>
-          <h3 className="mt-2 text-xl font-black tracking-normal text-[#010b13]">
+          <h3 className="mt-2 text-xl font-black tracking-normal text-[#1e1233]">
             {deal.title}
           </h3>
         </div>
@@ -61,7 +61,7 @@ export default function DealCard({ deal, activeRole }: DealCardProps) {
           {formatAmount(deal.amount)}
         </div>
         <div className="flex items-center gap-2">
-          <Clock3 className="size-4 text-[#00677f]" />
+          <Clock3 className="size-4 text-[#7c3aed]" />
           {formatDate(deal.deadline)}
         </div>
         <div className="flex items-center gap-2">
@@ -96,7 +96,7 @@ export default function DealCard({ deal, activeRole }: DealCardProps) {
         <div className="flex items-center gap-2">
           <Link
             href={proofPath(deal.id)}
-            className="inline-flex size-10 items-center justify-center rounded-full border border-[#101d25]/10 bg-white/70 text-[#43474b] transition hover:border-cyan-300/50 hover:text-[#00566a]"
+            className="inline-flex size-10 items-center justify-center rounded-full border border-[#101d25]/10 bg-white/70 text-[#43474b] transition hover:border-violet-300/50 hover:text-[#6d28d9]"
             aria-label={`Open public proof for ${deal.id}`}
           >
             <FileLock2 className="size-4" />

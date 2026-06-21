@@ -240,7 +240,7 @@ const protocolLayers = [
 
 export default function Home() {
   return (
-    <main className="web3-shell protocol-grid relative overflow-hidden">
+    <main className="web3-shell protocol-grid landing-professional relative overflow-hidden">
       <Navbar />
 
       <section className="landing-section relative z-10 grid gap-12 pb-16 pt-10 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:pb-20 lg:pt-16">
@@ -270,7 +270,7 @@ export default function Home() {
             {["No passwords", "Wallet identity", "Transparent settlement"].map(
               (item) => (
                 <span key={item} className="flex items-center gap-2">
-                  <CheckCircle2 className="size-4 text-cyan-300" />
+                  <CheckCircle2 className="size-4 text-violet-300" />
                   {item}
                 </span>
               ),
@@ -321,7 +321,7 @@ export default function Home() {
             const Icon = item.icon;
             return (
               <article key={item.value} className="protocol-overview-item">
-                <Icon className="size-5 text-cyan-300" />
+                <Icon className="size-5 text-violet-300" />
                 <div>
                   <p className="brand-font text-base font-black text-white">
                     {item.value}
@@ -338,7 +338,7 @@ export default function Home() {
 
       <section
         aria-label="SealPay benefits"
-        className="relative z-10 mb-20 overflow-hidden border-y border-cyan-100/10 bg-black/20 py-4"
+        className="relative z-10 mb-20 overflow-hidden border-y border-violet-100/10 bg-black/20 py-4"
       >
         <div className="protocol-ticker-track">
           {[...protocolSignals, ...protocolSignals].map((signal, index) => (
@@ -356,6 +356,16 @@ export default function Home() {
 
       <section className="landing-section relative z-10 grid gap-5 pb-20 lg:grid-cols-2">
         <article className="glass-panel-dark rounded-[2rem] p-7 sm:p-9">
+          <video
+            className="landing-inline-video"
+            src="/sealpay-payment-concern.mp4"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            aria-label="A client and freelancer considering payment risk"
+          />
           <p className="text-xs font-black uppercase tracking-[0.18em] text-rose-300">
             The payment trust problem
           </p>
@@ -370,7 +380,7 @@ export default function Home() {
           </p>
         </article>
         <article className="glass-panel-dark rounded-[2rem] p-7 sm:p-9">
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-violet-300">
             The SealPay solution
           </p>
           <h2 className="brand-font mt-4 text-3xl font-black text-white">
@@ -413,7 +423,7 @@ export default function Home() {
                 className="architecture-card group rounded-[1.75rem] border border-white/10 bg-white/[0.035] p-6 sm:p-7"
               >
                 <div className="flex items-start justify-between gap-5">
-                  <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-cyan-300/15 to-violet-400/15 text-cyan-200 ring-1 ring-white/10">
+                  <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-violet-300/15 to-violet-400/15 text-violet-200 ring-1 ring-white/10">
                     <Icon className="size-5" />
                   </span>
                   <span className="font-mono text-xs font-black text-slate-600">
@@ -430,7 +440,7 @@ export default function Home() {
                   {layer.description}
                 </p>
                 <div className="mt-5 flex items-center gap-2 border-t border-white/8 pt-4 text-xs font-bold text-slate-300">
-                  <CheckCircle2 className="size-4 text-cyan-300" />
+                  <CheckCircle2 className="size-4 text-violet-300" />
                   {layer.note}
                 </div>
               </article>
@@ -455,7 +465,7 @@ export default function Home() {
       >
         <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-violet-300">
               How SealPay works
             </p>
             <h2 className="brand-font mt-3 text-3xl font-black text-white sm:text-4xl">
@@ -467,16 +477,26 @@ export default function Home() {
             proof timeline.
           </p>
         </div>
+        <video
+          className="landing-wide-video"
+          src="/sealpay-client-creates-deal.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          aria-label="A SealPay client creating a protected deal"
+        />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {workflowSteps.map((step, index) => {
             const Icon = step.icon;
             return (
               <article
                 key={step.title}
-                className="protocol-step-card rounded-3xl border border-cyan-100/10 bg-white/[0.035] p-5"
+                className="protocol-step-card rounded-3xl border border-violet-100/10 bg-white/[0.035] p-5"
               >
                 <div className="flex items-center justify-between">
-                  <span className="grid size-11 place-items-center rounded-2xl bg-cyan-300/10 text-cyan-200">
+                  <span className="grid size-11 place-items-center rounded-2xl bg-violet-300/10 text-violet-200">
                     <Icon className="size-5" />
                   </span>
                   <span className="font-mono text-xs font-black text-slate-600">
@@ -498,12 +518,12 @@ export default function Home() {
       <section className="landing-section relative z-10 grid gap-5 pb-20 lg:grid-cols-2">
         <article
           id="for-clients"
-          className="audience-panel rounded-[2rem] border border-cyan-200/10 p-7 sm:p-9"
+          className="audience-panel rounded-[2rem] border border-violet-200/10 p-7 sm:p-9"
         >
-          <span className="grid size-12 place-items-center rounded-2xl bg-cyan-300/10 text-cyan-200">
+          <span className="grid size-12 place-items-center rounded-2xl bg-violet-300/10 text-violet-200">
             <BriefcaseBusiness className="size-5" />
           </span>
-          <p className="mt-6 text-xs font-black uppercase tracking-[0.18em] text-cyan-300">
+          <p className="mt-6 text-xs font-black uppercase tracking-[0.18em] text-violet-300">
             For Clients
           </p>
           <h2 className="brand-font mt-3 text-3xl font-black text-white">
@@ -515,7 +535,7 @@ export default function Home() {
                 key={benefit}
                 className="flex gap-3 text-sm font-semibold leading-6 text-slate-300"
               >
-                <CheckCircle2 className="mt-1 size-4 shrink-0 text-cyan-300" />
+                <CheckCircle2 className="mt-1 size-4 shrink-0 text-violet-300" />
                 {benefit}
               </p>
             ))}
@@ -568,7 +588,7 @@ export default function Home() {
                 key={feature.title}
                 className="trust-feature-card glass-panel-dark rounded-[1.75rem] p-7"
               >
-                <span className="grid size-12 place-items-center rounded-2xl bg-gradient-to-br from-cyan-300/20 to-violet-300/10 text-cyan-200 ring-1 ring-cyan-100/10">
+                <span className="grid size-12 place-items-center rounded-2xl bg-gradient-to-br from-violet-300/20 to-violet-300/10 text-violet-200 ring-1 ring-violet-100/10">
                   <Icon className="size-5" />
                 </span>
                 <h3 className="brand-font mt-6 text-xl font-black text-white">
@@ -585,8 +605,8 @@ export default function Home() {
 
       <section className="landing-section relative z-10 grid gap-5 pb-20 lg:grid-cols-2">
         <article className="glass-panel-dark rounded-[2rem] p-7 sm:p-9">
-          <FileKey2 className="size-7 text-cyan-300" />
-          <p className="mt-6 text-xs font-black uppercase tracking-[0.18em] text-cyan-300">
+          <FileKey2 className="size-7 text-violet-300" />
+          <p className="mt-6 text-xs font-black uppercase tracking-[0.18em] text-violet-300">
             Decentralized Storage
           </p>
           <h2 className="brand-font mt-3 text-3xl font-black text-white">
@@ -619,7 +639,7 @@ export default function Home() {
         className="landing-section relative z-10 pb-20"
       >
         <div className="glass-panel-dark rounded-[2rem] p-7 sm:p-9">
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-violet-300">
             Public Proof Timeline
           </p>
           <h2 className="brand-font mt-3 text-3xl font-black text-white sm:text-4xl">
@@ -676,7 +696,7 @@ export default function Home() {
         <div className="landing-cta relative overflow-hidden rounded-[2rem] border border-violet-300/15 px-6 py-10 sm:px-10 sm:py-12">
           <div className="relative z-10 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
             <div>
-              <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-cyan-300">
+              <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-violet-300">
                 <Sparkles className="size-4" />
                 Choose how you want to begin
               </div>
@@ -688,7 +708,19 @@ export default function Home() {
                 deal.
               </p>
             </div>
-            <WalletIntentActions compact />
+            <div className="landing-final-action">
+              <video
+                className="landing-logo-video"
+                src="/sealpay-logo-reveal.mp4"
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                aria-label="SealPay logo animation"
+              />
+              <WalletIntentActions compact />
+            </div>
           </div>
         </div>
       </section>

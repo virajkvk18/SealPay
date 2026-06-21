@@ -3,7 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut, Wallet } from "lucide-react";
+import { LogOut, Moon, Sun, Wallet } from "lucide-react";
+import { useTheme } from "@/components/ThemeProvider";
 import WalletIntentActions from "@/components/WalletIntentActions";
 import {
   clearDashboardSession,
@@ -51,7 +52,8 @@ export default function Navbar() {
   const router = useRouter();
   const mode = useDashboardMode();
   const wallet = useDashboardWallet();
-  const { connect, disconnect, isConnecting } = useWallet();
+  const { disconnect } = useWallet();
+  const { theme, toggleTheme } = useTheme();
   const isLanding = pathname === "/";
   const isPublicNav = isLanding || !mode;
   const items = isPublicNav
@@ -67,7 +69,7 @@ export default function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-cyan-200/10 bg-[#020b10]/92 shadow-xl shadow-black/10 backdrop-blur-2xl">
+    <header className="sticky top-0 z-40 border-b border-violet-200/10 bg-[#130d21]/92 shadow-xl shadow-black/10 backdrop-blur-2xl">
       <nav className="mx-auto flex min-h-20 max-w-[1500px] items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <Link href="/" className="flex shrink-0 items-center gap-3">
           <Image
@@ -92,7 +94,7 @@ export default function Navbar() {
                 "rounded-full px-2.5 py-2 text-xs font-semibold text-slate-300 transition hover:bg-white/6 hover:text-white",
                 !isLanding &&
                   pathname === item.href &&
-                  "bg-cyan-300/10 text-cyan-100",
+                  "bg-violet-300/10 text-violet-100",
               )}
             >
               {item.label}
@@ -100,24 +102,46 @@ export default function Navbar() {
           ))}
         </div>
         {isLanding ? (
-          <div className="hidden shrink-0 xl:block">
-            <WalletIntentActions compact />
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="theme-toggle-button"
+              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+              title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+            >
+              {theme === "dark" ? (
+                <Sun className="size-4" />
+              ) : (
+                <Moon className="size-4" />
+              )}
+            </button>
+            <div className="hidden xl:block">
+              <WalletIntentActions compact />
+            </div>
           </div>
         ) : mode ? (
           <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="theme-toggle-button"
+              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+              title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+            >
+              {theme === "dark" ? (
+                <Sun className="size-4" />
+              ) : (
+                <Moon className="size-4" />
+              )}
+            </button>
             <span className="hidden rounded-full border border-violet-300/20 bg-violet-400/10 px-3 py-2 text-xs font-black text-violet-200 sm:inline">
               {mode === "freelancer" ? "Freelancer Mode" : "Client Mode"}
             </span>
-            <button
-              type="button"
-              onClick={() => void connect()}
-              disabled={isConnecting}
-              className="hidden items-center gap-2 rounded-full border border-cyan-300/15 bg-cyan-300/5 px-3 py-2 font-mono text-xs text-cyan-100 transition hover:border-cyan-200/40 hover:bg-cyan-300/10 disabled:cursor-wait disabled:opacity-70 md:flex"
-              title="Open MetaMask"
-            >
+            <span className="hidden items-center gap-2 rounded-full border border-violet-300/15 bg-violet-300/5 px-3 py-2 font-mono text-xs text-violet-100 md:flex">
               <Wallet className="size-3.5" />
-              {isConnecting ? "Connecting..." : formatWallet(wallet)}
-            </button>
+              {formatWallet(wallet)}
+            </span>
             <button
               type="button"
               onClick={logout}
@@ -128,12 +152,27 @@ export default function Navbar() {
             </button>
           </div>
         ) : (
-          <Link
-            href="/"
-            className="secondary-button border-white/10 bg-white/5 px-4 py-2 text-xs text-white"
-          >
-            Choose Role
-          </Link>
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="theme-toggle-button"
+              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+              title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+            >
+              {theme === "dark" ? (
+                <Sun className="size-4" />
+              ) : (
+                <Moon className="size-4" />
+              )}
+            </button>
+            <Link
+              href="/"
+              className="secondary-button border-white/10 bg-white/5 px-4 py-2 text-xs text-white"
+            >
+              Choose Role
+            </Link>
+          </div>
         )}
       </nav>
       {!isPublicNav ? (

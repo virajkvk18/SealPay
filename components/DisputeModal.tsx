@@ -54,7 +54,7 @@ export default function DisputeModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-[#010b13]/45 px-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 grid place-items-center bg-[#1e1233]/45 px-4 backdrop-blur-sm">
       <form
         onSubmit={handleSubmit}
         className="glass-panel w-full max-w-xl rounded-3xl p-6"
@@ -65,7 +65,7 @@ export default function DisputeModal({
               <Scale className="size-5" />
             </span>
             <div>
-              <h2 className="text-2xl font-black text-[#010b13]">
+              <h2 className="text-2xl font-black text-[#1e1233]">
                 Raise dispute
               </h2>
               <p className="text-sm text-[#53606a]">
@@ -76,7 +76,7 @@ export default function DisputeModal({
           <button
             type="button"
             onClick={onClose}
-            className="grid size-10 place-items-center rounded-full border border-[#101d25]/10 bg-white/70 text-[#43474b] transition hover:text-[#010b13]"
+            className="grid size-10 place-items-center rounded-full border border-[#101d25]/10 bg-white/70 text-[#43474b] transition hover:text-[#1e1233]"
             aria-label="Close dispute modal"
           >
             <X className="size-4" />

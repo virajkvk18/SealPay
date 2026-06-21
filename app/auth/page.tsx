@@ -34,7 +34,7 @@ export default function WalletOnboardingPage() {
 
   return (
     <main className="web3-shell protocol-grid relative overflow-hidden">
-      <header className="relative z-10 border-b border-cyan-100/10 bg-black/15 backdrop-blur-2xl">
+      <header className="relative z-10 border-b border-violet-100/10 bg-black/15 backdrop-blur-2xl">
         <nav className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8">
           <Link href="/" className="flex items-center gap-3">
             <Image
@@ -77,7 +77,7 @@ export default function WalletOnboardingPage() {
                 key={rule}
                 className="flex items-start gap-3 text-sm font-semibold text-slate-300"
               >
-                <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-cyan-300" />
+                <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-violet-300" />
                 {rule}
               </p>
             ))}
@@ -87,19 +87,19 @@ export default function WalletOnboardingPage() {
         <section className="glass-panel-dark rounded-[2rem] p-5 sm:p-8">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-violet-300">
                 Access protocol
               </p>
               <h2 className="brand-font mt-3 text-3xl font-black text-white">
                 Connect your wallet
               </h2>
             </div>
-            <span className="grid size-12 place-items-center rounded-2xl bg-cyan-300/10 text-cyan-200 ring-1 ring-cyan-200/15">
+            <span className="grid size-12 place-items-center rounded-2xl bg-violet-300/10 text-violet-200 ring-1 ring-violet-200/15">
               <Wallet className="size-5" />
             </span>
           </div>
 
-          <div className="mt-8 rounded-3xl border border-cyan-100/10 bg-black/25 p-5">
+          <div className="mt-8 rounded-3xl border border-violet-100/10 bg-black/25 p-5">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <span

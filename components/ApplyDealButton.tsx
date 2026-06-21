@@ -3,7 +3,6 @@
 import { useState, type FormEvent } from "react";
 import { Send, X } from "lucide-react";
 import Toast from "@/components/Toast";
-import { createApplication } from "@/lib/deals";
 import type { Deal } from "@/lib/mockData";
 import { useSealPay } from "@/lib/store";
 import { formatWallet, makeTimelineEvent } from "@/lib/utils";
@@ -30,44 +29,32 @@ export default function ApplyDealButton({
     deal.dealKind === "Public" &&
     deal.status === "Created";
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
+  function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    const coverLetter = String(form.get("coverLetter") ?? "");
-    const proposedPrice = Number(form.get("proposedPrice") ?? deal.amount);
     setIsSubmitting(true);
     setError("");
     try {
-      const remoteApplication = await createApplication({
-        dealId: deal.id,
-        freelancerWallet: wallet,
-        coverLetter,
-        proposedPrice,
-      });
-      const application = remoteApplication ?? {
-        id: crypto.randomUUID(),
-        freelancerWallet: wallet,
-        proposal: coverLetter,
-        estimatedDelivery: "Not specified",
-        proposedPrice,
-        status: "pending" as const,
-        createdAt: new Date().toISOString(),
-      };
-
       updateDeal(deal.id, (current) => ({
         ...current,
         applications: [
           ...(current.applications ?? []),
           {
-            ...application,
+            id: crypto.randomUUID(),
             freelancerName: formatWallet(wallet),
+            freelancerWallet: wallet,
+            proposal: String(form.get("proposal") ?? ""),
+            estimatedDelivery: String(form.get("delivery") ?? ""),
+            note: String(form.get("note") ?? ""),
+            status: "pending",
+            createdAt: new Date().toISOString(),
           },
         ],
         timeline: [
           ...current.timeline,
           makeTimelineEvent({
             title: "Application received",
-            description: `A freelancer applied with a proposed price of ${proposedPrice} POL.`,
+            description: `A freelancer applied with an estimated delivery of ${String(form.get("delivery"))}.`,
             status: current.status,
             actor: "Freelancer",
           }),
@@ -75,12 +62,8 @@ export default function ApplyDealButton({
       }));
       setMessage("Application submitted successfully.");
       setOpen(false);
-    } catch (submitError) {
-      setError(
-        submitError instanceof Error
-          ? submitError.message
-          : "Application could not be submitted. Please try again.",
-      );
+    } catch {
+      setError("Application could not be submitted. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -88,7 +71,7 @@ export default function ApplyDealButton({
 
   if (!wallet)
     return (
-      <p className="rounded-2xl border border-cyan-300/20 bg-cyan-300/[0.06] p-4 text-sm font-bold text-[#00566a]">
+      <p className="rounded-2xl border border-violet-300/20 bg-violet-300/[0.06] p-4 text-sm font-bold text-[#6d28d9]">
         Connect your wallet by choosing Work as Freelancer to apply.
       </p>
     );
@@ -105,14 +88,14 @@ export default function ApplyDealButton({
         {applied ? "Application Sent" : "Apply for Deal"}
       </button>
       {open ? (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-[#010b13]/75 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 grid place-items-center bg-[#1e1233]/75 p-4 backdrop-blur-sm">
           <form
             onSubmit={submit}
-            className="w-full max-w-lg rounded-[2rem] border border-white/10 bg-[#071722] p-6 text-white shadow-2xl"
+            className="w-full max-w-lg rounded-[2rem] border border-white/10 bg-[#1c1230] p-6 text-white shadow-2xl"
           >
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.14em] text-cyan-300">
+                <p className="text-xs font-black uppercase tracking-[0.14em] text-violet-300">
                   Freelancer application
                 </p>
                 <h2 className="mt-2 text-2xl font-black">Apply for Deal</h2>
@@ -126,26 +109,30 @@ export default function ApplyDealButton({
               </button>
             </div>
             <label className="mt-6 block text-sm font-bold">
-              Cover letter
+              Proposal message
               <textarea
                 required
-                name="coverLetter"
+                name="proposal"
                 rows={4}
-                className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-white outline-none focus:border-cyan-300"
+                className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-white outline-none focus:border-violet-300"
                 placeholder="Explain how you will deliver this work."
               />
             </label>
             <label className="mt-4 block text-sm font-bold">
-              Proposed price (POL)
+              Estimated delivery time
               <input
                 required
-                name="proposedPrice"
-                type="number"
-                min="0.001"
-                step="0.001"
-                defaultValue={deal.amount}
-                className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-white outline-none focus:border-cyan-300"
-                placeholder="0.001"
+                name="delivery"
+                className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-white outline-none focus:border-violet-300"
+                placeholder="For example, 5 business days"
+              />
+            </label>
+            <label className="mt-4 block text-sm font-bold">
+              Optional note
+              <textarea
+                name="note"
+                rows={2}
+                className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-white outline-none focus:border-violet-300"
               />
             </label>
             {error ? (

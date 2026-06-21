@@ -81,12 +81,8 @@ function getActionHelper(deal: Deal, activeRole: DealViewerRole) {
   }
 
   if (activeRole === "Client") {
-    if (deal.status === "Created" && !deal.freelancerWallet)
-      return "Select a freelancer before locking payment.";
-    if (deal.status === "Created" || deal.status === "Assigned")
+    if (deal.status === "Created")
       return "Lock payment first so the freelancer can submit work.";
-    if (deal.status === "Payment Locked")
-      return "Waiting for the freelancer to submit proof.";
     if (deal.status !== "Work Submitted")
       return "Submit proof before client can approve.";
     return "Review the proof and AI notes before approving release.";
@@ -560,7 +556,7 @@ export default function DealDetailsPage() {
         <main className="page-shell grid-bg">
           <Navbar />
           <section className="mx-auto max-w-4xl px-4 py-16 text-center sm:px-6">
-            <h1 className="text-4xl font-black text-[#010b13]">
+            <h1 className="text-4xl font-black text-[#1e1233]">
               Deal not found
             </h1>
             <p className="mt-4 text-[#53606a]">
@@ -602,14 +598,14 @@ export default function DealDetailsPage() {
               <article className="glass-panel rounded-3xl p-6 sm:p-8">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
-                    <p className="text-sm font-black uppercase tracking-normal text-[#00677f]">
+                    <p className="text-sm font-black uppercase tracking-normal text-[#7c3aed]">
                       Approval Evidence Vault - {deal.id}
                     </p>
-                    <h1 className="mt-3 text-4xl font-black tracking-normal text-[#010b13] sm:text-5xl">
+                    <h1 className="mt-3 text-4xl font-black tracking-normal text-[#1e1233] sm:text-5xl">
                       Evidence Vault
                     </h1>
                     <p className="mt-4 max-w-3xl text-base leading-7 text-[#43474b]">
-                      <span className="font-black text-[#010b13]">
+                      <span className="font-black text-[#1e1233]">
                         {deal.title}
                       </span>{" "}
                       - {deal.description}
@@ -627,23 +623,23 @@ export default function DealDetailsPage() {
                     <p className="text-sm font-bold text-emerald-800">
                       Amount locked
                     </p>
-                    <p className="mt-2 text-3xl font-black text-[#010b13]">
+                    <p className="mt-2 text-3xl font-black text-[#1e1233]">
                       {formatAmount(deal.amount)}
                     </p>
                   </div>
-                  <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/[0.06] p-5">
-                    <p className="text-sm font-bold text-[#00566a]">
+                  <div className="rounded-2xl border border-violet-300/20 bg-violet-300/[0.06] p-5">
+                    <p className="text-sm font-bold text-[#6d28d9]">
                       Risk score
                     </p>
-                    <p className="mt-2 text-3xl font-black text-[#010b13]">
+                    <p className="mt-2 text-3xl font-black text-[#1e1233]">
                       {deal.risk.score}/100
                     </p>
                   </div>
                   <div className="rounded-2xl border border-violet-300/20 bg-violet-300/[0.06] p-5">
-                    <p className="text-sm font-bold text-[#6e208c]">
+                    <p className="text-sm font-bold text-[#8b5cf6]">
                       Escrow hash
                     </p>
-                    <p className="mt-2 font-mono text-sm font-black text-[#010b13]">
+                    <p className="mt-2 font-mono text-sm font-black text-[#1e1233]">
                       {formatWallet(deal.createdTxHash)}
                     </p>
                   </div>
@@ -676,7 +672,7 @@ export default function DealDetailsPage() {
                     <p className="text-sm font-black uppercase tracking-normal text-emerald-700">
                       Deliverable Lock
                     </p>
-                    <h2 className="mt-3 text-3xl font-black text-[#010b13]">
+                    <h2 className="mt-3 text-3xl font-black text-[#1e1233]">
                       {isDeliverableUnlocked
                         ? "Payment released. Full deliverable unlocked."
                         : "Full deliverable is locked until payment release."}
@@ -692,7 +688,7 @@ export default function DealDetailsPage() {
                       "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-black",
                       isDeliverableUnlocked
                         ? "bg-emerald-100 text-emerald-800"
-                        : "bg-[#010b13] text-white",
+                        : "bg-[#1e1233] text-white",
                     )}
                   >
                     {isDeliverableUnlocked ? (
@@ -724,8 +720,8 @@ export default function DealDetailsPage() {
                         )}
                       >
                         <div>
-                          <FileLock2 className="mx-auto size-12 text-[#00677f]" />
-                          <p className="mt-4 text-xl font-black text-[#010b13]">
+                          <FileLock2 className="mx-auto size-12 text-[#7c3aed]" />
+                          <p className="mt-4 text-xl font-black text-[#1e1233]">
                             Protected preview only
                           </p>
                           <p className="mt-2 text-sm leading-6 text-[#53606a]">
@@ -742,10 +738,10 @@ export default function DealDetailsPage() {
                     ) : null}
                     <div className="absolute inset-0 grid place-items-center p-5">
                       <div className="rounded-2xl border border-white/60 bg-white/72 p-5 text-center shadow-xl backdrop-blur-md">
-                        <p className="text-lg font-black text-[#010b13]">
+                        <p className="text-lg font-black text-[#1e1233]">
                           SealPay Protected Preview
                         </p>
-                        <p className="mt-2 font-mono text-sm font-black text-[#00677f]">
+                        <p className="mt-2 font-mono text-sm font-black text-[#7c3aed]">
                           Deal ID: {deal.id}
                         </p>
                         <p className="mt-1 font-mono text-xs font-bold text-[#43474b]">
@@ -756,10 +752,10 @@ export default function DealDetailsPage() {
                   </div>
 
                   <div className="rounded-3xl border border-[#101d25]/10 bg-white/70 p-5">
-                    <p className="text-sm font-black text-[#00677f]">
+                    <p className="text-sm font-black text-[#7c3aed]">
                       Final file
                     </p>
-                    <p className="mt-2 break-all font-mono text-sm font-black text-[#010b13]">
+                    <p className="mt-2 break-all font-mono text-sm font-black text-[#1e1233]">
                       {getFinalFileName(deal)}
                     </p>
                     <div className="mt-5 grid gap-3 text-sm text-[#43474b]">
@@ -784,7 +780,7 @@ export default function DealDetailsPage() {
                             href={deal.proof.gatewayUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="mt-1 block break-all text-[#00677f] underline"
+                            className="mt-1 block break-all text-[#7c3aed] underline"
                           >
                             Open pinned proof
                           </a>
@@ -799,7 +795,7 @@ export default function DealDetailsPage() {
                       className={cn(
                         "mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-black transition",
                         isDeliverableUnlocked
-                          ? "bg-black text-white hover:bg-[#00677f]"
+                          ? "bg-black text-white hover:bg-[#7c3aed]"
                           : "cursor-not-allowed border border-[#101d25]/10 bg-[#f2f4f6] text-[#74777b]",
                       )}
                     >
@@ -817,10 +813,10 @@ export default function DealDetailsPage() {
 
               {deal.aiProofReview ? (
                 <article className="glass-panel overflow-hidden rounded-3xl">
-                  <div className="border-b border-cyan-100/10 bg-white/[0.025] p-6 sm:p-8">
+                  <div className="border-b border-violet-100/10 bg-white/[0.025] p-6 sm:p-8">
                     <div className="flex flex-wrap items-start justify-between gap-5">
                       <div>
-                        <p className="inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-cyan-200">
+                        <p className="inline-flex items-center gap-2 rounded-full border border-violet-300/20 bg-violet-300/10 px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-violet-200">
                           <Fingerprint className="size-4" />
                           AI Trust Engine
                         </p>
@@ -832,15 +828,15 @@ export default function DealDetailsPage() {
                           the review; payment decisions stay with the client or judge.
                         </p>
                       </div>
-                      <div className="min-w-48 rounded-3xl border border-cyan-300/20 bg-cyan-300/[0.08] p-5 text-right shadow-2xl shadow-cyan-950/20">
-                        <p className="text-xs font-black uppercase tracking-[0.16em] text-cyan-200">
+                      <div className="min-w-48 rounded-3xl border border-violet-300/20 bg-violet-300/[0.08] p-5 text-right shadow-2xl shadow-violet-950/20">
+                        <p className="text-xs font-black uppercase tracking-[0.16em] text-violet-200">
                           SealTrust Score
                         </p>
                         <p className="mt-2 text-5xl font-black text-white">
                           {deal.aiProofReview.score}
                           <span className="text-xl text-slate-400">/100</span>
                         </p>
-                        <p className="mt-3 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-black text-cyan-100">
+                        <p className="mt-3 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-black text-violet-100">
                           {deal.aiProofReview.verdict ?? deal.aiProofReview.status}
                         </p>
                       </div>
@@ -848,8 +844,8 @@ export default function DealDetailsPage() {
                   </div>
 
                   <div className="grid gap-4 p-6 sm:p-8 lg:grid-cols-[1fr_0.85fr]">
-                    <div className="rounded-3xl border border-cyan-300/15 bg-cyan-300/[0.055] p-5">
-                      <p className="text-xs font-black uppercase tracking-[0.16em] text-cyan-200">
+                    <div className="rounded-3xl border border-violet-300/15 bg-violet-300/[0.055] p-5">
+                      <p className="text-xs font-black uppercase tracking-[0.16em] text-violet-200">
                         Review Summary
                       </p>
                       <p className="mt-3 text-sm font-semibold leading-6 text-slate-200">
@@ -861,7 +857,7 @@ export default function DealDetailsPage() {
                       <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">
                         Status
                       </p>
-                      <p className="mt-3 text-lg font-black text-cyan-200">
+                      <p className="mt-3 text-lg font-black text-violet-200">
                         {deal.aiProofReview.status}
                       </p>
                       <p className="mt-4 text-xs font-black uppercase tracking-[0.16em] text-slate-500">
@@ -876,7 +872,7 @@ export default function DealDetailsPage() {
                   <div className="grid gap-4 px-6 pb-6 sm:px-8 sm:pb-8 lg:grid-cols-2">
                     <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
                       <div className="flex items-center gap-2 text-sm font-black text-white">
-                        <ListChecks className="size-4 text-cyan-300" />
+                        <ListChecks className="size-4 text-violet-300" />
                         Reasons
                       </div>
                       <div className="mt-4 grid gap-3">
@@ -918,7 +914,7 @@ export default function DealDetailsPage() {
               ) : null}
 
               <article className="glass-panel rounded-3xl p-6 sm:p-8">
-                <h2 className="text-3xl font-black text-[#010b13]">
+                <h2 className="text-3xl font-black text-[#1e1233]">
                   On-chain Proof Trail
                 </h2>
                 <p className="mt-2 text-sm leading-6 text-[#53606a]">
@@ -933,11 +929,11 @@ export default function DealDetailsPage() {
 
             <aside className="space-y-5">
               <div className="glass-panel rounded-[2rem] p-5">
-                <p className="text-sm font-black uppercase tracking-normal text-[#00677f]">
+                <p className="text-sm font-black uppercase tracking-normal text-[#7c3aed]">
                   Wallet role
                 </p>
                 <div className="mt-4 rounded-2xl border border-[#101d25]/10 bg-white/70 p-4">
-                  <p className="text-sm font-black text-[#010b13]">
+                  <p className="text-sm font-black text-[#1e1233]">
                     {activeRole === "Admin/Judge" ? "Arbitrator" : activeRole}
                   </p>
                   <p className="mt-2 font-mono text-xs text-[#74777b]">
@@ -948,8 +944,8 @@ export default function DealDetailsPage() {
                 </div>
               </div>
 
-            <div className="rounded-[2rem] bg-[#010b13] p-5 text-white shadow-2xl shadow-cyan-950/20">
-              <p className="text-sm font-black uppercase tracking-normal text-cyan-100">
+            <div className="rounded-[2rem] bg-[#1e1233] p-5 text-white shadow-2xl shadow-violet-950/20">
+              <p className="text-sm font-black uppercase tracking-normal text-violet-100">
                 Smart Contract
               </p>
               <h2 className="mt-2 text-2xl font-black">Escrow Actions</h2>
@@ -970,7 +966,7 @@ export default function DealDetailsPage() {
                       <LockKeyhole className="size-4" />
                       {isLockingPayment ? "Locking..." : "Lock Payment"}
                     </button>
-                    {lockPaymentError && canLockPayment ? (
+                    {lockPaymentError && deal.status === "Created" ? (
                       <div className="rounded-2xl border border-red-300/30 bg-red-400/10 p-3">
                         <p className="text-sm font-bold leading-6 text-red-100">
                           {lockPaymentError}
@@ -1122,7 +1118,7 @@ export default function DealDetailsPage() {
                   >
                     {deal.risk.level}
                   </span>
-                  <span className="text-2xl font-black text-[#010b13]">
+                  <span className="text-2xl font-black text-[#1e1233]">
                     {deal.risk.score}
                   </span>
                 </div>
@@ -1138,7 +1134,7 @@ export default function DealDetailsPage() {
 
               {deal.disputeReason ? (
                 <div className="soft-panel rounded-3xl p-5">
-                  <h2 className="text-xl font-black text-[#010b13]">
+                  <h2 className="text-xl font-black text-[#1e1233]">
                     Dispute notes
                   </h2>
                   <p className="mt-3 text-sm leading-6 text-amber-800">
@@ -1148,8 +1144,8 @@ export default function DealDetailsPage() {
                     {deal.disputeEvidence}
                   </p>
                   {deal.aiDisputeSummary ? (
-                    <div className="mt-4 rounded-2xl border border-cyan-300/25 bg-cyan-50 p-4">
-                      <p className="text-sm font-black text-[#00566a]">
+                    <div className="mt-4 rounded-2xl border border-violet-300/25 bg-violet-50 p-4">
+                      <p className="text-sm font-black text-[#6d28d9]">
                         AI Dispute Summary
                       </p>
                       <p className="mt-2 text-xs font-bold text-[#43474b]">
@@ -1160,7 +1156,7 @@ export default function DealDetailsPage() {
                         {deal.aiDisputeSummary}
                       </p>
                       {deal.aiDisputeRecommendation ? (
-                        <p className="mt-3 text-sm font-black leading-6 text-[#010b13]">
+                        <p className="mt-3 text-sm font-black leading-6 text-[#1e1233]">
                           Recommendation: {deal.aiDisputeRecommendation}
                         </p>
                       ) : null}
@@ -1175,7 +1171,7 @@ export default function DealDetailsPage() {
               ) : null}
 
               <div className="soft-panel rounded-3xl p-5">
-                <h2 className="text-xl font-black text-[#010b13]">
+                <h2 className="text-xl font-black text-[#1e1233]">
                   Public proof
                 </h2>
                 <p className="mt-2 text-sm leading-6 text-[#53606a]">

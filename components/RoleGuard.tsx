@@ -39,7 +39,7 @@ export default function RoleGuard({
   if (!initialized || !permitted) {
     return (
       <main className="dashboard-shell grid min-h-screen place-items-center">
-        <p className="rounded-full border border-cyan-300/15 bg-white/5 px-5 py-3 text-sm font-bold text-slate-300">
+        <p className="rounded-full border border-violet-300/15 bg-white/5 px-5 py-3 text-sm font-bold text-slate-300">
           Verifying wallet identity...
         </p>
       </main>

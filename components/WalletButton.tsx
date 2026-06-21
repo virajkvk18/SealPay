@@ -33,7 +33,7 @@ export default function WalletButton() {
         type="button"
         onClick={handleConnectWallet}
         disabled={isConnecting}
-        className="inline-flex h-11 items-center justify-center rounded-full bg-black px-6 text-xs font-black text-white shadow-lg shadow-cyan-900/10 transition hover:bg-[#00677f] active:scale-95 disabled:cursor-not-allowed disabled:opacity-70"
+        className="inline-flex h-11 items-center justify-center rounded-full bg-black px-6 text-xs font-black text-white shadow-lg shadow-violet-900/10 transition hover:bg-[#7c3aed] active:scale-95 disabled:cursor-not-allowed disabled:opacity-70"
       >
         {isConnecting ? "Connecting..." : wallet ? formatWallet(wallet) : "Connect Wallet"}
       </button>

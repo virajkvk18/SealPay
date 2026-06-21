@@ -1,12 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { UserRoundCheck, X } from "lucide-react";
-import {
-  getApplicationsForDeals,
-  selectApplicationForDeal,
-  updateApplication,
-} from "@/lib/deals";
 import type { Deal, DealApplication } from "@/lib/mockData";
 import { useSealPay } from "@/lib/store";
 import { formatWallet, makeTimelineEvent } from "@/lib/utils";
@@ -25,68 +20,25 @@ export default function ApplicationsList({
     application: DealApplication;
   } | null>(null);
   const [message, setMessage] = useState("");
-  const [remoteApplications, setRemoteApplications] = useState<
-    Array<DealApplication & { dealId: string }>
-  >([]);
-  const dealIds = useMemo(() => deals.map((deal) => deal.id), [deals]);
-  const applications = useMemo(
-    () =>
-      deals.flatMap((deal) => {
-        const remoteForDeal = remoteApplications.filter(
-          (application) => application.dealId === deal.id,
-        );
-        const remoteIds = new Set(
-          remoteForDeal.map((application) => application.id),
-        );
-        const localOnly = (deal.applications ?? []).filter(
-          (application) => !remoteIds.has(application.id),
-        );
-
-        return [...remoteForDeal, ...localOnly].map((application) => ({
-          deal,
-          application,
-        }));
-      }),
-    [deals, remoteApplications],
+  const applications = deals.flatMap((deal) =>
+    (deal.applications ?? []).map((application) => ({ deal, application })),
   );
 
-  useEffect(() => {
-    let cancelled = false;
-    void getApplicationsForDeals(dealIds).then((rows) => {
-      if (!cancelled) setRemoteApplications(rows);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [dealIds]);
-
-  async function reject(deal: Deal, application: DealApplication) {
-    try {
-      await updateApplication(application.id, { status: "rejected" });
-      updateDeal(deal.id, (current) => ({
-        ...current,
-        applications: current.applications?.map((item) =>
-          item.id === application.id ? { ...item, status: "rejected" } : item,
-        ),
-      }));
-      setRemoteApplications((current) =>
-        current.map((item) =>
-          item.id === application.id ? { ...item, status: "rejected" } : item,
-        ),
-      );
-    } catch {
-      setMessage("Application rejection failed. Please try again.");
-    }
+  function reject(deal: Deal, application: DealApplication) {
+    updateDeal(deal.id, (current) => ({
+      ...current,
+      applications: current.applications?.map((item) =>
+        item.id === application.id ? { ...item, status: "rejected" } : item,
+      ),
+    }));
   }
-  async function confirm() {
+  function confirm() {
     if (!selection) return;
     const selectedFreelancerName =
       selection.application.freelancerName ??
       formatWallet(selection.application.freelancerWallet);
 
     try {
-      await selectApplicationForDeal(selection.deal.id, selection.application.id);
       updateDeal(selection.deal.id, (current) => ({
         ...current,
         freelancerWallet: selection.application.freelancerWallet,
@@ -108,19 +60,6 @@ export default function ApplicationsList({
           }),
         ],
       }));
-      setRemoteApplications((current) =>
-        current.map((item) =>
-          item.dealId === selection.deal.id
-            ? {
-                ...item,
-                status:
-                  item.id === selection.application.id
-                    ? "selected"
-                    : "rejected",
-              }
-            : item,
-        ),
-      );
       setMessage("Freelancer selected successfully.");
       setSelection(null);
     } catch {
@@ -142,7 +81,7 @@ export default function ApplicationsList({
           className={
             dark
               ? "text-xl font-black text-white"
-              : "text-2xl font-black text-[#010b13]"
+              : "text-2xl font-black text-[#1e1233]"
           }
         >
           Applications Received
@@ -156,7 +95,7 @@ export default function ApplicationsList({
         </p>
       </div>
       {message === "Freelancer selected successfully." ? (
-        <p className={dark ? "mx-6 mt-5 text-sm font-bold text-cyan-200" : "mt-5 text-sm font-bold text-[#00677f]"}>
+        <p className={dark ? "mx-6 mt-5 text-sm font-bold text-violet-200" : "mt-5 text-sm font-bold text-[#7c3aed]"}>
           Next step: Lock payment in escrow.
         </p>
       ) : null}
@@ -177,7 +116,7 @@ export default function ApplicationsList({
                     className={
                       dark
                         ? "font-black text-white"
-                        : "font-black text-[#010b13]"
+                        : "font-black text-[#1e1233]"
                     }
                   >
                     {deal.title}
@@ -186,7 +125,7 @@ export default function ApplicationsList({
                     {formatWallet(application.freelancerWallet)}
                   </p>
                 </div>
-                <span className="rounded-full bg-cyan-400/10 px-3 py-1 text-xs font-black capitalize text-cyan-300">
+                <span className="rounded-full bg-violet-400/10 px-3 py-1 text-xs font-black capitalize text-violet-300">
                   {application.status}
                 </span>
               </div>
@@ -200,10 +139,7 @@ export default function ApplicationsList({
                 {application.proposal}
               </p>
               <div className="mt-3 flex flex-wrap gap-4 text-xs font-bold text-slate-500">
-                {application.proposedPrice ? (
-                  <span>Proposed: {application.proposedPrice} POL</span>
-                ) : null}
-                <span>Submitted: {new Date(application.createdAt).toLocaleDateString()}</span>
+                <span>Delivery: {application.estimatedDelivery}</span>
                 {application.trustScore ? (
                   <span>Trust: {application.trustScore}</span>
                 ) : null}
@@ -239,8 +175,8 @@ export default function ApplicationsList({
         )}
       </div>
       {selection ? (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-[#010b13]/75 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-[2rem] border border-white/10 bg-[#071722] p-6 text-white">
+        <div className="fixed inset-0 z-50 grid place-items-center bg-[#1e1233]/75 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-[2rem] border border-white/10 bg-[#1c1230] p-6 text-white">
             <div className="flex justify-between gap-4">
               <h2 className="text-2xl font-black">Select this freelancer?</h2>
               <button onClick={() => setSelection(null)}>

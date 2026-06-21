@@ -34,9 +34,9 @@ function ReputationMetric({
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="text-sm font-semibold text-[#53606a]">{label}</p>
-          <p className="mt-2 text-3xl font-black text-[#010b13]">{value}</p>
+          <p className="mt-2 text-3xl font-black text-[#1e1233]">{value}</p>
         </div>
-        <span className="grid size-12 place-items-center rounded-2xl bg-cyan-100 text-[#00677f]">
+        <span className="grid size-12 place-items-center rounded-2xl bg-violet-100 text-[#7c3aed]">
           {icon}
         </span>
       </div>
@@ -79,11 +79,11 @@ export default function ReputationPage() {
         <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-cyan-100 px-4 py-2 text-sm font-black text-[#00566a]">
+              <div className="inline-flex items-center gap-2 rounded-full bg-violet-100 px-4 py-2 text-sm font-black text-[#6d28d9]">
                 <Award className="size-4" />
                 Reputation Layer
               </div>
-              <h1 className="mt-6 text-4xl font-black tracking-normal text-[#010b13] sm:text-5xl">
+              <h1 className="mt-6 text-4xl font-black tracking-normal text-[#1e1233] sm:text-5xl">
                 SealPay Reputation
               </h1>
               <p className="mt-4 max-w-3xl text-base leading-7 text-[#43474b]">
@@ -101,18 +101,18 @@ export default function ReputationPage() {
 
           <div className="mt-8 grid gap-6 lg:grid-cols-[420px_minmax(0,1fr)]">
             <section className="glass-panel rounded-[2rem] p-6">
-              <div className="rounded-[1.6rem] bg-[#010b13] p-6 text-center text-white">
-                <div className="mx-auto grid size-44 place-items-center rounded-full border-[14px] border-cyan-200/25 bg-cyan-300/10 shadow-2xl shadow-cyan-900/20">
+              <div className="rounded-[1.6rem] bg-[#1e1233] p-6 text-center text-white">
+                <div className="mx-auto grid size-44 place-items-center rounded-full border-[14px] border-violet-200/25 bg-violet-300/10 shadow-2xl shadow-violet-900/20">
                   <div>
                     <p className="text-6xl font-black tracking-normal">
                       {score}
                     </p>
-                    <p className="mt-1 text-sm font-black uppercase tracking-normal text-cyan-100">
+                    <p className="mt-1 text-sm font-black uppercase tracking-normal text-violet-100">
                       SealPay
                     </p>
                   </div>
                 </div>
-                <div className="mt-6 flex items-center justify-center gap-1 text-cyan-100">
+                <div className="mt-6 flex items-center justify-center gap-1 text-violet-100">
                   {Array.from({ length: 5 }).map((_, index) => (
                     <Star key={index} className="size-5 fill-current" />
                   ))}
@@ -128,7 +128,7 @@ export default function ReputationPage() {
                   <span className="text-sm font-bold text-[#53606a]">
                     Verified Workflows
                   </span>
-                  <span className="text-sm font-black text-[#010b13]">
+                  <span className="text-sm font-black text-[#1e1233]">
                     {totals.total}
                   </span>
                 </div>
@@ -136,7 +136,7 @@ export default function ReputationPage() {
                   <span className="text-sm font-bold text-[#53606a]">
                     Disputes Open
                   </span>
-                  <span className="text-sm font-black text-[#010b13]">
+                  <span className="text-sm font-black text-[#1e1233]">
                     {totals.disputed}
                   </span>
                 </div>
@@ -144,7 +144,7 @@ export default function ReputationPage() {
                   <span className="text-sm font-bold text-[#53606a]">
                     Total Volume
                   </span>
-                  <span className="text-sm font-black text-[#010b13]">
+                  <span className="text-sm font-black text-[#1e1233]">
                     {formatAmount(lockedVolume)}
                   </span>
                 </div>
@@ -180,14 +180,14 @@ export default function ReputationPage() {
               <article className="glass-panel rounded-[2rem] p-6 md:col-span-2">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
-                    <p className="text-sm font-black uppercase tracking-normal text-[#00677f]">
+                    <p className="text-sm font-black uppercase tracking-normal text-[#7c3aed]">
                       Reputation Events
                     </p>
-                    <h2 className="mt-2 text-2xl font-black text-[#010b13]">
+                    <h2 className="mt-2 text-2xl font-black text-[#1e1233]">
                       Verified SealPay Activity
                     </h2>
                   </div>
-                  <div className="flex items-center gap-2 rounded-full bg-cyan-100 px-4 py-2 text-sm font-black text-[#00566a]">
+                  <div className="flex items-center gap-2 rounded-full bg-violet-100 px-4 py-2 text-sm font-black text-[#6d28d9]">
                     <BarChart3 className="size-4" />
                     Live score
                   </div>
@@ -201,7 +201,7 @@ export default function ReputationPage() {
                       className="grid gap-3 rounded-2xl border border-[#101d25]/10 bg-white/55 p-4 transition hover:bg-white md:grid-cols-[1fr_auto]"
                     >
                       <div>
-                        <p className="font-black text-[#010b13]">
+                        <p className="font-black text-[#1e1233]">
                           {event.title}
                         </p>
                         <p className="mt-1 text-sm text-[#53606a]">
@@ -213,7 +213,7 @@ export default function ReputationPage() {
                       </div>
                       <div className="flex flex-col items-start gap-2 md:items-end">
                         <StatusBadge status={event.status} compact />
-                        <span className="text-xs font-bold text-[#00677f]">
+                        <span className="text-xs font-bold text-[#7c3aed]">
                           {formatDateTime(event.timestamp)}
                         </span>
                       </div>
