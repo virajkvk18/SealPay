@@ -70,28 +70,28 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-violet-200/10 bg-[#130d21]/92 shadow-xl shadow-black/10 backdrop-blur-2xl">
-      <nav className="mx-auto flex min-h-20 max-w-[1500px] items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
-        <Link href="/" className="flex shrink-0 items-center gap-3">
+      <nav className="mx-auto flex min-h-20 max-w-[1500px] items-center justify-between gap-5 px-4 py-3 sm:px-6 lg:px-8">
+        <Link href="/" className="brand-lockup flex shrink-0 items-center">
           <Image
             src="/sealpay-mark.png"
             alt="SealPay logo"
-            width={44}
-            height={44}
-            className="size-11 object-contain"
+            width={52}
+            height={52}
+            className="brand-mark object-contain"
             priority
           />
-          <span className="brand-font hidden text-xl font-black sm:inline">
+          <span className="brand-font brand-wordmark hidden font-black sm:inline">
             <span className="text-white">Seal</span>
             <span className="text-violet-400">Pay</span>
           </span>
         </Link>
-        <div className="hidden min-w-0 items-center justify-center gap-1 lg:flex">
+        <div className="hidden min-w-0 items-center justify-center gap-2 lg:flex">
           {items.map((item) => (
             <Link
               key={`${item.href}-${item.label}`}
               href={item.href}
               className={cn(
-                "rounded-full px-2.5 py-2 text-xs font-semibold text-slate-300 transition hover:bg-white/6 hover:text-white",
+                "rounded-full px-3 py-2 text-xs font-semibold text-slate-300 transition hover:bg-white/6 hover:text-white",
                 !isLanding &&
                   pathname === item.href &&
                   "bg-violet-300/10 text-violet-100",

@@ -243,8 +243,8 @@ export default function Home() {
     <main className="web3-shell protocol-grid landing-professional relative overflow-hidden">
       <Navbar />
 
-      <section className="landing-section relative z-10 grid gap-12 pb-16 pt-10 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:pb-20 lg:pt-16">
-        <div>
+      <section className="landing-section hero-section relative z-10 grid gap-12 pb-16 pt-10 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:pb-20 lg:pt-16">
+        <div className="hero-copy">
           <div className="chain-chip inline-flex">
             <ShieldCheck className="size-3.5" />
             Wallet-first payment protection
@@ -253,10 +253,10 @@ export default function Home() {
             Seal the deal.{" "}
             <span className="gradient-text">Secure the pay.</span>
           </h1>
-          <p className="mt-4 max-w-xl text-lg font-bold leading-8 text-slate-200 sm:text-xl">
+          <p className="mt-4 max-w-2xl text-base font-bold leading-7 text-slate-200 sm:whitespace-nowrap sm:text-lg">
             Web3 escrow for freelancers, creators, and service buyers.
           </p>
-          <p className="mt-3 max-w-xl text-base leading-7 text-slate-400">
+          <p className="mt-5 max-w-xl text-base leading-7 text-slate-400">
             Clients lock payment before work starts. Freelancers submit
             protected proof. SealPay releases funds fairly through smart
             contracts.
