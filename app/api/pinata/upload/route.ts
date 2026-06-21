@@ -47,6 +47,19 @@ export async function POST(request: Request) {
     );
   }
 
+  const allowedTypes = [
+  "application/pdf",
+  "image/png",
+  "image/jpeg",
+];
+
+if (!allowedTypes.includes(file.type)) {
+  return NextResponse.json(
+    { error: "Only PDF, PNG and JPG files are allowed." },
+    { status: 400 },
+  );
+}
+
   if (!isValidDealId(dealId)) {
     logApiSecurityEvent("invalid_upload_deal_id", request);
     return NextResponse.json(
