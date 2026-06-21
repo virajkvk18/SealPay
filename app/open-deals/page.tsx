@@ -1,22 +1,81 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { ArrowLeft, BriefcaseBusiness, Clock3, Coins } from "lucide-react";
 import ApplyDealButton from "@/components/ApplyDealButton";
 import DealStatusTracker from "@/components/DealStatusTracker";
 import Navbar from "@/components/Navbar";
 import RoleGuard from "@/components/RoleGuard";
 import StatusBadge from "@/components/StatusBadge";
+import {
+  attachApplicationsToDeals,
+  getApplicationsForDeals,
+  mapSupabaseDeal,
+} from "@/lib/deals";
+import type { Deal } from "@/lib/mockData";
 import { useSealPay } from "@/lib/store";
+import { supabase } from "@/lib/supabase";
 import { formatAmount, formatDate, formatWallet } from "@/lib/utils";
 import { useWallet } from "@/lib/wallet";
 
 export default function OpenDealsPage() {
   const { deals } = useSealPay();
   const { address } = useWallet();
-  const openDeals = deals.filter(
+  const [remoteDeals, setRemoteDeals] = useState<Deal[] | null>(null);
+  const fallbackOpenDeals = deals.filter(
     (deal) => deal.dealKind === "Public" && deal.status === "Created",
   );
+  const openDeals = remoteDeals ?? fallbackOpenDeals;
+
+  useEffect(() => {
+    const supabaseClient = supabase;
+    if (!supabaseClient) return;
+    const client = supabaseClient;
+    let cancelled = false;
+
+    async function loadOpenDeals() {
+      const { data, error } = await client
+        .from("deals")
+        .select("*")
+        .eq("deal_kind", "Public")
+        .eq("status", "Created")
+        .order("deadline", { ascending: true });
+
+      if (cancelled || error) return;
+
+      const mappedDeals = (data ?? []).map((row) => mapSupabaseDeal(row));
+      const applications = await getApplicationsForDeals(
+        mappedDeals.map((deal) => deal.id),
+      );
+
+      if (!cancelled) {
+        setRemoteDeals(attachApplicationsToDeals(mappedDeals, applications));
+      }
+    }
+
+    void loadOpenDeals();
+
+    const channel = client
+      .channel("open-deals-marketplace")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "deals" },
+        () => void loadOpenDeals(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "applications" },
+        () => void loadOpenDeals(),
+      )
+      .subscribe();
+
+    return () => {
+      cancelled = true;
+      void client.removeChannel(channel);
+    };
+  }, []);
+
   return (
     <RoleGuard allow={["freelancer"]}>
       <main className="dashboard-shell min-h-screen">

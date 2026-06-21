@@ -51,7 +51,7 @@ export default function Navbar() {
   const router = useRouter();
   const mode = useDashboardMode();
   const wallet = useDashboardWallet();
-  const { disconnect } = useWallet();
+  const { connect, disconnect, isConnecting } = useWallet();
   const isLanding = pathname === "/";
   const isPublicNav = isLanding || !mode;
   const items = isPublicNav
@@ -108,10 +108,16 @@ export default function Navbar() {
             <span className="hidden rounded-full border border-violet-300/20 bg-violet-400/10 px-3 py-2 text-xs font-black text-violet-200 sm:inline">
               {mode === "freelancer" ? "Freelancer Mode" : "Client Mode"}
             </span>
-            <span className="hidden items-center gap-2 rounded-full border border-cyan-300/15 bg-cyan-300/5 px-3 py-2 font-mono text-xs text-cyan-100 md:flex">
+            <button
+              type="button"
+              onClick={() => void connect()}
+              disabled={isConnecting}
+              className="hidden items-center gap-2 rounded-full border border-cyan-300/15 bg-cyan-300/5 px-3 py-2 font-mono text-xs text-cyan-100 transition hover:border-cyan-200/40 hover:bg-cyan-300/10 disabled:cursor-wait disabled:opacity-70 md:flex"
+              title="Open MetaMask"
+            >
               <Wallet className="size-3.5" />
-              {formatWallet(wallet)}
-            </span>
+              {isConnecting ? "Connecting..." : formatWallet(wallet)}
+            </button>
             <button
               type="button"
               onClick={logout}

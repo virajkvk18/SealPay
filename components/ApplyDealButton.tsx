@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { Send, X } from "lucide-react";
 import Toast from "@/components/Toast";
+import { createApplication } from "@/lib/deals";
 import type { Deal } from "@/lib/mockData";
 import { useSealPay } from "@/lib/store";
 import { formatWallet, makeTimelineEvent } from "@/lib/utils";
@@ -29,32 +30,44 @@ export default function ApplyDealButton({
     deal.dealKind === "Public" &&
     deal.status === "Created";
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
+    const coverLetter = String(form.get("coverLetter") ?? "");
+    const proposedPrice = Number(form.get("proposedPrice") ?? deal.amount);
     setIsSubmitting(true);
     setError("");
     try {
+      const remoteApplication = await createApplication({
+        dealId: deal.id,
+        freelancerWallet: wallet,
+        coverLetter,
+        proposedPrice,
+      });
+      const application = remoteApplication ?? {
+        id: crypto.randomUUID(),
+        freelancerWallet: wallet,
+        proposal: coverLetter,
+        estimatedDelivery: "Not specified",
+        proposedPrice,
+        status: "pending" as const,
+        createdAt: new Date().toISOString(),
+      };
+
       updateDeal(deal.id, (current) => ({
         ...current,
         applications: [
           ...(current.applications ?? []),
           {
-            id: crypto.randomUUID(),
+            ...application,
             freelancerName: formatWallet(wallet),
-            freelancerWallet: wallet,
-            proposal: String(form.get("proposal") ?? ""),
-            estimatedDelivery: String(form.get("delivery") ?? ""),
-            note: String(form.get("note") ?? ""),
-            status: "pending",
-            createdAt: new Date().toISOString(),
           },
         ],
         timeline: [
           ...current.timeline,
           makeTimelineEvent({
             title: "Application received",
-            description: `A freelancer applied with an estimated delivery of ${String(form.get("delivery"))}.`,
+            description: `A freelancer applied with a proposed price of ${proposedPrice} POL.`,
             status: current.status,
             actor: "Freelancer",
           }),
@@ -62,8 +75,12 @@ export default function ApplyDealButton({
       }));
       setMessage("Application submitted successfully.");
       setOpen(false);
-    } catch {
-      setError("Application could not be submitted. Please try again.");
+    } catch (submitError) {
+      setError(
+        submitError instanceof Error
+          ? submitError.message
+          : "Application could not be submitted. Please try again.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -109,30 +126,26 @@ export default function ApplyDealButton({
               </button>
             </div>
             <label className="mt-6 block text-sm font-bold">
-              Proposal message
+              Cover letter
               <textarea
                 required
-                name="proposal"
+                name="coverLetter"
                 rows={4}
                 className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-white outline-none focus:border-cyan-300"
                 placeholder="Explain how you will deliver this work."
               />
             </label>
             <label className="mt-4 block text-sm font-bold">
-              Estimated delivery time
+              Proposed price (POL)
               <input
                 required
-                name="delivery"
+                name="proposedPrice"
+                type="number"
+                min="0.001"
+                step="0.001"
+                defaultValue={deal.amount}
                 className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-white outline-none focus:border-cyan-300"
-                placeholder="For example, 5 business days"
-              />
-            </label>
-            <label className="mt-4 block text-sm font-bold">
-              Optional note
-              <textarea
-                name="note"
-                rows={2}
-                className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-white outline-none focus:border-cyan-300"
+                placeholder="0.001"
               />
             </label>
             {error ? (
