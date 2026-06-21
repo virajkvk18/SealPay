@@ -72,6 +72,22 @@ function normalizeDealStatus(
   return dealKind === "Public" || !freelancerWallet ? "Created" : "Assigned";
 }
 
+export function toSupabaseDealStatus(status: Deal["status"]) {
+  const values: Record<Deal["status"], string> = {
+    Created: "open",
+    Assigned: "assigned",
+    Locked: "payment_locked",
+    "Payment Locked": "payment_locked",
+    "Work Submitted": "work_submitted",
+    Approved: "approved",
+    "Payment Released": "payment_released",
+    Disputed: "disputed",
+    Resolved: "resolved",
+  };
+
+  return values[status];
+}
+
 async function getProfileIdForWallet(wallet: string) {
   if (!supabase) return "";
 
@@ -251,7 +267,6 @@ export async function getFreelancerDirectDeals(freelancerWallet: string) {
   const { data, error } = await supabase
     .from("deals")
     .select("*")
-    .eq("deal_kind", "direct")
     .eq("freelancer_wallet", freelancerWallet.trim().toLowerCase())
     .order("created_at", { ascending: false });
 
@@ -327,6 +342,9 @@ export async function createDeal(deal: Record<string, unknown>) {
 export async function updateDeal(id: string, updates: Partial<Deal>) {
   if (!supabase) return [];
   const payload = { ...updates } as Record<string, unknown>;
+  if (updates.status) {
+    payload.status = toSupabaseDealStatus(updates.status);
+  }
 
   for (let attempt = 0; attempt < optionalDealColumns.size + 1; attempt += 1) {
     const { data, error } = await supabase

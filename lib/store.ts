@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useSyncExternalStore } from "react";
 import type { Deal, Role } from "@/lib/mockData";
 import { initialDeals, roles } from "@/lib/mockData";
+import { toSupabaseDealStatus } from "@/lib/deals";
 import { supabase } from "@/lib/supabase";
 
 const dealsKey = "sealpay-deals-v1";
@@ -56,7 +57,7 @@ function syncDeal(deal: Deal) {
   if (!supabase) return;
 
   const payload: Record<string, unknown> = {
-    status: deal.status,
+    status: toSupabaseDealStatus(deal.status),
     freelancer_wallet: deal.freelancerWallet,
     selected_freelancer_wallet: deal.selectedFreelancerWallet ?? null,
     applications: deal.applications ?? [],
