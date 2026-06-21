@@ -168,9 +168,9 @@ export default function CreateDealForm({
       ],
     };
 
-    let finalDeal = deal;
     try {
-      const remoteRows = await createDeal({
+      await createDeal({
+        id: deal.id,
         title: deal.title,
         description: deal.description,
         client_name: deal.clientName,
@@ -195,19 +195,15 @@ export default function CreateDealForm({
         ai_dispute_summary: null,
         resolution: null,
       });
-      const remoteId = remoteRows?.[0]?.id;
-      if (remoteId) {
-        finalDeal = { ...deal, id: String(remoteId) };
-      }
     } catch (error) {
       console.error(
         "Remote deal save failed; retaining wallet-local record.",
         error,
       );
     }
-    addDeal(finalDeal);
+    addDeal(deal);
     setSuccessMessage("Deal created successfully.");
-    window.setTimeout(() => router.push(`/deal/${finalDeal.id}`), 700);
+    window.setTimeout(() => router.push(`/deal/${id}`), 700);
   }
 
   return (

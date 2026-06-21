@@ -24,11 +24,6 @@ import ApplicationsList from "@/components/ApplicationsList";
 import StatusBadge from "@/components/StatusBadge";
 import { generateSealTrustScore } from "@/lib/aiEngine";
 import { useDashboardMode } from "@/lib/dashboardMode";
-import {
-  attachApplicationsToDeals,
-  getApplicationsForDeals,
-  mapSupabaseDeal,
-} from "@/lib/deals";
 import type { Deal } from "@/lib/mockData";
 import { useSealPay } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
@@ -39,6 +34,63 @@ import {
   formatDateTime,
   formatWallet,
 } from "@/lib/utils";
+
+type SupabaseDeal = Record<string, unknown>;
+
+function mapSupabaseDeal(row: SupabaseDeal): Deal {
+  const risk = row.risk;
+
+  return {
+    id: String(row.id ?? ""),
+    title: String(row.title ?? "Untitled deal"),
+    description: String(row.description ?? "No description provided."),
+    clientName: String(row.client_name ?? "Client"),
+    freelancerName: String(row.freelancer_name ?? "Unassigned"),
+    clientWallet: String(row.client_wallet ?? ""),
+    freelancerWallet: String(row.freelancer_wallet ?? ""),
+    dealKind:
+      (row.deal_kind as Deal["dealKind"]) ??
+      (row.freelancer_wallet ? "Direct" : "Public"),
+    category: row.category
+      ? String(row.category)
+      : row.deliverable_type
+        ? String(row.deliverable_type)
+        : undefined,
+    selectedFreelancerWallet: row.selected_freelancer_wallet
+      ? String(row.selected_freelancer_wallet)
+      : undefined,
+    applications: Array.isArray(row.applications)
+      ? (row.applications as Deal["applications"])
+      : [],
+    amount: Number(row.amount ?? 0),
+    deadline: String(row.deadline ?? new Date().toISOString()),
+    deliverableType:
+      (row.deliverable_type as Deal["deliverableType"]) ?? "Other",
+    status: (row.status as Deal["status"]) ?? "Created",
+    risk:
+      risk && typeof risk === "object"
+        ? (risk as Deal["risk"])
+        : { score: 0, level: "Low Risk", reasons: ["Risk review pending."] },
+    createdTxHash: String(row.created_tx_hash ?? ""),
+    timeline: Array.isArray(row.timeline)
+      ? (row.timeline as Deal["timeline"])
+      : [],
+    previewUrl: row.preview_url ? String(row.preview_url) : undefined,
+    finalFileName: row.final_file_name
+      ? String(row.final_file_name)
+      : undefined,
+    proof: row.proof as Deal["proof"],
+    aiProofReview: row.ai_proof_review as Deal["aiProofReview"],
+    disputeReason: row.dispute_reason ? String(row.dispute_reason) : undefined,
+    disputeEvidence: row.dispute_evidence
+      ? String(row.dispute_evidence)
+      : undefined,
+    aiDisputeSummary: row.ai_dispute_summary
+      ? String(row.ai_dispute_summary)
+      : undefined,
+    resolution: row.resolution as Deal["resolution"],
+  };
+}
 
 function MetricCard({
   label,
@@ -178,56 +230,25 @@ export default function DashboardPage() {
   }, [localDeals, remoteDeals]);
 
   useEffect(() => {
-    const supabaseClient = supabase;
-    if (!supabaseClient || !/^0x[a-fA-F0-9]{40}$/.test(address)) return;
-    const client = supabaseClient;
+    const client = supabase;
+    if (!client || !/^0x[a-fA-F0-9]{40}$/.test(address)) return;
     let cancelled = false;
     const wallet = address.toLowerCase();
 
-    async function loadDashboardDeals() {
-      const { data, error } = await client
-        .from("deals")
-        .select("*")
-        .order("deadline", { ascending: true });
-
-      if (cancelled || error) return;
-
-      const mappedDeals = (data ?? [])
-        .map((row) => mapSupabaseDeal(row))
-        .filter(
-          (deal) =>
-            deal.clientWallet.toLowerCase() === wallet ||
-            deal.freelancerWallet.toLowerCase() === wallet ||
-            (deal.dealKind === "Public" && deal.status === "Created"),
-        );
-      const applications = await getApplicationsForDeals(
-        mappedDeals.map((deal) => deal.id),
-      );
-
-      if (!cancelled) {
-        setRemoteDeals(attachApplicationsToDeals(mappedDeals, applications));
-      }
-    }
-
-    void loadDashboardDeals();
-
-    const channel = client
-      .channel(`dashboard-marketplace-${wallet}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "deals" },
-        () => void loadDashboardDeals(),
+    void client
+      .from("deals")
+      .select("*")
+      .or(
+        `client_wallet.ilike.${wallet},freelancer_wallet.ilike.${wallet},and(deal_kind.eq.Public,status.eq.Created)`,
       )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "applications" },
-        () => void loadDashboardDeals(),
-      )
-      .subscribe();
+      .then(({ data, error }) => {
+        if (!cancelled && !error && data?.length) {
+          setRemoteDeals(data.map((row) => mapSupabaseDeal(row)));
+        }
+      });
 
     return () => {
       cancelled = true;
-      void client.removeChannel(channel);
     };
   }, [address]);
 

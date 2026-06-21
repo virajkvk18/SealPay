@@ -78,20 +78,14 @@ function getActionHelper(deal: Deal, activeRole: DealViewerRole) {
   }
 
   if (activeRole === "Client") {
-    if (deal.status === "Created" && !deal.freelancerWallet)
-      return "Select a freelancer before locking payment.";
-    if (deal.status === "Created" || deal.status === "Assigned")
+    if (deal.status === "Created")
       return "Lock payment first so the freelancer can submit work.";
-    if (deal.status === "Payment Locked")
-      return "Waiting for the freelancer to submit proof.";
     if (deal.status !== "Work Submitted")
       return "Submit proof before client can approve.";
     return "Review the proof and AI notes before approving release.";
   }
 
   if (activeRole === "Freelancer") {
-    if (deal.status === "Assigned")
-      return "Client must lock payment before you can submit proof.";
     if (deal.status !== "Payment Locked")
       return "Lock payment first before freelancer can submit work.";
     return "Submit proof with a note, file name, and preview URL for AI-assisted review.";
@@ -962,7 +956,7 @@ export default function DealDetailsPage() {
                       <LockKeyhole className="size-4" />
                       {isLockingPayment ? "Locking..." : "Lock Payment"}
                     </button>
-                    {lockPaymentError && canLockPayment ? (
+                    {lockPaymentError && deal.status === "Created" ? (
                       <div className="rounded-2xl border border-red-300/30 bg-red-400/10 p-3">
                         <p className="text-sm font-bold leading-6 text-red-100">
                           {lockPaymentError}

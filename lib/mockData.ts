@@ -16,7 +16,6 @@ export interface DealApplication {
   freelancerWallet: string;
   proposal: string;
   estimatedDelivery: string;
-  proposedPrice?: number;
   note?: string;
   trustScore?: number;
   status: ApplicationStatus;
