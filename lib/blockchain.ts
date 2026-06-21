@@ -1,6 +1,16 @@
-import { isAddress, parseEther, type ContractTransactionReceipt } from "ethers";
+import {
+  isAddress,
+  parseEther,
+  parseUnits,
+  type ContractTransactionReceipt,
+} from "ethers";
 import { getContract } from "@/lib/contract";
 import { switchToAmoy } from "@/lib/wallet";
+
+const AMOY_GAS_OVERRIDES = {
+  maxPriorityFeePerGas: parseUnits("30", "gwei"),
+  maxFeePerGas: parseUnits("40", "gwei"),
+};
 
 export type TransactionPhaseHandler = (
   phase: "wallet" | "submitted",
@@ -42,6 +52,7 @@ export async function lockPayment(
   onPhase?.("wallet");
   const tx = await contract.createDeal(freelancerAddress, {
     value: parseEther(numericAmount),
+    ...AMOY_GAS_OVERRIDES,
   });
   onPhase?.("submitted", tx.hash);
   const receipt = await tx.wait();
@@ -68,7 +79,11 @@ export async function submitProofCID(
 
   const contract = await getContract();
   onPhase?.("wallet");
-  const tx = await contract.submitWork(BigInt(dealId), normalizedCid);
+  const tx = await contract.submitWork(
+    BigInt(dealId),
+    normalizedCid,
+    AMOY_GAS_OVERRIDES,
+  );
   onPhase?.("submitted", tx.hash);
   const receipt = await tx.wait();
 
@@ -86,7 +101,7 @@ export async function approveWork(
 
   const contract = await getContract();
   onPhase?.("wallet");
-  const tx = await contract.approveWork(BigInt(dealId));
+  const tx = await contract.approveWork(BigInt(dealId), AMOY_GAS_OVERRIDES);
   onPhase?.("submitted", tx.hash);
   const receipt = await tx.wait();
 

@@ -57,7 +57,7 @@ function syncDeal(deal: Deal) {
     })
     .eq("id", deal.id)
     .then(({ error }) => {
-      if (error) console.error("Deal sync failed", error);
+      if (error) console.warn("Deal sync failed", error);
     });
 }
 
