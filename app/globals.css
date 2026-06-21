@@ -24,7 +24,12 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  font-synthesis: none;
+  line-height: 1.5;
   overflow-x: hidden;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 * {
@@ -49,6 +54,16 @@ input,
 textarea,
 select {
   outline-color: #8b5cf6;
+}
+
+button:not(:disabled),
+a[href] {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 3px solid rgba(139, 92, 246, 0.42);
+  outline-offset: 3px;
 }
 
 ::selection {
@@ -1585,6 +1600,7 @@ html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.lan
 }
 
 html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) .glass-panel,
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) .glass-panel-dark,
 html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) .soft-panel,
 html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) .dashboard-panel,
 html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) .dashboard-action-card {
@@ -1758,4 +1774,130 @@ html[data-theme="light"] .navbar-shell .theme-toggle-button:hover {
     rgba(221, 214, 254, 0.7)
   ) !important;
   color: #4c1d95 !important;
+}
+
+html[data-theme="light"] .landing-professional > header .navbar-shell .primary-button {
+  border-color: rgba(109, 40, 217, 0.28) !important;
+  background: linear-gradient(
+    145deg,
+    rgba(237, 233, 254, 0.92),
+    rgba(221, 214, 254, 0.72)
+  ) !important;
+  color: #3b0764 !important;
+}
+
+.navbar-shell :is(.primary-button, .secondary-button, .freelancer-cta):disabled {
+  opacity: 0.72;
+}
+
+html[data-theme="light"] .navbar-shell :is(.primary-button, .secondary-button, .freelancer-cta):disabled {
+  color: #4c1d95 !important;
+}
+
+/* Complete light-theme contrast layer for application pages. */
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class~="text-white"],
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class*="text-slate-50"],
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class*="text-slate-100"],
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class*="text-slate-200"] {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class*="text-slate-300"],
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class*="text-slate-400"],
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class*="text-slate-500"],
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class*="text-slate-600"],
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class*="text-slate-700"] {
+  color: #52647c !important;
+}
+
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class*="text-emerald-"],
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class*="text-green-"] {
+  color: #047857 !important;
+}
+
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class*="text-amber-"] {
+  color: #92400e !important;
+}
+
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class*="text-rose-"] {
+  color: #be123c !important;
+}
+
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) :is(
+    [class~="bg-[#1c1230]"],
+    [class~="bg-[#1e1233]"],
+    [class~="bg-[#201438]"],
+    [class~="bg-[#241642]"]
+  ) {
+  border-color: #e2e8f0 !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+}
+
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class*="bg-white/["] {
+  border-color: #e2e8f0 !important;
+  background: rgba(248, 250, 252, 0.92) !important;
+}
+
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) :is(
+    .glass-panel,
+    .glass-panel-dark,
+    .soft-panel,
+    .dashboard-panel,
+    [class~="bg-[#1c1230]"],
+    [class~="bg-[#1e1233]"],
+    [class~="bg-[#201438]"],
+    [class~="bg-[#241642]"]
+  ) :is([class*="bg-white/"], [class*="bg-black/"]) {
+  border-color: #e2e8f0 !important;
+  background: rgba(248, 250, 252, 0.92) !important;
+}
+
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) :is(
+    .primary-button,
+    [class~="bg-black"],
+    [class~="bg-[#7c3aed]"]
+  ) {
+  color: #ffffff !important;
+}
+
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) :is(
+    input,
+    textarea,
+    select
+  ):not(.input-field) {
+  color: #0f172a;
+}
+
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) :is(
+    input,
+    textarea
+  )::placeholder {
+  color: #718096;
+}
+
+:is(.page-shell, .dashboard-shell, .web3-shell) section[id] {
+  scroll-margin-top: 7rem;
+}
+
+:is(.dashboard-panel, .dashboard-action-card, .glass-panel, .soft-panel) p {
+  text-wrap: pretty;
+}
+
+:is(.page-shell, .dashboard-shell, .web3-shell) :is(h1, h2, h3) {
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+@media (max-width: 639px) {
+  .dashboard-shell > section,
+  .page-shell > section,
+  .web3-shell:not(.landing-professional) > section {
+    padding-inline: 1rem;
+  }
+
+  :is(.dashboard-panel, .dashboard-action-card, .glass-panel, .soft-panel) {
+    border-radius: 1.25rem;
+  }
 }
