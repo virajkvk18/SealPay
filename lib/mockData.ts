@@ -12,6 +12,7 @@ export type ApplicationStatus = "pending" | "selected" | "rejected";
 
 export interface DealApplication {
   id: string;
+  freelancerName?: string;
   freelancerWallet: string;
   proposal: string;
   estimatedDelivery: string;

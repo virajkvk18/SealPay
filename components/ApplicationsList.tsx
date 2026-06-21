@@ -34,12 +34,16 @@ export default function ApplicationsList({
   }
   function confirm() {
     if (!selection) return;
+    const selectedFreelancerName =
+      selection.application.freelancerName ??
+      formatWallet(selection.application.freelancerWallet);
+
     try {
       updateDeal(selection.deal.id, (current) => ({
         ...current,
         freelancerWallet: selection.application.freelancerWallet,
         selectedFreelancerWallet: selection.application.freelancerWallet,
-        freelancerName: formatWallet(selection.application.freelancerWallet),
+        freelancerName: selectedFreelancerName,
         status: "Assigned",
         applications: current.applications?.map((item) => ({
           ...item,
@@ -50,7 +54,7 @@ export default function ApplicationsList({
           ...current.timeline,
           makeTimelineEvent({
             title: "Freelancer selected",
-            description: `Client assigned the deal to ${formatWallet(selection.application.freelancerWallet)}.`,
+            description: `Client assigned the deal to ${selectedFreelancerName}.`,
             status: "Assigned",
             actor: "Client",
           }),

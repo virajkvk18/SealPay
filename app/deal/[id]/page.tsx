@@ -241,6 +241,12 @@ export default function DealDetailsPage() {
           : arbitratorWallet && arbitratorWallet === normalizedWallet
             ? "Admin/Judge"
             : "Public Viewer";
+  const hasSelectedFreelancer = Boolean(deal?.freelancerWallet);
+  const canLockPayment = Boolean(
+    deal &&
+      hasSelectedFreelancer &&
+      (["Created", "Assigned"] as Deal["status"][]).includes(deal.status),
+  );
 
   useEffect(() => {
     if (
@@ -290,6 +296,11 @@ export default function DealDetailsPage() {
 
   async function handleLockPayment() {
     if (!deal) return;
+
+    if (!deal.freelancerWallet) {
+      setLockPaymentError("Select a freelancer before locking payment.");
+      return;
+    }
 
     if (!process.env.NEXT_PUBLIC_CONTRACT_ADDRESS) {
       setLockPaymentError(
@@ -931,10 +942,15 @@ export default function DealDetailsPage() {
               <div className="mt-5 grid gap-3">
                 {activeRole === "Client" ? (
                   <>
+                    {!hasSelectedFreelancer ? (
+                      <p className="rounded-2xl border border-white/10 bg-white/10 p-3 text-sm leading-6 text-white/70">
+                        Select a freelancer before locking payment.
+                      </p>
+                    ) : null}
                     <button
                       type="button"
                       onClick={handleLockPayment}
-                      disabled={deal.status !== "Created" || isLockingPayment}
+                      disabled={!canLockPayment || isLockingPayment}
                       className="primary-button"
                     >
                       <LockKeyhole className="size-4" />

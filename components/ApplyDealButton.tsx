@@ -5,7 +5,7 @@ import { Send, X } from "lucide-react";
 import Toast from "@/components/Toast";
 import type { Deal } from "@/lib/mockData";
 import { useSealPay } from "@/lib/store";
-import { makeTimelineEvent } from "@/lib/utils";
+import { formatWallet, makeTimelineEvent } from "@/lib/utils";
 import { useDashboardMode } from "@/lib/dashboardMode";
 
 export default function ApplyDealButton({
@@ -41,6 +41,7 @@ export default function ApplyDealButton({
           ...(current.applications ?? []),
           {
             id: crypto.randomUUID(),
+            freelancerName: formatWallet(wallet),
             freelancerWallet: wallet,
             proposal: String(form.get("proposal") ?? ""),
             estimatedDelivery: String(form.get("delivery") ?? ""),
