@@ -129,17 +129,27 @@ select {
 
 .navbar-link {
   display: inline-flex;
-  min-height: 2.5rem;
+  min-height: 2.25rem;
   align-items: center;
   justify-content: center;
-  border: 1px solid transparent;
-  border-radius: 0.75rem;
-  padding: 0.625rem 0.875rem;
+  border: 1px solid rgba(196, 181, 253, 0.14);
+  border-radius: 0.65rem;
+  padding: 0.5rem 0.7rem;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.075),
+    rgba(167, 139, 250, 0.035)
+  );
   color: #cbd5e1;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
   line-height: 1;
   white-space: nowrap;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 4px 14px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   transition:
     transform 160ms ease,
     border-color 160ms ease,
@@ -149,17 +159,59 @@ select {
 }
 
 .navbar-link:hover {
-  border-color: rgba(196, 181, 253, 0.24);
-  background: rgba(167, 139, 250, 0.1);
+  border-color: rgba(196, 181, 253, 0.32);
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.11),
+    rgba(167, 139, 250, 0.1)
+  );
   color: #ffffff;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 7px 20px rgba(0, 0, 0, 0.14);
   transform: translateY(-1px);
 }
 
 .navbar-link-active {
-  border-color: rgba(196, 181, 253, 0.28);
-  background: rgba(167, 139, 250, 0.14);
+  border-color: rgba(196, 181, 253, 0.38);
+  background: linear-gradient(
+    145deg,
+    rgba(167, 139, 250, 0.2),
+    rgba(109, 40, 217, 0.12)
+  );
   color: #ede9fe;
+}
+
+.navbar-shell :is(.primary-button, .secondary-button, .freelancer-cta) {
+  min-height: 2.25rem;
+  border: 1px solid rgba(196, 181, 253, 0.22) !important;
+  border-radius: 0.65rem;
+  padding: 0.5rem 0.75rem;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.1),
+    rgba(167, 139, 250, 0.06)
+  ) !important;
+  color: #f5f3ff !important;
+  font-size: 0.7rem;
+  line-height: 1;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 5px 16px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.navbar-shell :is(.primary-button, .secondary-button, .freelancer-cta):hover {
+  border-color: rgba(196, 181, 253, 0.42) !important;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.14),
+    rgba(167, 139, 250, 0.13)
+  ) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.11),
+    0 8px 22px rgba(0, 0, 0, 0.14);
 }
 
 .landing-section {
@@ -1300,15 +1352,23 @@ select {
 
 .theme-toggle-button {
   display: inline-flex;
-  min-height: 2.5rem;
-  min-width: 2.5rem;
+  min-height: 2.25rem;
+  min-width: 2.25rem;
   align-items: center;
   justify-content: center;
   border: 1px solid rgba(196, 181, 253, 0.2);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.1),
+    rgba(167, 139, 250, 0.05)
+  );
   color: #f8fafc;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 5px 16px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   transition:
     transform 160ms ease,
     border-color 160ms ease,
@@ -1646,4 +1706,56 @@ html[data-theme="light"] .input-field option {
   .landing-professional .landing-final-action button {
     width: 100%;
   }
+}
+
+/* Keep compact navbar controls consistent after page and theme overrides. */
+.landing-professional > header .navbar-link,
+.landing-professional > header .navbar-shell :is(.primary-button, .secondary-button, .freelancer-cta),
+.navbar-shell .theme-toggle-button {
+  border-color: rgba(196, 181, 253, 0.2) !important;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.1),
+    rgba(167, 139, 250, 0.055)
+  ) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.landing-professional > header .navbar-link:hover,
+.landing-professional > header .navbar-shell :is(.primary-button, .secondary-button, .freelancer-cta):hover,
+.navbar-shell .theme-toggle-button:hover {
+  border-color: rgba(196, 181, 253, 0.42) !important;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.15),
+    rgba(167, 139, 250, 0.13)
+  ) !important;
+}
+
+html[data-theme="light"] .navbar-link,
+html[data-theme="light"] .navbar-shell :is(.primary-button, .secondary-button, .freelancer-cta),
+html[data-theme="light"] .navbar-shell .theme-toggle-button {
+  border-color: rgba(124, 58, 237, 0.16) !important;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.78),
+    rgba(237, 233, 254, 0.5)
+  ) !important;
+  color: #5b21b6 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 5px 16px rgba(76, 29, 149, 0.07);
+}
+
+html[data-theme="light"] .navbar-link:hover,
+html[data-theme="light"] .navbar-shell :is(.primary-button, .secondary-button, .freelancer-cta):hover,
+html[data-theme="light"] .navbar-shell .theme-toggle-button:hover {
+  border-color: rgba(124, 58, 237, 0.3) !important;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.92),
+    rgba(221, 214, 254, 0.7)
+  ) !important;
+  color: #4c1d95 !important;
 }
