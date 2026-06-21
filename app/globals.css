@@ -1918,14 +1918,20 @@ html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.lan
 
 .landing-professional .hero-video-overlay {
   background:
+    radial-gradient(
+      circle at 22% 45%,
+      rgba(0, 0, 0, 0.78) 0%,
+      rgba(0, 0, 0, 0.52) 32%,
+      rgba(0, 0, 0, 0.18) 55%,
+      transparent 78%
+    ),
     linear-gradient(
       90deg,
-      rgba(15, 23, 42, 0.24) 0%,
-      rgba(15, 23, 42, 0.14) 34%,
-      rgba(15, 23, 42, 0.06) 62%,
+      rgba(0, 0, 0, 0.55) 0%,
+      rgba(0, 0, 0, 0.26) 34%,
+      rgba(0, 0, 0, 0.08) 58%,
       transparent 100%
-    ),
-    linear-gradient(180deg, rgba(15, 23, 42, 0.08) 0%, rgba(15, 23, 42, 0.12) 100%);
+    );
 }
 
 .landing-professional .hero-video-content {
@@ -1989,6 +1995,22 @@ html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.lan
 
   .landing-professional .hero-background-video {
     object-position: 62% center;
+  }
+
+  .landing-professional .hero-video-overlay {
+    background:
+      radial-gradient(
+        circle at 50% 36%,
+        rgba(0, 0, 0, 0.62) 0%,
+        rgba(0, 0, 0, 0.36) 38%,
+        transparent 76%
+      ),
+      linear-gradient(
+        180deg,
+        rgba(0, 0, 0, 0.65) 0%,
+        rgba(0, 0, 0, 0.35) 42%,
+        rgba(0, 0, 0, 0.1) 100%
+      );
   }
 
   .landing-professional .hero-copy-panel {
