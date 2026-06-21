@@ -4,10 +4,11 @@ import {
   createContext,
   createElement,
   ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
-  useState,
+  useSyncExternalStore,
 } from "react";
 
 type ThemeMode = "dark" | "light";
@@ -19,8 +20,9 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 const THEME_STORAGE_KEY = "sealpay-theme";
+const themeListeners = new Set<() => void>();
 
-function getStoredTheme(): ThemeMode {
+function getThemeSnapshot(): ThemeMode {
   if (typeof window === "undefined") {
     return "dark";
   }
@@ -28,21 +30,54 @@ function getStoredTheme(): ThemeMode {
   return localStorage.getItem(THEME_STORAGE_KEY) === "light" ? "light" : "dark";
 }
 
+function getServerThemeSnapshot(): ThemeMode {
+  return "dark";
+}
+
+function subscribeToTheme(listener: () => void) {
+  themeListeners.add(listener);
+
+  function handleStorage(event: StorageEvent) {
+    if (event.key === THEME_STORAGE_KEY) {
+      listener();
+    }
+  }
+
+  window.addEventListener("storage", handleStorage);
+
+  return () => {
+    themeListeners.delete(listener);
+    window.removeEventListener("storage", handleStorage);
+  };
+}
+
+function setStoredTheme(theme: ThemeMode) {
+  document.documentElement.dataset.theme = theme;
+  localStorage.setItem(THEME_STORAGE_KEY, theme);
+  themeListeners.forEach((listener) => listener());
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<ThemeMode>(() => getStoredTheme());
+  const theme = useSyncExternalStore(
+    subscribeToTheme,
+    getThemeSnapshot,
+    getServerThemeSnapshot,
+  );
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
-    localStorage.setItem(THEME_STORAGE_KEY, theme);
+  }, [theme]);
+
+  const toggleTheme = useCallback(() => {
+    setStoredTheme(theme === "dark" ? "light" : "dark");
   }, [theme]);
 
   const value = useMemo(
     () => ({
       theme,
-      toggleTheme: () =>
-        setTheme((current) => (current === "dark" ? "light" : "dark")),
+      toggleTheme,
     }),
-    [theme],
+    [theme, toggleTheme],
   );
 
   return createElement(ThemeContext.Provider, { value }, children);
