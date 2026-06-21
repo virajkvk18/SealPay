@@ -52,7 +52,7 @@ function MetricCard({
   icon: ReactNode;
 }) {
   return (
-    <article className="dashboard-panel rounded-2xl p-4">
+    <article className="dashboard-panel dashboard-glass-card dashboard-metric-card rounded-2xl p-4">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">
@@ -81,7 +81,7 @@ function ActionCard({
   icon: ReactNode;
 }) {
   return (
-    <Link href={href} className="dashboard-action-card group flex min-h-24 items-center gap-3 rounded-2xl p-4">
+    <Link href={href} className="dashboard-action-card dashboard-glow-card group flex min-h-24 items-center gap-3 rounded-2xl p-4">
       <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-violet-300/10 text-violet-200">
         {icon}
       </span>
@@ -112,7 +112,7 @@ function DealList({
   submitWork?: boolean;
 }) {
   return (
-    <section className="dashboard-panel overflow-hidden rounded-[2rem]">
+    <section className="dashboard-panel dashboard-glass-card overflow-hidden rounded-[2rem]">
       <div className="border-b border-white/8 px-6 py-5">
         <h2 className="text-xl font-black text-white">{title}</h2>
         <p className="mt-1 text-xs text-slate-500">{helper}</p>
@@ -428,21 +428,29 @@ export default function DashboardPage() {
     <RoleGuard allow={["client", "freelancer"]}>
       <main className="dashboard-shell internal-workspace min-h-screen">
         <Navbar />
-        <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <div className="chain-chip inline-flex">
-                <Wallet className="size-3.5" />
-                {address ? formatWallet(address) : "Wallet not connected"}
+        <section className="dashboard-workspace mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+          <div className="dashboard-hero-panel dashboard-glass-card relative overflow-hidden rounded-[2rem] p-6 sm:p-8">
+            <div className="dashboard-rings-bg" aria-hidden="true" />
+            <div className="dashboard-strands-bg" aria-hidden="true" />
+            <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <div className="chain-chip inline-flex">
+                  <Wallet className="size-3.5" />
+                  {address ? formatWallet(address) : "Wallet not connected"}
+                </div>
+                <h1 className="brand-font mt-5 text-3xl font-black text-white sm:text-4xl">
+                  {mode === "client" ? "Client Dashboard" : "Freelancer Dashboard"}
+                </h1>
+                <p className="mt-4 max-w-2xl text-base leading-7 text-slate-400">
+                  {mode === "client"
+                    ? "Create deals, lock payment, and approve work securely."
+                    : "Find work, submit proof, and get paid securely."}
+                </p>
               </div>
-              <h1 className="brand-font mt-5 text-3xl font-black text-white sm:text-4xl">
-                {mode === "client" ? "Client Dashboard" : "Freelancer Dashboard"}
-              </h1>
-              <p className="mt-4 max-w-2xl text-base leading-7 text-slate-400">
-                {mode === "client"
-                  ? "Create deals, lock payment, and approve work securely."
-                  : "Find work, submit proof, and get paid securely."}
-              </p>
+              <div className="dashboard-role-badge">
+                <BadgeCheck className="size-4" />
+                {mode === "client" ? "Client workspace" : "Freelancer workspace"}
+              </div>
             </div>
           </div>
 
@@ -509,7 +517,7 @@ export default function DashboardPage() {
                   </div>
                   <div
                     id="submit-work"
-                    className="dashboard-panel rounded-[2rem] p-6"
+                    className="dashboard-panel dashboard-glass-card rounded-[2rem] p-6"
                   >
                     <h2 className="text-xl font-black text-white">
                       Submit Work
@@ -545,7 +553,7 @@ export default function DashboardPage() {
                 </>
               )}
             </div>
-            <aside id="timeline" className="dashboard-panel rounded-[2rem] p-6">
+            <aside id="timeline" className="dashboard-panel dashboard-glass-card dashboard-timeline-panel rounded-[2rem] p-6">
               <div className="flex items-center gap-3">
                 <span className="grid size-11 place-items-center rounded-2xl bg-emerald-400/10 text-emerald-300">
                   <Fingerprint className="size-5" />
