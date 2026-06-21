@@ -207,9 +207,11 @@ export default function DashboardPage() {
     }
 
     void loadDashboardDeals();
+    const timer = window.setInterval(() => void loadDashboardDeals(), 5000);
 
     return () => {
       cancelled = true;
+      window.clearInterval(timer);
     };
   }, [address, mode]);
 

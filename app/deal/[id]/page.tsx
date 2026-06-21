@@ -60,6 +60,49 @@ import {
   riskTone,
 } from "@/lib/utils";
 
+const statusRank: Record<Deal["status"], number> = {
+  Created: 0,
+  Assigned: 1,
+  Locked: 2,
+  "Payment Locked": 2,
+  "Work Submitted": 3,
+  Approved: 4,
+  "Payment Released": 5,
+  Disputed: 6,
+  Resolved: 7,
+};
+
+const platformFeeBps = Number(
+  process.env.NEXT_PUBLIC_PLATFORM_FEE_BPS ?? "200",
+);
+
+function getPlatformFee(amount: number) {
+  if (!Number.isFinite(platformFeeBps) || platformFeeBps <= 0) return 0;
+  return (amount * platformFeeBps) / 10000;
+}
+
+function hasFreelancerAccepted(deal: Deal) {
+  return deal.timeline.some(
+    (event) =>
+      event.actor === "Freelancer" &&
+      event.title.toLowerCase().includes("accepted"),
+  );
+}
+
+function shouldReplaceCachedDeal(sharedDeal: Deal, cachedDeal: Deal) {
+  const sharedRank = statusRank[sharedDeal.status] ?? 0;
+  const cachedRank = statusRank[cachedDeal.status] ?? 0;
+
+  if (sharedRank > cachedRank) return true;
+  if (sharedRank < cachedRank) return false;
+  if (sharedDeal.timeline.length > cachedDeal.timeline.length) return true;
+  if (sharedDeal.timeline.length < cachedDeal.timeline.length) return false;
+  if (sharedDeal.createdTxHash && !cachedDeal.createdTxHash) return true;
+  if (sharedDeal.onChainDealId && !cachedDeal.onChainDealId) return true;
+
+  return false;
+}
+
 function detailRows(deal: Deal) {
   return [
     ["Client", deal.clientName],
@@ -98,6 +141,8 @@ function getActionHelper(deal: Deal, activeRole: DealViewerRole) {
       return "Client must lock payment before you can submit proof.";
     if (!isPaymentLocked)
       return "Lock payment first before freelancer can submit work.";
+    if (!hasFreelancerAccepted(deal))
+      return "Accept the deal terms first, then submit proof.";
     return "Submit proof with a note, file name, preview URL, and IPFS CID.";
   }
 
@@ -175,6 +220,9 @@ export default function DealDetailsPage() {
   const isPaymentLocked = Boolean(
     deal && (deal.status === "Payment Locked" || deal.status === "Locked"),
   );
+  const freelancerAccepted = Boolean(deal && hasFreelancerAccepted(deal));
+  const platformFee = deal ? getPlatformFee(deal.amount) : 0;
+  const totalDue = deal ? deal.amount + platformFee : 0;
   const canLockPayment = Boolean(
     deal &&
       hasSelectedFreelancer &&
@@ -196,12 +244,7 @@ export default function DealDetailsPage() {
         );
         if (!cachedDeal) {
           addDeal(sharedDeal);
-        } else if (
-          cachedDeal.status !== sharedDeal.status ||
-          cachedDeal.createdTxHash !== sharedDeal.createdTxHash ||
-          cachedDeal.onChainDealId !== sharedDeal.onChainDealId ||
-          cachedDeal.timeline.length !== sharedDeal.timeline.length
-        ) {
+        } else if (shouldReplaceCachedDeal(sharedDeal, cachedDeal)) {
           updateDeal(sharedDeal.id, () => sharedDeal);
         }
       } catch {
@@ -212,9 +255,11 @@ export default function DealDetailsPage() {
     }
 
     void loadDeal();
+    const timer = window.setInterval(() => void loadDeal(), 5000);
 
     return () => {
       cancelled = true;
+      window.clearInterval(timer);
     };
   }, [addDeal, dealId, deals, updateDeal]);
 
@@ -322,7 +367,7 @@ export default function DealDetailsPage() {
       appendStatusEvent(
         "Payment Locked",
         "Payment locked",
-        `${formatAmount(deal.amount)} locked in smart contract escrow.`,
+        `${formatAmount(deal.amount)} locked in smart contract escrow. Platform fee ${formatAmount(platformFee)} is reserved for SealPay on release.`,
         "Client",
         result.txHash,
         result.onChainDealId,
@@ -665,11 +710,17 @@ export default function DealDetailsPage() {
                 <div className="mt-8 grid gap-4 md:grid-cols-3">
                   <div className="rounded-2xl border border-emerald-300/20 bg-emerald-300/[0.06] p-5">
                     <p className="text-sm font-bold text-emerald-800">
-                      Amount locked
+                      Escrow amount
                     </p>
                     <p className="mt-2 text-3xl font-black text-[#1e1233]">
                       {formatAmount(deal.amount)}
                     </p>
+                    {platformFee > 0 ? (
+                      <p className="mt-2 text-xs font-bold text-emerald-900/70">
+                        Client pays {formatAmount(totalDue)} total including{" "}
+                        {formatAmount(platformFee)} SealPay fee.
+                      </p>
+                    ) : null}
                   </div>
                   <div className="rounded-2xl border border-violet-300/20 bg-violet-300/[0.06] p-5">
                     <p className="text-sm font-bold text-[#6d28d9]">
@@ -998,6 +1049,7 @@ export default function DealDetailsPage() {
                         type="button"
                         onClick={() => void handleAcceptDeal()}
                         disabled={
+                          freelancerAccepted ||
                           !(
                             [
                               "Created",
@@ -1033,7 +1085,7 @@ export default function DealDetailsPage() {
                       <button
                         type="button"
                         onClick={() => setProofOpen(true)}
-                        disabled={!isPaymentLocked}
+                        disabled={!isPaymentLocked || !freelancerAccepted}
                         className="primary-button"
                       >
                         <FileUp className="size-4" />

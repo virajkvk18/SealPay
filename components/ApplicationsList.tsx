@@ -52,12 +52,17 @@ export default function ApplicationsList({
 
   useEffect(() => {
     let cancelled = false;
-    void getApplicationsForDeals(dealIds).then((rows) => {
+    async function loadApplications() {
+      const rows = await getApplicationsForDeals(dealIds);
       if (!cancelled) setRemoteApplications(rows);
-    });
+    }
+
+    void loadApplications();
+    const timer = window.setInterval(() => void loadApplications(), 5000);
 
     return () => {
       cancelled = true;
+      window.clearInterval(timer);
     };
   }, [dealIds]);
 
