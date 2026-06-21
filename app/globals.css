@@ -1224,6 +1224,298 @@ select {
   color: #f8fafc;
 }
 
+.theme-toggle-button {
+  display: inline-flex;
+  min-height: 2.5rem;
+  min-width: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(196, 181, 253, 0.2);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #f8fafc;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease;
+}
+
+.theme-toggle-button:hover {
+  border-color: rgba(196, 181, 253, 0.42);
+  background: rgba(167, 139, 250, 0.14);
+  transform: translateY(-1px);
+}
+
+html[data-theme="light"] body {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+html[data-theme="light"] .landing-professional {
+  --lp-primary: #8b5cf6;
+  --lp-primary-dark: #6d28d9;
+  --lp-tint: #f5f3ff;
+  --lp-ink: #0f172a;
+  --lp-muted: #64748b;
+  --lp-line: #e2e8f0;
+  --lp-surface: #ffffff;
+  --lp-surface-strong: #ffffff;
+  color: var(--lp-ink);
+  background:
+    radial-gradient(circle at 72% 7%, rgba(139, 92, 246, 0.09), transparent 24%),
+    #f8fafc;
+}
+
+html[data-theme="light"] .landing-professional > header {
+  border-color: var(--lp-line);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: none;
+}
+
+html[data-theme="light"] .landing-professional > header a,
+html[data-theme="light"] .landing-professional > header [class*="text-slate-"] {
+  color: #475569;
+}
+
+html[data-theme="light"] .landing-professional > header a:hover {
+  color: var(--lp-primary-dark);
+  background: var(--lp-tint);
+}
+
+html[data-theme="light"] .landing-professional [class*="text-slate-200"],
+html[data-theme="light"] .landing-professional [class*="text-slate-300"] {
+  color: #475569;
+}
+
+html[data-theme="light"] .landing-professional [class*="text-slate-400"],
+html[data-theme="light"] .landing-professional [class*="text-slate-500"],
+html[data-theme="light"] .landing-professional [class*="text-slate-600"] {
+  color: var(--lp-muted);
+}
+
+html[data-theme="light"] .landing-professional [class*="text-violet-"],
+html[data-theme="light"] .landing-professional [class*="text-rose-"] {
+  color: var(--lp-primary-dark);
+}
+
+html[data-theme="light"] .landing-professional .gradient-text {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+html[data-theme="light"] .landing-professional .chain-chip,
+html[data-theme="light"] .landing-professional .hero-signal-icon {
+  border-color: #ddd6fe;
+  background: var(--lp-tint);
+  color: var(--lp-primary-dark);
+  backdrop-filter: none;
+}
+
+html[data-theme="light"] .landing-professional .freelancer-cta,
+html[data-theme="light"] .landing-professional .secondary-button {
+  border: 1px solid var(--lp-line) !important;
+  background: #ffffff !important;
+  color: var(--lp-ink) !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+html[data-theme="light"] .landing-professional .freelancer-cta:hover,
+html[data-theme="light"] .landing-professional .secondary-button:hover {
+  border-color: #c4b5fd !important;
+  background: var(--lp-tint) !important;
+  color: var(--lp-primary-dark) !important;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.12);
+}
+
+html[data-theme="light"] .landing-professional .hero-dashboard-visual {
+  border-color: var(--lp-line);
+  filter: drop-shadow(0 18px 34px rgba(15, 23, 42, 0.12));
+}
+
+html[data-theme="light"] .landing-professional .hero-signal-card,
+html[data-theme="light"] .landing-professional .protocol-overview-grid,
+html[data-theme="light"] .landing-professional .glass-panel-dark,
+html[data-theme="light"] .landing-professional .architecture-card,
+html[data-theme="light"] .landing-professional .protocol-step-card,
+html[data-theme="light"] .landing-professional .trust-feature-card,
+html[data-theme="light"] .landing-professional .audience-panel,
+html[data-theme="light"] .landing-professional .faq-item,
+html[data-theme="light"] .landing-professional .landing-cta,
+html[data-theme="light"] .landing-professional [aria-label="SealPay benefits"] {
+  border-color: var(--lp-line);
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  backdrop-filter: none;
+}
+
+html[data-theme="light"] .landing-professional .protocol-overview-item {
+  border-color: #eef2f7;
+}
+
+html[data-theme="light"] .landing-professional .architecture-card [class*="bg-gradient"],
+html[data-theme="light"] .landing-professional .protocol-step-card [class*="bg-cyan"],
+html[data-theme="light"] .landing-professional .trust-feature-card [class*="bg-gradient"],
+html[data-theme="light"] .landing-professional .audience-panel > span,
+html[data-theme="light"] .landing-professional [class~="bg-white"],
+html[data-theme="light"] .landing-professional [class~="bg-violet-50"],
+html[data-theme="light"] .landing-professional [class~="bg-violet-100"] {
+  background: var(--lp-tint) !important;
+  color: var(--lp-primary);
+  box-shadow: inset 0 0 0 1px #ede9fe;
+}
+
+html[data-theme="light"] .landing-professional .architecture-card:hover,
+html[data-theme="light"] .landing-professional .protocol-step-card:hover,
+html[data-theme="light"] .landing-professional .trust-feature-card:hover {
+  border-color: var(--lp-primary);
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.09);
+}
+
+html[data-theme="light"] .landing-professional .protocol-ticker-item {
+  color: #475569;
+}
+
+html[data-theme="light"] .landing-professional .landing-cta {
+  background:
+    linear-gradient(135deg, rgba(245, 243, 255, 0.96), rgba(255, 255, 255, 0.98));
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.09);
+}
+
+html[data-theme="light"] .landing-professional .faq-item[open] {
+  border-color: #c4b5fd;
+  background: var(--lp-tint);
+}
+
+html[data-theme="light"] .landing-professional #proof-timeline .grid > div {
+  background: #f8fafc;
+}
+
+html[data-theme="light"] .landing-professional #proof-timeline .grid > div span {
+  background: #ede9fe;
+  color: var(--lp-primary-dark);
+}
+
+html[data-theme="light"] .landing-professional article[class*="border-amber"] {
+  background: #fffbeb;
+  color: #475569;
+}
+
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) {
+  color: #0f172a;
+  background:
+    radial-gradient(circle at 88% 3%, rgba(139, 92, 246, 0.1), transparent 24%),
+    linear-gradient(180deg, #f8fafc 0%, #f5f3ff 100%);
+}
+
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) > header {
+  border-color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+}
+
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) > header a,
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) > header [class*="text-slate-"] {
+  color: #475569;
+}
+
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) > header .brand-font span:first-child,
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) h1,
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) h2,
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) h3,
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class~="text-[#1e1233]"],
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class~="text-[#101d25]"] {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) > header .brand-font span:last-child {
+  color: #8b5cf6;
+}
+
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class~="text-[#43474b]"],
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class~="text-[#53606a]"],
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class~="text-[#74777b]"],
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class*="text-slate-400"],
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class*="text-slate-500"] {
+  color: #64748b !important;
+}
+
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class~="text-[#6d28d9]"],
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class~="text-[#7c3aed]"],
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class*="text-violet-"] {
+  color: #6d28d9 !important;
+}
+
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) .glass-panel,
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) .soft-panel,
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) .dashboard-panel,
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) .dashboard-action-card {
+  border-color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
+}
+
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class~="bg-white/70"],
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class~="bg-white/65"],
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class~="bg-white/60"],
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class~="bg-white/55"] {
+  border-color: #e2e8f0 !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+}
+
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class~="bg-white"],
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class~="bg-violet-50"],
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class~="bg-violet-100"],
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) [class~="bg-[#f2f4f6]"] {
+  background: #ffffff !important;
+}
+
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) .input-field {
+  border-color: #e2e8f0;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) .input-field::placeholder {
+  color: #94a3b8;
+}
+
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) .input-field:focus {
+  border-color: #8b5cf6;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.14);
+}
+
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) .primary-button {
+  background: #8b5cf6;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+}
+
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) .secondary-button,
+html[data-theme="light"] .theme-toggle-button {
+  border-color: #ddd6fe !important;
+  background: #f5f3ff !important;
+  color: #6d28d9 !important;
+  box-shadow: none;
+}
+
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) .dashboard-action-card:hover,
+html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.landing-professional)) .chain-chip {
+  border-color: #ddd6fe;
+  background: #f5f3ff;
+  color: #6d28d9;
+}
+
+html[data-theme="light"] .input-field option {
+  background: #ffffff;
+  color: #0f172a;
+}
+
 /* Landing-page video enhancements. */
 .landing-professional .landing-inline-video,
 .landing-professional .landing-wide-video,

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Inter, Sora } from "next/font/google";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import { WalletProvider } from "@/lib/wallet";
 import "./globals.css";
 
@@ -41,7 +42,9 @@ export default function RootLayout({
         className="min-h-full bg-[#0f0a1a] text-slate-50"
         suppressHydrationWarning
       >
-        <WalletProvider>{children}</WalletProvider>
+        <ThemeProvider>
+          <WalletProvider>{children}</WalletProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

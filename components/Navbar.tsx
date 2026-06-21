@@ -3,7 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut, Wallet } from "lucide-react";
+import { LogOut, Moon, Sun, Wallet } from "lucide-react";
+import { useTheme } from "@/components/ThemeProvider";
 import WalletIntentActions from "@/components/WalletIntentActions";
 import {
   clearDashboardSession,
@@ -52,6 +53,7 @@ export default function Navbar() {
   const mode = useDashboardMode();
   const wallet = useDashboardWallet();
   const { disconnect } = useWallet();
+  const { theme, toggleTheme } = useTheme();
   const isLanding = pathname === "/";
   const isPublicNav = isLanding || !mode;
   const items = isPublicNav
@@ -100,11 +102,39 @@ export default function Navbar() {
           ))}
         </div>
         {isLanding ? (
-          <div className="hidden shrink-0 xl:block">
-            <WalletIntentActions compact />
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="theme-toggle-button"
+              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+              title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+            >
+              {theme === "dark" ? (
+                <Sun className="size-4" />
+              ) : (
+                <Moon className="size-4" />
+              )}
+            </button>
+            <div className="hidden xl:block">
+              <WalletIntentActions compact />
+            </div>
           </div>
         ) : mode ? (
           <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="theme-toggle-button"
+              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+              title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+            >
+              {theme === "dark" ? (
+                <Sun className="size-4" />
+              ) : (
+                <Moon className="size-4" />
+              )}
+            </button>
             <span className="hidden rounded-full border border-violet-300/20 bg-violet-400/10 px-3 py-2 text-xs font-black text-violet-200 sm:inline">
               {mode === "freelancer" ? "Freelancer Mode" : "Client Mode"}
             </span>
@@ -122,12 +152,27 @@ export default function Navbar() {
             </button>
           </div>
         ) : (
-          <Link
-            href="/"
-            className="secondary-button border-white/10 bg-white/5 px-4 py-2 text-xs text-white"
-          >
-            Choose Role
-          </Link>
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="theme-toggle-button"
+              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+              title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+            >
+              {theme === "dark" ? (
+                <Sun className="size-4" />
+              ) : (
+                <Moon className="size-4" />
+              )}
+            </button>
+            <Link
+              href="/"
+              className="secondary-button border-white/10 bg-white/5 px-4 py-2 text-xs text-white"
+            >
+              Choose Role
+            </Link>
+          </div>
         )}
       </nav>
       {!isPublicNav ? (
