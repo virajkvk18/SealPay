@@ -374,6 +374,7 @@ export default function SubmitProofModal({
             </span>
             <input
               type="file"
+              accept=".pdf,.png,.jpg,.jpeg"
               className="input-field"
               onChange={(event) =>
                 setFinalDeliverable(event.target.files?.[0] ?? null)
@@ -394,6 +395,7 @@ export default function SubmitProofModal({
             <input
               required
               type="file"
+              accept=".pdf,.png,.jpg,.jpeg"
               className="input-field"
               onChange={(event) =>
                 setProofFile(event.target.files?.[0] ?? null)
