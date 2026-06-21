@@ -35,16 +35,20 @@ export default function WalletOnboardingPage() {
   return (
     <main className="web3-shell protocol-grid relative overflow-hidden">
       <header className="relative z-10 border-b border-violet-100/10 bg-black/15 backdrop-blur-2xl">
-        <nav className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8">
-          <Link href="/" className="flex items-center gap-3">
+        <nav className="navbar-shell flex min-h-20 w-full items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+          <Link href="/" className="brand-lockup flex shrink-0 items-center">
             <Image
               src="/sealpay-mark.png"
               alt="SealPay logo"
-              width={48}
-              height={48}
-              className="size-12 object-contain drop-shadow-[0_10px_24px_rgba(139,92,246,0.28)]"
+              width={52}
+              height={52}
+              className="brand-mark object-contain"
               priority
             />
+            <span className="brand-font brand-wordmark font-black">
+              <span className="text-white">Seal</span>
+              <span className="text-violet-400">Pay</span>
+            </span>
           </Link>
           <Link
             href="/"

@@ -117,8 +117,49 @@ select {
 .brand-wordmark {
   font-size: 1.55rem;
   line-height: 1;
-  letter-spacing: -0.045em;
-  word-spacing: 0.08em;
+  letter-spacing: -0.025em;
+  word-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+.navbar-shell,
+.navbar-mobile-row {
+  margin-inline: auto;
+}
+
+.navbar-link {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  color: #cbd5e1;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.navbar-link:hover {
+  border-color: rgba(196, 181, 253, 0.24);
+  background: rgba(167, 139, 250, 0.1);
+  color: #ffffff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+}
+
+.navbar-link-active {
+  border-color: rgba(196, 181, 253, 0.28);
+  background: rgba(167, 139, 250, 0.14);
+  color: #ede9fe;
 }
 
 .landing-section {
@@ -855,7 +896,6 @@ select {
 
 .landing-professional > header nav {
   min-height: 4.5rem;
-  max-width: 80rem;
 }
 
 .landing-professional > header a,

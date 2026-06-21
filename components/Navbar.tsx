@@ -70,7 +70,7 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-violet-200/10 bg-[#130d21]/92 shadow-xl shadow-black/10 backdrop-blur-2xl">
-      <nav className="mx-auto flex min-h-20 max-w-[1500px] items-center justify-between gap-5 px-4 py-3 sm:px-6 lg:px-8">
+      <nav className="navbar-shell flex min-h-20 w-full items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <Link href="/" className="brand-lockup flex shrink-0 items-center">
           <Image
             src="/sealpay-mark.png"
@@ -91,10 +91,10 @@ export default function Navbar() {
               key={`${item.href}-${item.label}`}
               href={item.href}
               className={cn(
-                "rounded-full px-3 py-2 text-xs font-semibold text-slate-300 transition hover:bg-white/6 hover:text-white",
+                "navbar-link",
                 !isLanding &&
                   pathname === item.href &&
-                  "bg-violet-300/10 text-violet-100",
+                  "navbar-link-active",
               )}
             >
               {item.label}
@@ -176,12 +176,12 @@ export default function Navbar() {
         )}
       </nav>
       {!isPublicNav ? (
-        <div className="flex gap-2 overflow-x-auto border-t border-white/5 px-4 py-2 lg:hidden">
+        <div className="navbar-mobile-row flex gap-2 overflow-x-auto border-t border-white/5 px-4 py-2 sm:px-6 lg:hidden lg:px-8">
           {items.map((item) => (
             <Link
               key={`${item.href}-${item.label}-mobile`}
               href={item.href}
-              className="shrink-0 rounded-full bg-white/5 px-3 py-1.5 text-xs font-bold text-slate-300"
+              className="navbar-link shrink-0"
             >
               {item.label}
             </Link>
