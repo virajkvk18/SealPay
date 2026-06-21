@@ -151,7 +151,7 @@ function setSecurityHeaders(response: NextResponse, request: NextRequest) {
       "object-src 'none'",
       "frame-ancestors 'none'",
       "img-src 'self' https: data: blob:",
-      "connect-src 'self' https:",
+      "connect-src 'self' https: wss:",
       "font-src 'self' data:",
       "style-src 'self' 'unsafe-inline'",
       `script-src 'self' 'unsafe-inline'${isProduction ? "" : " 'unsafe-eval'"}`,

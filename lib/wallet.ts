@@ -92,6 +92,15 @@ export async function switchToAmoy() {
 export async function connectWallet() {
   const ethereum = getEthereumProvider();
 
+  try {
+    await ethereum.request({
+      method: "wallet_requestPermissions",
+      params: [{ eth_accounts: {} }],
+    });
+  } catch {
+    // Some wallets do not support explicit permission prompts.
+  }
+
   await switchToAmoy();
 
   const accounts = (await ethereum.request({
@@ -104,6 +113,20 @@ export async function connectWallet() {
 
   saveConnectedWallet(accounts[0]);
   return accounts[0];
+}
+
+async function revokeWalletPermissions() {
+  const ethereum = typeof window === "undefined" ? undefined : window.ethereum;
+  if (!ethereum) return;
+
+  try {
+    await ethereum.request({
+      method: "wallet_revokePermissions",
+      params: [{ eth_accounts: {} }],
+    });
+  } catch {
+    // MetaMask-compatible wallets may reject or omit this method.
+  }
 }
 
 export function getBrowserProvider() {
@@ -181,6 +204,7 @@ function useWalletState() {
   }, []);
 
   const disconnect = useCallback(async () => {
+    await revokeWalletPermissions();
     clearConnectedWallet();
     setAddress("");
     setError("");
