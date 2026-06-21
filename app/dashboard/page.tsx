@@ -52,19 +52,19 @@ function MetricCard({
   icon: ReactNode;
 }) {
   return (
-    <article className="dashboard-panel rounded-3xl p-5">
+    <article className="dashboard-panel rounded-2xl p-4">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">
             {label}
           </p>
-          <p className="mt-3 text-3xl font-black text-white">{value}</p>
+          <p className="mt-2 text-2xl font-black text-white">{value}</p>
         </div>
-        <span className="grid size-11 place-items-center rounded-2xl bg-violet-400/10 text-violet-200 ring-1 ring-violet-300/10">
+        <span className="grid size-9 place-items-center rounded-xl bg-violet-400/10 text-violet-200 ring-1 ring-violet-300/10">
           {icon}
         </span>
       </div>
-      <p className="mt-4 text-xs leading-5 text-slate-500">{helper}</p>
+      <p className="mt-3 text-xs leading-5 text-slate-500">{helper}</p>
     </article>
   );
 }
@@ -81,16 +81,15 @@ function ActionCard({
   icon: ReactNode;
 }) {
   return (
-    <Link href={href} className="dashboard-action-card group rounded-3xl p-5">
-      <span className="grid size-11 place-items-center rounded-2xl bg-violet-300/10 text-violet-200">
+    <Link href={href} className="dashboard-action-card group flex min-h-24 items-center gap-3 rounded-2xl p-4">
+      <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-violet-300/10 text-violet-200">
         {icon}
       </span>
-      <h3 className="mt-5 text-base font-black text-white">{title}</h3>
-      <p className="mt-2 text-xs leading-5 text-slate-500">{detail}</p>
-      <span className="mt-5 inline-flex items-center gap-2 text-xs font-black text-violet-300">
-        Open{" "}
-        <ArrowRight className="size-3.5 transition group-hover:translate-x-1" />
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-black text-white">{title}</span>
+        <span className="mt-1 block text-xs leading-5 text-slate-500">{detail}</span>
       </span>
+      <ArrowRight className="size-4 shrink-0 text-violet-300 transition group-hover:translate-x-1" />
     </Link>
   );
 }
@@ -100,12 +99,16 @@ function DealList({
   helper,
   deals,
   emptyMessage,
+  emptyHref,
+  emptyAction,
   submitWork = false,
 }: {
   title: string;
   helper: string;
   deals: Deal[];
   emptyMessage: string;
+  emptyHref?: string;
+  emptyAction?: string;
   submitWork?: boolean;
 }) {
   return (
@@ -157,6 +160,11 @@ function DealList({
           <p className="mt-4 text-sm font-bold text-slate-400">
             {emptyMessage}
           </p>
+          {emptyHref && emptyAction ? (
+            <Link href={emptyHref} className="secondary-button mt-5 px-4 py-2 text-xs">
+              {emptyAction}
+            </Link>
+          ) : null}
         </div>
       )}
     </section>
@@ -264,6 +272,12 @@ export default function DashboardPage() {
     (deal) => deal.status === "Work Submitted",
   );
   const submittedProofs = freelancerDeals.filter((deal) => Boolean(deal.proof));
+  const applicationsSent = deals
+    .flatMap((deal) => deal.applications ?? [])
+    .filter(
+      (application) =>
+        application.freelancerWallet.toLowerCase() === normalizedWallet,
+    );
   const readyToSubmit = freelancerDeals.find(
     (deal) => deal.status === "Payment Locked",
   );
@@ -332,10 +346,10 @@ export default function DashboardPage() {
       icon: <BriefcaseBusiness className="size-5" />,
     },
     {
-      label: "Proofs Submitted",
-      value: String(submittedProofs.length),
-      helper: "Protected submissions",
-      icon: <FileCheck2 className="size-5" />,
+      label: "Applications Sent",
+      value: String(applicationsSent.length),
+      helper: "Public deal proposals",
+      icon: <Inbox className="size-5" />,
     },
     {
       label: "Earnings",
@@ -344,36 +358,36 @@ export default function DashboardPage() {
       icon: <CircleDollarSign className="size-5" />,
     },
     {
-      label: "Trust Score",
-      value: String(trust.score),
-      helper: trust.trustLabel,
-      icon: <BadgeCheck className="size-5" />,
+      label: "Proofs Submitted",
+      value: String(submittedProofs.length),
+      helper: "Protected submissions",
+      icon: <FileCheck2 className="size-5" />,
     },
   ];
   const metrics = mode === "client" ? clientMetrics : freelancerMetrics;
 
   const clientActions = [
     {
-      href: "/create-deal?type=direct",
-      title: "Create Direct Deal",
-      detail: "Assign work to a freelancer wallet.",
+      href: "/create-deal",
+      title: "Create Deal",
+      detail: "Start a direct or public escrow.",
       icon: <Plus className="size-5" />,
     },
     {
-      href: "/create-deal?type=public",
-      title: "Post Public Deal",
-      detail: "Publish an opportunity for applications.",
-      icon: <Search className="size-5" />,
-    },
-    {
       href: "/dashboard#applications",
-      title: "Review Applications",
-      detail: "Compare interested freelancer wallets.",
+      title: "Applications",
+      detail: "Review and select a freelancer.",
       icon: <UserRoundCheck className="size-5" />,
     },
     {
+      href: "/dashboard#pending-approvals",
+      title: "Pending Approvals",
+      detail: "Review submitted work and release payment.",
+      icon: <Clock3 className="size-5" />,
+    },
+    {
       href: proofTimelineHref,
-      title: "View Proof Timeline",
+      title: "Proof Timeline",
       detail: proofTimelineDeal
         ? `Verify ${proofTimelineDeal.id} history.`
         : "Create a deal first to verify its history.",
@@ -402,17 +416,17 @@ export default function DashboardPage() {
       icon: <FileKey2 className="size-5" />,
     },
     {
-      href: "/reputation",
-      title: "View Earnings",
-      detail: "Review releases and trust history.",
-      icon: <CircleDollarSign className="size-5" />,
+      href: "/dashboard#submitted-proofs",
+      title: "Submitted Proofs",
+      detail: "Review your protected submissions.",
+      icon: <FileCheck2 className="size-5" />,
     },
   ];
   const actions = mode === "client" ? clientActions : freelancerActions;
 
   return (
     <RoleGuard allow={["client", "freelancer"]}>
-      <main className="dashboard-shell min-h-screen">
+      <main className="dashboard-shell internal-workspace min-h-screen">
         <Navbar />
         <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
@@ -421,38 +435,30 @@ export default function DashboardPage() {
                 <Wallet className="size-3.5" />
                 {address ? formatWallet(address) : "Wallet not connected"}
               </div>
-              <h1 className="brand-font mt-5 text-4xl font-black text-white sm:text-5xl">
-                Welcome, {mode === "client" ? "Client" : "Freelancer"}
+              <h1 className="brand-font mt-5 text-3xl font-black text-white sm:text-4xl">
+                {mode === "client" ? "Client Dashboard" : "Freelancer Dashboard"}
               </h1>
               <p className="mt-4 max-w-2xl text-base leading-7 text-slate-400">
                 {mode === "client"
-                  ? "Create deals, protect payment, and approve work with confidence."
+                  ? "Create deals, lock payment, and approve work securely."
                   : "Find work, submit proof, and get paid securely."}
               </p>
             </div>
           </div>
 
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {metrics.map((metric) => (
-              <MetricCard key={metric.label} {...metric} />
-            ))}
-          </div>
-
-          <section className="mt-8">
-            <div className="mb-5">
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-violet-300">
-                Quick actions
-              </p>
-              <h2 className="mt-2 text-2xl font-black text-white">
-                What would you like to do?
-              </h2>
-            </div>
+          <section className="mt-7" aria-label="Primary actions">
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               {actions.map((action) => (
                 <ActionCard key={action.title} {...action} />
               ))}
             </div>
           </section>
+
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {metrics.map((metric) => (
+              <MetricCard key={metric.label} {...metric} />
+            ))}
+          </div>
 
           <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.55fr)]">
             <div className="space-y-6">
@@ -464,6 +470,8 @@ export default function DashboardPage() {
                       helper="Deals created by your connected wallet"
                       deals={clientDeals}
                       emptyMessage="No created deals yet. Create a direct or public deal to begin."
+                      emptyHref="/create-deal"
+                      emptyAction="Create Deal"
                     />
                   </div>
                   <ApplicationsList deals={clientDeals} dark />
@@ -484,6 +492,8 @@ export default function DashboardPage() {
                       helper="Opportunities available for applications"
                       deals={openDeals}
                       emptyMessage="No open public deals are available right now."
+                      emptyHref="/open-deals"
+                      emptyAction="Browse Open Deals"
                     />
                   </div>
                   <div id="assigned">
@@ -492,6 +502,8 @@ export default function DashboardPage() {
                       helper="Deals assigned to your connected wallet"
                       deals={freelancerDeals}
                       emptyMessage="No direct deals have been assigned to this wallet."
+                      emptyHref="/open-deals"
+                      emptyAction="Browse Open Deals"
                       submitWork
                     />
                   </div>
@@ -526,12 +538,14 @@ export default function DashboardPage() {
                       helper="Work already sent for client review"
                       deals={submittedProofs}
                       emptyMessage="No work has been submitted yet."
+                      emptyHref="/dashboard#assigned"
+                      emptyAction="View Assigned Work"
                     />
                   </div>
                 </>
               )}
             </div>
-            <aside className="dashboard-panel rounded-[2rem] p-6">
+            <aside id="timeline" className="dashboard-panel rounded-[2rem] p-6">
               <div className="flex items-center gap-3">
                 <span className="grid size-11 place-items-center rounded-2xl bg-emerald-400/10 text-emerald-300">
                   <Fingerprint className="size-5" />

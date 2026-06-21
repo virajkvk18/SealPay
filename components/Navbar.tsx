@@ -31,20 +31,16 @@ const clientItems: NavItem[] = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/create-deal", label: "Create Deal" },
   { href: "/dashboard#my-deals", label: "My Deals" },
-  { href: "/dashboard#applications", label: "Applications Received" },
-  { href: "/dashboard#pending-approvals", label: "Pending Approvals" },
-  { href: "/dashboard#submitted-proofs", label: "Proof Timeline" },
-  { href: "/reputation", label: "Trust Score" },
+  { href: "/dashboard#applications", label: "Applications" },
+  { href: "/dashboard#timeline", label: "Timeline" },
 ];
 
 const freelancerItems: NavItem[] = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/open-deals", label: "Open Deals" },
-  { href: "/dashboard#assigned", label: "Assigned Deals" },
+  { href: "/dashboard#assigned", label: "Assigned Work" },
   { href: "/dashboard#submit-work", label: "Submit Work" },
-  { href: "/dashboard#submitted-proofs", label: "Submitted Proofs" },
-  { href: "/reputation", label: "Earnings" },
-  { href: "/reputation", label: "Trust Score" },
+  { href: "/dashboard#timeline", label: "Timeline" },
 ];
 
 export default function Navbar() {
@@ -122,19 +118,6 @@ export default function Navbar() {
           </div>
         ) : mode ? (
           <div className="flex shrink-0 items-center gap-2">
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className="theme-toggle-button"
-              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-              title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-            >
-              {theme === "dark" ? (
-                <Sun className="size-4" />
-              ) : (
-                <Moon className="size-4" />
-              )}
-            </button>
             <span className="hidden rounded-full border border-violet-300/20 bg-violet-400/10 px-3 py-2 text-xs font-black text-violet-200 sm:inline">
               {mode === "freelancer" ? "Freelancer Mode" : "Client Mode"}
             </span>

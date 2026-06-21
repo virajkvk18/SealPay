@@ -213,6 +213,23 @@ export default function CreateDealForm({
       onSubmit={handleSubmit}
       className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_390px]"
     >
+      <ol
+        className="deal-progress grid grid-cols-4 gap-2 lg:col-span-2"
+        aria-label="Create deal progress"
+      >
+        {["Deal Type", "Work Details", "Payment", "Review"].map(
+          (step, index) => (
+            <li key={step} className="flex min-w-0 items-center gap-2">
+              <span className="grid size-7 shrink-0 place-items-center rounded-full border border-violet-400/30 bg-violet-400/10 text-xs font-black text-violet-200">
+                {index + 1}
+              </span>
+              <span className="hidden truncate text-xs font-bold text-slate-400 sm:block">
+                {step}
+              </span>
+            </li>
+          ),
+        )}
+      </ol>
       <section className="glass-panel rounded-[2rem] p-6 sm:p-8">
         <div className="flex items-center gap-3">
           <span className="grid size-12 place-items-center rounded-2xl bg-violet-100 text-[#7c3aed]">

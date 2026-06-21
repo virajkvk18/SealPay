@@ -12,7 +12,7 @@ export default async function CreateDealPage({
 
   return (
     <RoleGuard allow={["client"]}>
-      <main className="page-shell grid-bg">
+      <main className="page-shell internal-workspace">
         <Navbar />
         <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
           <div className="mb-8">

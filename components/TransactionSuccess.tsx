@@ -77,7 +77,7 @@ export default function TransactionSuccess({
                 className="secondary-button border-white/10 bg-white/5 px-4 py-2 text-sm text-white"
               >
                 <Copy className="size-4" />
-                Copy Transaction Hash
+                Copy Hash
               </button>
               <a
                 href={getExplorerTxUrl(txHash)}
