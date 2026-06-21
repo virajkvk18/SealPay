@@ -191,8 +191,18 @@ export default function DealDetailsPage() {
         if (cancelled || !sharedDeal) return;
         setRemoteDeal(sharedDeal);
         setDealLoadError("");
-        if (!deals.some((candidate) => candidate.id === sharedDeal.id)) {
+        const cachedDeal = deals.find(
+          (candidate) => candidate.id === sharedDeal.id,
+        );
+        if (!cachedDeal) {
           addDeal(sharedDeal);
+        } else if (
+          cachedDeal.status !== sharedDeal.status ||
+          cachedDeal.createdTxHash !== sharedDeal.createdTxHash ||
+          cachedDeal.onChainDealId !== sharedDeal.onChainDealId ||
+          cachedDeal.timeline.length !== sharedDeal.timeline.length
+        ) {
+          updateDeal(sharedDeal.id, () => sharedDeal);
         }
       } catch {
         if (!cancelled) {
@@ -206,7 +216,7 @@ export default function DealDetailsPage() {
     return () => {
       cancelled = true;
     };
-  }, [addDeal, dealId, deals]);
+  }, [addDeal, dealId, deals, updateDeal]);
 
   useEffect(() => {
     if (

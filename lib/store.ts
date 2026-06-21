@@ -11,6 +11,24 @@ const dealsChangedEvent = "sealpay-deals-change";
 const roleChangedEvent = "sealpay-role-change";
 const initialDealsSnapshot = JSON.stringify(initialDeals);
 const legacyCurrencyLabel = ["test", "ETH"].join(" ");
+const optionalSyncColumns = new Set([
+  "applications",
+  "timeline",
+  "preview_url",
+  "final_file_name",
+  "proof",
+  "created_tx_hash",
+  "on_chain_deal_id",
+  "selected_freelancer_wallet",
+  "dispute_reason",
+  "dispute_evidence",
+  "resolution",
+]);
+
+function getMissingColumnName(message?: string) {
+  const match = message?.match(/'([^']+)' column/);
+  return match?.[1] ?? "";
+}
 
 function readDeals() {
   if (typeof window === "undefined") return initialDeals;
@@ -37,26 +55,42 @@ function writeDeals(deals: Deal[]) {
 function syncDeal(deal: Deal) {
   if (!supabase) return;
 
-  void supabase
-    .from("deals")
-    .update({
-      status: deal.status,
-      freelancer_wallet: deal.freelancerWallet,
-      selected_freelancer_wallet: deal.selectedFreelancerWallet ?? null,
-      applications: deal.applications ?? [],
-      timeline: deal.timeline,
-      preview_url: deal.previewUrl ?? deal.proof?.previewUrl ?? null,
-      final_file_name:
-        deal.finalFileName ?? deal.proof?.finalFileName ?? null,
-      proof: deal.proof ?? null,
-      dispute_reason: deal.disputeReason ?? null,
-      dispute_evidence: deal.disputeEvidence ?? null,
-      resolution: deal.resolution ?? null,
-    })
-    .eq("id", deal.id)
-    .then(({ error }) => {
-      if (error) console.warn("Deal sync failed", error);
-    });
+  const payload: Record<string, unknown> = {
+    status: deal.status,
+    freelancer_wallet: deal.freelancerWallet,
+    selected_freelancer_wallet: deal.selectedFreelancerWallet ?? null,
+    applications: deal.applications ?? [],
+    timeline: deal.timeline,
+    preview_url: deal.previewUrl ?? deal.proof?.previewUrl ?? null,
+    final_file_name:
+      deal.finalFileName ?? deal.proof?.finalFileName ?? null,
+    proof: deal.proof ?? null,
+    created_tx_hash: deal.createdTxHash ?? null,
+    on_chain_deal_id: deal.onChainDealId ?? null,
+    dispute_reason: deal.disputeReason ?? null,
+    dispute_evidence: deal.disputeEvidence ?? null,
+    resolution: deal.resolution ?? null,
+  };
+
+  void (async () => {
+    for (let attempt = 0; attempt < optionalSyncColumns.size + 1; attempt += 1) {
+      const { error } = await supabase
+        .from("deals")
+        .update(payload)
+        .eq("id", deal.id);
+
+      if (!error) return;
+
+      const missingColumn = getMissingColumnName(error.message);
+      if (error.code === "PGRST204" && optionalSyncColumns.has(missingColumn)) {
+        delete payload[missingColumn];
+        continue;
+      }
+
+      console.warn("Deal sync failed", error);
+      return;
+    }
+  })();
 }
 
 function writeRole(role: Role) {
