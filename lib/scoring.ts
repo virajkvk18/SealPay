@@ -10,7 +10,7 @@ export interface MilestoneSuggestion {
   warning?: string;
 }
 
-export interface SealTrustScore {
+export interface WalletTrustScore {
   score: number;
   completedDeals: number;
   disputesCount: number;
@@ -61,10 +61,10 @@ export function suggestMilestones({
   };
 }
 
-export function generateSealTrustScore(
+export function generateWalletTrustScore(
   userWallet: string,
   allDeals: Deal[],
-): SealTrustScore {
+): WalletTrustScore {
   const normalizedWallet = userWallet.trim().toLowerCase();
   const relatedDeals = normalizedWallet
     ? allDeals.filter(
@@ -113,7 +113,7 @@ export function generateSealTrustScore(
   }
 
   const boundedScore = Math.min(100, Math.max(0, score));
-  const trustLabel: SealTrustScore["trustLabel"] =
+  const trustLabel: WalletTrustScore["trustLabel"] =
     boundedScore < 45
       ? "High Risk"
       : completedDeals === 0

@@ -49,10 +49,8 @@ function syncDeal(deal: Deal) {
       final_file_name:
         deal.finalFileName ?? deal.proof?.finalFileName ?? null,
       proof: deal.proof ?? null,
-      ai_proof_review: deal.aiProofReview ?? null,
       dispute_reason: deal.disputeReason ?? null,
       dispute_evidence: deal.disputeEvidence ?? null,
-      ai_dispute_summary: deal.aiDisputeSummary ?? null,
       resolution: deal.resolution ?? null,
     })
     .eq("id", deal.id)
@@ -128,8 +126,6 @@ function normalizeStoredDeal(deal: Deal): Deal {
           deliverableType: deal.proof.deliverableType ?? deal.deliverableType,
         }
       : undefined,
-    aiProofReview: deal.aiProofReview ?? seedDeal?.aiProofReview,
-    aiDisputeSummary: deal.aiDisputeSummary ?? seedDeal?.aiDisputeSummary,
     timeline: deal.timeline.map((event) => ({
       ...event,
       description: event.description.replaceAll(

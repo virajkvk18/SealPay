@@ -42,7 +42,7 @@ export default function DisputeModal({
       await onSubmit(form);
     } catch (error) {
       setFormError(
-        error instanceof Error ? error.message : "AI dispute summary failed.",
+        error instanceof Error ? error.message : "Dispute could not be saved.",
       );
       setSubmitting(false);
       return;
@@ -121,7 +121,7 @@ export default function DisputeModal({
             Cancel
           </button>
           <button type="submit" disabled={submitting} className="danger-button">
-            {submitting ? "Generating Summary..." : "Raise Dispute"}
+            {submitting ? "Saving Dispute..." : "Raise Dispute"}
           </button>
         </div>
       </form>

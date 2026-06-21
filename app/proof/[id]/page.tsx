@@ -41,7 +41,6 @@ export default function ProofPage() {
   const deal = deals.find((candidate) => candidate.id === dealId);
   const currentRemoteProof =
     remoteProof?.deal_id === dealId ? remoteProof : null;
-  const proofReview = deal?.aiProofReview ?? currentRemoteProof?.ai_review ?? null;
   const latestTxHash = deal?.timeline
     .filter((event) => event.txHash)
     .sort(
@@ -196,44 +195,6 @@ export default function ProofPage() {
                 Open pinned proof
               </a>
             </div>
-
-            {currentRemoteProof.ai_review ? (
-              <div className="mt-6 rounded-3xl border border-violet-300/20 bg-[#241642] p-5 text-white">
-                <p className="text-sm font-black uppercase tracking-[0.18em] text-violet-200">
-                  AI Proof Review
-                </p>
-                <div className="mt-4 grid gap-4 md:grid-cols-[180px_1fr]">
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-                    <p className="text-xs font-bold uppercase text-slate-400">
-                      SealTrust Score
-                    </p>
-                    <p className="mt-2 text-4xl font-black text-white">
-                      {currentRemoteProof.ai_review.score}/100
-                    </p>
-                    <p className="mt-2 text-sm font-bold text-violet-100">
-                      {currentRemoteProof.ai_review.verdict ??
-                        currentRemoteProof.ai_review.status}
-                    </p>
-                  </div>
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-                    <p className="text-sm font-black text-white">
-                      {currentRemoteProof.ai_review.status}
-                    </p>
-                    <p className="mt-2 text-sm leading-6 text-slate-300">
-                      {currentRemoteProof.ai_review.summary ??
-                        "AI reviewed the uploaded proof for relevance."}
-                    </p>
-                    {currentRemoteProof.ai_review.reasons.length ? (
-                      <ul className="mt-4 grid gap-2 text-sm text-slate-200">
-                        {currentRemoteProof.ai_review.reasons.map((reason) => (
-                          <li key={reason}>- {reason}</li>
-                        ))}
-                      </ul>
-                    ) : null}
-                  </div>
-                </div>
-              </div>
-            ) : null}
           </article>
         ) : !deal ? (
           <article className="mt-6 glass-panel rounded-3xl p-6 text-center">
@@ -367,50 +328,26 @@ export default function ProofPage() {
               <div className="mt-4 rounded-2xl border border-violet-300/20 bg-violet-300/[0.06] p-4">
                 <div className="flex items-center gap-2 text-sm font-black text-[#6d28d9]">
                   <Fingerprint className="size-4" />
-                  AI explorer signals
+                  Decentralized proof signals
                 </div>
                 <div className="mt-3 space-y-2 text-sm leading-6 text-[#43474b]">
                   <p>
-                    AI risk score:{" "}
+                    Storage provider:{" "}
                     <span className="font-black text-[#1e1233]">
-                      {deal.risk.score}/100
+                      {deal.proof?.storageProvider ?? "Pending proof submission"}
                     </span>
                   </p>
                   <p>
-                    AI proof review:{" "}
+                    CID status:{" "}
                     <span className="font-black text-[#1e1233]">
-                      {proofReview?.status ?? "Pending proof submission"}
+                      {deal.proof?.fileHash ? "Pinned to IPFS" : "Pending"}
                     </span>
                   </p>
-                  {proofReview ? (
-                    <>
-                      <p>
-                        AI review score:{" "}
-                        <span className="font-black text-[#1e1233]">
-                          {proofReview.score}/100
-                        </span>
-                      </p>
-                      <p>
-                        AI verdict:{" "}
-                        <span className="font-black text-[#1e1233]">
-                          {proofReview.verdict ?? proofReview.status}
-                        </span>
-                      </p>
-                      {proofReview.summary ? (
-                        <p>
-                          AI summary:{" "}
-                          <span className="font-semibold">
-                            {proofReview.summary}
-                          </span>
-                        </p>
-                      ) : null}
-                    </>
-                  ) : null}
-                  {deal.aiDisputeSummary ? (
+                  {deal.proof?.txHash ? (
                     <p>
-                      Dispute summary:{" "}
+                      Contract event:{" "}
                       <span className="font-semibold">
-                        {deal.aiDisputeSummary}
+                        Proof transaction recorded in timeline.
                       </span>
                     </p>
                   ) : null}

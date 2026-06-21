@@ -7,7 +7,7 @@
 <h1 align="center">Seal Pay</h1>
 
 <p align="center">
-  <strong>Secure freelance payments with smart-contract escrow, protected deliverables, proof trails, and AI-assisted review.</strong>
+  <strong>Secure freelance payments with smart-contract escrow, protected deliverables, IPFS proof trails, and wallet-first identity.</strong>
 </p>
 
 <p align="center">
@@ -50,18 +50,16 @@ SealPay turns this trust gap into a visible escrow workflow.
 
 ```mermaid
 flowchart LR
-  A["Client creates invoice"] --> B["AI risk score"]
-  B --> C["Client locks payment"]
-  C --> D["Freelancer submits proof"]
-  D --> E["Pinata/IPFS CID"]
-  E --> F["Deliverable Lock preview"]
-  F --> G["AI proof review"]
-  G --> H{"Client decision"}
-  H -->|Approve| I["Payment released"]
-  H -->|Dispute| J["Admin/Judge review"]
-  J --> K["Release or refund"]
-  I --> L["Public proof timeline"]
-  K --> L
+  A["Client creates invoice"] --> B["Client locks payment"]
+  B --> C["Freelancer submits proof"]
+  C --> D["Pinata/IPFS CID"]
+  D --> E["Deliverable Lock preview"]
+  E --> F{"Client decision"}
+  F -->|Approve| G["Payment released"]
+  F -->|Dispute| H["Admin/Judge review"]
+  H --> I["Release or refund"]
+  G --> J["Public proof timeline"]
+  I --> J
 ```
 
 ## Deliverable Lock
@@ -84,30 +82,16 @@ After payment release:
 
 Important limitation: no platform can fully prevent screenshots. SealPay reduces misuse through watermarked previews, locked final files, blockchain-style proof, and reputation penalties.
 
-## AI Trust Engine
-
-SealPay uses server-side Groq API routes for real AI proof review and dispute summaries. `GROQ_API_KEY` must stay server-side and must never be exposed with a `NEXT_PUBLIC_` prefix.
-
-| Route / Function               | Purpose                                                                                        |
-| ------------------------------ | ---------------------------------------------------------------------------------------------- |
-| `POST /api/ai/proof-review`    | Sends deal and proof metadata to Groq and returns score, verdict, reasons, issues, and summary |
-| `POST /api/ai/dispute-summary` | Sends dispute evidence and proof CID to Groq and returns an admin/judge summary                |
-| `calculateRiskScore()`         | Scores deal risk using amount, deadline, scope detail, and wallet familiarity                  |
-| `suggestMilestones()`          | Suggests single-release or milestone payment structure                                         |
-| `generateSealTrustScore()`     | Creates a wallet-level trust score from deal history                                           |
-
-AI is only an assistant. Final approval and dispute decisions stay with a human client or admin/judge.
-
 ## IPFS Proof Storage
 
-The proof submission flow calls `POST /api/pinata/upload` before AI review and shows the user a clear three-step state: Uploading to IPFS, CID Generated, and AI Reviewing.
+The proof submission flow calls `POST /api/pinata/upload` and shows the user a clear three-step state: Uploading to IPFS, CID Generated, and Proof Record Saving.
 
 - With `PINATA_JWT` configured, the server uploads the selected proof file to Pinata and returns a CID plus gateway URL.
 - If `PINATA_JWT` is missing, proof upload stops with a clear setup error instead of creating fake CIDs.
 - The returned CID is stored as the deal proof hash and shown in both the Deal Vault and Public Proof Explorer.
-- Supabase proof saving is treated as an optional cache. If that insert fails, the IPFS CID and AI review flow can still continue.
-- Groq and Pinata failures are surfaced with clearer messages so demo operators can quickly identify missing keys or provider errors.
-- The Public Proof Explorer can read the latest proof row from Supabase, so another laptop can verify the CID and AI result by deal ID.
+- Supabase proof saving is treated as an optional cache. If that insert fails, the IPFS CID can still continue through the contract handoff path.
+- Pinata failures are surfaced with clearer messages so demo operators can quickly identify missing keys or provider errors.
+- The Public Proof Explorer can read the latest proof row from Supabase, so another laptop can verify the CID by deal ID.
 
 Local setup:
 
@@ -122,17 +106,16 @@ PINATA_JWT=your_pinata_jwt
 NEXT_PUBLIC_GATEWAY_URL=https://gateway.pinata.cloud/ipfs
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_public_key
-GROQ_API_KEY=your_groq_api_key
-GROQ_MODEL=llama-3.3-70b-versatile
 ```
 
-## IPFS + AI Proof Flow
+## IPFS Proof Flow
 
-Freelancer uploads work proof -> SealPay uploads it to Pinata IPFS -> Pinata returns a CID -> the UI confirms CID Generated -> Groq reviews proof relevance -> the CID and AI review are cached when Supabase is configured -> client approves or raises dispute.
+Freelancer uploads work proof -> SealPay uploads it to Pinata IPFS -> Pinata returns a CID -> the UI confirms CID Generated -> the CID is cached when Supabase is configured -> the CID is ready for smart contract submission -> client approves or raises dispute.
 
 - IPFS gives the deal an immutable proof reference.
 - The CID changes if the uploaded file changes.
-- AI only assists; the human client or admin/judge makes the final decision.
+- The smart contract and emitted events are the intended source of truth for deal state.
+- Supabase is only an optional cache/indexer for faster demo reads.
 - `PINATA_JWT` must stay server-side and must never be exposed in frontend code.
 
 Create the Supabase proof table with:
@@ -144,7 +127,6 @@ create table if not exists proofs (
   proof_cid text not null,
   proof_url text not null,
   file_name text,
-  ai_review jsonb,
   status text default 'submitted',
   created_at timestamptz default now()
 );
@@ -182,7 +164,6 @@ SealPay is feasible for a hackathon because the demo focuses on the core trust w
 | LocalStorage mock store       | Fast to demo without backend setup                                      |
 | Wallet-first identity flow    | Lets judges understand the Web3 identity model from the first screen    |
 | Mock transaction hashes       | Demonstrates proof trail behavior before testnet deployment             |
-| Server-side Groq AI routes    | Gives real AI proof review while keeping API keys off the frontend      |
 | Solidity contract included    | Gives a clear path to real testnet escrow                               |
 | Deliverable Lock UI           | Demonstrates a real freelancer pain point with low technical overhead   |
 
@@ -212,8 +193,7 @@ To move from MVP to production, SealPay would need real auth, a backend database
 | Language             | TypeScript                                    |
 | UI                   | Tailwind CSS, Lucide icons                    |
 | State                | LocalStorage mock store                       |
-| AI Logic             | Server-side Groq API routes                   |
-| Proof Storage        | Pinata API route with mock-CID fallback       |
+| Proof Storage        | Pinata API route with real IPFS CIDs          |
 | Web3 Contract        | Solidity escrow contract                      |
 | Deployment Hardening | Next proxy security headers and rate limiting |
 
@@ -237,7 +217,7 @@ components/
   DisputeModal.tsx
 
 lib/
-  aiEngine.ts           Risk, proof, dispute, and trust scoring
+  scoring.ts            Local scoring and milestone helper logic
   mockData.ts           Shared deal, proof, role, and timeline types
   store.ts              Local mock persistence
   utils.ts              Formatting and hash helpers
@@ -281,17 +261,17 @@ npm run lint
 4. Open `/create-deal` and create a new invoice.
 5. Open the new deal and lock payment as Client.
 6. Switch to Freelancer and submit proof with preview URL and final file name.
-7. Attach a proof file and show the states: Uploading to IPFS, CID Generated, and AI Reviewing.
-8. Show the generated IPFS CID, gateway link, SealTrust score, AI verdict, reasons, and issues.
+7. Attach a proof file and show the states: Uploading to IPFS, CID Generated, and Proof Record Saving.
+8. Show the generated IPFS CID and gateway link.
 9. Show the Deliverable Lock card before release.
 10. Switch back to Client and approve work.
 11. Show the unlocked deliverable state.
 12. Open `/proof/[id]` to show the public proof timeline.
-13. Open a disputed deal to show the AI dispute summary and admin/judge resolution.
+13. Open a disputed deal to show human dispute notes and admin/judge resolution.
 
 Role explanation:
 
-> My role was IPFS proof storage and AI verification. When the freelancer uploads proof, SealPay sends the file to Pinata IPFS and receives a unique CID. This CID is saved in our backend and can also be submitted on-chain, so the proof cannot be silently changed later. AI checks whether the proof looks relevant to the deal and creates a short dispute summary if conflict happens.
+> My role was IPFS proof storage and decentralized proof readiness. When the freelancer uploads proof, SealPay sends the file to Pinata IPFS and receives a unique CID. This CID is cached for the UI and can also be submitted on-chain, so the proof cannot be silently changed later.
 
 ## Demo Mode
 
@@ -302,7 +282,6 @@ SealPay currently runs in demo mode by default. It includes:
 - Mock transaction hashes
 - Real Pinata uploads when `PINATA_JWT` is configured
 - No fake proof CIDs in the Teammate 4 proof upload path
-- Real Groq AI proof and dispute review when `GROQ_API_KEY` is configured
 - Test MATIC labels for Polygon Amoy-style demo flow
 
 No real money moves in the MVP.
@@ -314,7 +293,7 @@ This MVP currently has no real authentication system, password storage, session 
 Current hardening included in this repo:
 
 - `proxy.ts` adds security headers, production HTTPS redirect handling, suspicious-path blocking, and lightweight request rate limiting.
-- API, auth, and AI route groups are rate-limit grouped in the proxy so future server endpoints inherit abuse protection.
+- API and auth route groups are rate-limit grouped in the proxy so future server endpoints inherit abuse protection.
 - Auth/API security events, rate-limit hits, HTTPS redirects, and suspicious paths are logged server-side with `console.warn`.
 - `.env*` files are ignored except `.env.example`, and the example only exposes public mock settings through `NEXT_PUBLIC_`.
 - Proof preview URLs are constrained to `http` or `https` links before being stored through the UI.
@@ -326,9 +305,9 @@ Before using SealPay with real users, add server-side authentication and enforce
 - Email verification before account activation.
 - Short-lived sessions with secure, httpOnly, sameSite cookies.
 - Expiring, single-use password reset tokens stored hashed on the server.
-- Login, signup, reset, API, and AI-generation rate limits backed by Redis or another shared production store.
+- Login, signup, reset, and API rate limits backed by Redis or another shared production store.
 - Server-side ownership checks on every read, update, delete, approval, proof submission, dispute, and payout action.
-- Server-only secrets for database URLs, service keys, wallet private keys, AI API keys, and webhook secrets.
+- Server-only secrets for database URLs, service keys, wallet private keys, and webhook secrets.
 - Private database networking or IP allow-listing so the database is not directly reachable from the public internet.
 
 ## Smart Contract Future Extension
@@ -349,7 +328,7 @@ Before using SealPay with real users, add server-side authentication and enforce
 - Real authentication
 - Full backend
 - MongoDB, PostgreSQL, Supabase, or Firebase setup
-- Paid AI APIs
+- Centralized review providers
 - DAO arbitration
 - KYC
 - Marketplace

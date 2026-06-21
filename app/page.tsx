@@ -1,7 +1,6 @@
 import {
   BadgeCheck,
   Blocks,
-  BrainCircuit,
   BriefcaseBusiness,
   CheckCircle2,
   CircleDollarSign,
@@ -10,7 +9,6 @@ import {
   FileCheck2,
   FileKey2,
   Fingerprint,
-  Gauge,
   GitBranch,
   Layers3,
   LockKeyhole,
@@ -40,9 +38,9 @@ const workflowSteps = [
     icon: FileKey2,
   },
   {
-    title: "AI review",
-    detail: "Trust signals support human review.",
-    icon: BrainCircuit,
+    title: "CID verified",
+    detail: "Proof is pinned and linked by content ID.",
+    icon: Fingerprint,
   },
   {
     title: "Client decision",
@@ -111,7 +109,7 @@ const timelineEvents = [
   "Freelancer assigned",
   "Payment locked",
   "Proof submitted",
-  "AI review completed",
+  "CID recorded",
   "Work approved",
   "Payment released",
 ];
@@ -128,9 +126,9 @@ const faqs = [
       "Yes. Your role is determined per deal. The same wallet can hire in one deal and complete work in another.",
   },
   {
-    question: "Can AI release payment?",
+    question: "Who can release payment?",
     answer:
-      "No. AI only supports risk, proof, milestone, and dispute review. Payment actions remain controlled by users and smart contract rules.",
+      "Only the correct wallet action or dispute resolution flow can release funds. External services cannot approve payments.",
   },
   {
     question: "Where is work proof stored?",
@@ -201,12 +199,12 @@ const protocolLayers = [
     icon: Database,
   },
   {
-    eyebrow: "Review layer",
-    title: "AI explains risk, not outcomes",
+    eyebrow: "Indexing layer",
+    title: "Events replace database authority",
     description:
-      "AI can summarize evidence and flag inconsistencies, but it cannot sign transactions or independently release escrowed funds.",
-    note: "Advisory assistance only",
-    icon: Gauge,
+      "Deal state can be reconstructed from smart contract events. Supabase is only an optional cache for faster demo views.",
+    note: "Contract events as source of truth",
+    icon: GitBranch,
   },
 ];
 
@@ -348,8 +346,8 @@ export default function Home() {
           </h2>
           <p className="mt-5 text-sm leading-7 text-slate-400 sm:text-base">
             SealPay lets clients protect payment in escrow before work begins.
-            Freelancers submit protected proof, AI supports review, and
-            settlement follows approval or transparent dispute resolution.
+            Freelancers submit protected proof to IPFS, and settlement follows
+            approval or transparent dispute resolution.
           </p>
         </article>
       </section>
@@ -413,8 +411,9 @@ export default function Home() {
           <p>
             <strong className="text-white">Decentralization is progressive.</strong>{" "}
             Wallet identity, smart-contract escrow, and verifiable proof reduce
-            trust in intermediaries. Optional storage gateways and AI providers
-            remain supporting services, not payment authorities.
+            trust in intermediaries. Supabase can be treated as an optional
+            cache, while contract events and IPFS CIDs remain the verifiable
+            source of truth.
           </p>
         </div>
       </section>
@@ -579,17 +578,17 @@ export default function Home() {
           </p>
         </article>
         <article className="glass-panel-dark rounded-[2rem] p-7 sm:p-9">
-          <BrainCircuit className="size-7 text-violet-300" />
+          <GitBranch className="size-7 text-violet-300" />
           <p className="mt-6 text-xs font-black uppercase tracking-[0.18em] text-violet-300">
-            AI Trust Engine
+            Event-Based State
           </p>
           <h2 className="brand-font mt-3 text-3xl font-black text-white">
-            Useful signals without surrendering control.
+            Contract events become the database replacement.
           </h2>
           <p className="mt-5 text-sm leading-7 text-slate-400">
-            AI supports risk scoring, milestone suggestions, proof review, and
-            dispute summaries. It never makes the final payment decision; users
-            and smart contract actions remain in control.
+            Deals, proof submissions, approvals, and disputes can be read from
+            smart contract state and emitted events. Supabase remains useful as
+            a free cache, but the protocol does not depend on it as authority.
           </p>
         </article>
       </section>

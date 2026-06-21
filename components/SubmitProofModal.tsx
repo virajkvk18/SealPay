@@ -46,7 +46,7 @@ function makeEmptyProof(deliverableType: DeliverableType) {
   };
 }
 
-type ProofSubmitStage = "idle" | "uploading" | "cid-generated" | "ai-reviewing";
+type ProofSubmitStage = "idle" | "uploading" | "cid-generated" | "proof-saving";
 
 const proofStages = [
   {
@@ -60,9 +60,9 @@ const proofStages = [
     description: "The immutable IPFS proof reference is ready.",
   },
   {
-    key: "ai-reviewing",
-    label: "AI Reviewing",
-    description: "Groq is checking the proof against deal requirements.",
+    key: "proof-saving",
+    label: "Proof Record Saving",
+    description: "SealPay is saving the CID for timeline and contract handoff.",
   },
 ] as const;
 
@@ -165,7 +165,7 @@ export default function SubmitProofModal({
     }
 
     try {
-      setSubmitStage("ai-reviewing");
+      setSubmitStage("proof-saving");
       await onSubmit({
         ...form,
         title: form.title.trim(),
@@ -184,7 +184,7 @@ export default function SubmitProofModal({
       setFormError(
         error instanceof Error
           ? error.message
-          : "AI review or proof save failed. Please try again.",
+          : "Proof save failed. The IPFS CID was generated, so you can retry saving.",
       );
       setUploading(false);
       setSubmitStage("cid-generated");
@@ -289,7 +289,7 @@ export default function SubmitProofModal({
                     Proof submission
                   </p>
                   <p className="mt-1 text-xs font-bold text-slate-300">
-                    {"Uploading -> CID Generated -> AI Reviewing"}
+                    {"Uploading -> CID Generated -> Proof Record Saving"}
                   </p>
                 </div>
                 {uploading ? (
@@ -403,7 +403,7 @@ export default function SubmitProofModal({
             />
             {proofFile ? (
               <p className="mt-2 text-xs font-bold text-[#53606a]">
-                {proofFile.name} will be pinned before AI review.
+                {proofFile.name} will be pinned to IPFS before proof submission.
               </p>
             ) : null}
           </label>
@@ -438,8 +438,8 @@ export default function SubmitProofModal({
               ? "Uploading..."
               : submitStage === "cid-generated"
                 ? "CID Generated..."
-                : submitStage === "ai-reviewing"
-                  ? "AI Reviewing..."
+                : submitStage === "proof-saving"
+                  ? "Saving Proof..."
                   : "Submit Work"}
           </button>
         </div>

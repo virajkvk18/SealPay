@@ -67,15 +67,6 @@ export interface WorkProof {
   submittedAt: string;
 }
 
-export interface AiProofReview {
-  status: string;
-  score: number;
-  reasons: string[];
-  verdict?: string;
-  issues?: string[];
-  summary?: string;
-}
-
 export interface Deal {
   id: string;
   title: string;
@@ -98,11 +89,8 @@ export interface Deal {
   previewUrl?: string;
   finalFileName?: string;
   proof?: WorkProof;
-  aiProofReview?: AiProofReview;
   disputeReason?: string;
   disputeEvidence?: string;
-  aiDisputeSummary?: string;
-  aiDisputeRecommendation?: string;
   resolution?: "Released to freelancer" | "Refunded client";
   timeline: TimelineEvent[];
 }
@@ -202,16 +190,6 @@ export const initialDeals: Deal[] = [
     },
     previewUrl: "https://images.unsplash.com/photo-1559028012-481c04fa702d",
     finalFileName: "sealpay-dashboard-final.zip",
-    aiProofReview: {
-      status: "Proof looks valid",
-      score: 84,
-      reasons: [
-        "Delivery note explains the submitted proof.",
-        "File type matches the expected deliverable.",
-        "Preview link is attached for review.",
-        "Proof wording matches the original work description.",
-      ],
-    },
     timeline: [
       {
         id: "ev-sp1002-1",
@@ -285,20 +263,8 @@ export const initialDeals: Deal[] = [
     },
     previewUrl: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30",
     finalFileName: "event-reel-final-4k.mp4",
-    aiProofReview: {
-      status: "Proof looks valid",
-      score: 78,
-      reasons: [
-        "Delivery note explains the submitted proof.",
-        "File type matches the expected deliverable.",
-        "Preview link is attached for review.",
-        "Proof has a partial match with the work description.",
-      ],
-    },
     disputeReason: "Client requested a color correction pass before release.",
     disputeEvidence: "Freelancer attached first cut and revision notes.",
-    aiDisputeSummary:
-      "Buyer/Seller issue: Campus Media Club requested a color correction review before release. Evidence available: Freelancer attached first cut and revision notes. Timeline observation: dispute was raised after work proof was submitted. Suggested admin action: compare the preview against the revision notes, then either release to freelancer or refund the client.",
     timeline: [
       {
         id: "ev-sp1003-1",

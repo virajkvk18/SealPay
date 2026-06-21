@@ -22,7 +22,7 @@ import Navbar from "@/components/Navbar";
 import RoleGuard from "@/components/RoleGuard";
 import ApplicationsList from "@/components/ApplicationsList";
 import StatusBadge from "@/components/StatusBadge";
-import { generateSealTrustScore } from "@/lib/aiEngine";
+import { generateWalletTrustScore } from "@/lib/scoring";
 import { useDashboardMode } from "@/lib/dashboardMode";
 import {
   attachApplicationsToDeals,
@@ -277,7 +277,7 @@ export default function DashboardPage() {
       ["Approved", "Payment Released", "Resolved"].includes(deal.status),
     )
     .reduce((sum, deal) => sum + deal.amount, 0);
-  const trust = generateSealTrustScore(address, deals);
+  const trust = generateWalletTrustScore(address, deals);
   const recentActivity = activeDeals
     .flatMap((deal) =>
       deal.timeline.map((event) => ({

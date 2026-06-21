@@ -11,13 +11,11 @@ import {
   FileLock2,
   FileUp,
   Fingerprint,
-  ListChecks,
   LockKeyhole,
   RotateCcw,
   Scale,
   Send,
   ShieldCheck,
-  TriangleAlert,
   UnlockKeyhole,
 } from "lucide-react";
 import DisputeModal, {
@@ -89,7 +87,7 @@ function getActionHelper(deal: Deal, activeRole: DealViewerRole) {
       return "Waiting for the freelancer to submit proof.";
     if (deal.status !== "Work Submitted")
       return "Submit proof before client can approve.";
-    return "Review the proof and AI notes before approving release.";
+    return "Review the IPFS proof, CID, and transaction trail before approving release.";
   }
 
   if (activeRole === "Freelancer") {
@@ -97,12 +95,12 @@ function getActionHelper(deal: Deal, activeRole: DealViewerRole) {
       return "Client must lock payment before you can submit proof.";
     if (!isPaymentLocked)
       return "Lock payment first before freelancer can submit work.";
-    return "Submit proof with a note, file name, and preview URL for AI-assisted review.";
+    return "Submit proof with a note, file name, preview URL, and IPFS CID.";
   }
 
   if (deal.status !== "Disputed")
     return "Only disputed deals can be resolved by Admin/Judge.";
-  return "AI assists the review. Final decision stays with human admin/judge.";
+  return "Review the dispute evidence and on-chain proof trail before resolving.";
 }
 
 function getFinalFileName(deal: Deal) {
@@ -126,89 +124,6 @@ function isVisualPreview(deal: Deal) {
       fileName.endsWith(extension),
     )
   );
-}
-
-async function requestProofReview(
-  deal: Deal,
-  values: ProofFormValues,
-  proofCid: string,
-) {
-  const response = await fetch("/api/ai/proof-review", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      dealTitle: deal.title,
-      dealDescription: deal.description,
-      deliverableType: values.deliverableType,
-      proofTitle: values.title,
-      proofNote: values.note,
-      fileName: values.finalFileName,
-      previewUrl: values.previewUrl,
-      proofCid,
-      proofUrl: values.proofGatewayUrl,
-    }),
-  });
-
-  const result = await response.json();
-
-  if (!response.ok) {
-    throw new Error(
-      result.details
-        ? `AI proof review failed: ${result.error ?? "Groq request failed."} ${result.details}`
-        : (result.error ??
-            "AI proof review failed. Check GROQ_API_KEY and try again."),
-    );
-  }
-
-  return result;
-}
-
-async function requestDisputeSummary(
-  deal: Deal,
-  values: DisputeFormValues,
-  timeline: Deal["timeline"],
-) {
-  const response = await fetch("/api/ai/dispute-summary", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      dealTitle: deal.title,
-      dealDescription: deal.description,
-      clientName: deal.clientName,
-      freelancerName: deal.freelancerName,
-      reason: values.reason,
-      evidence: values.evidence,
-      proofCid: deal.proof?.fileHash,
-      proofUrl: deal.proof?.gatewayUrl,
-      timeline: timeline.map(({ title, status, actor, timestamp }) => ({
-        title,
-        status,
-        actor,
-        timestamp,
-      })),
-    }),
-  });
-
-  const result = await response.json();
-
-  if (!response.ok) {
-    throw new Error(
-      result.details
-        ? `AI dispute summary failed: ${result.error ?? "Groq request failed."} ${result.details}`
-        : (result.error ??
-            "AI dispute summary failed. Check GROQ_API_KEY and try again."),
-    );
-  }
-
-  return result as {
-    title: "AI Dispute Summary";
-    summary: string;
-    recommendation: string;
-  };
 }
 
 export default function DealDetailsPage() {
@@ -441,7 +356,6 @@ export default function DealDetailsPage() {
   async function handleSubmitProof(values: ProofFormValues) {
     if (!deal) return;
     const fileHash = values.proofCid || makeFileHash();
-    const aiProofReview = await requestProofReview(deal, values, fileHash);
     let txHash: string | undefined;
 
     if (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS && deal.onChainDealId) {
@@ -468,7 +382,6 @@ export default function DealDetailsPage() {
       proofCid: fileHash,
       proofUrl: values.proofGatewayUrl,
       fileName: values.uploadedFileName,
-      aiReview: aiProofReview,
     });
 
     updateDeal(deal.id, (current) => ({
@@ -490,7 +403,6 @@ export default function DealDetailsPage() {
         txHash,
         submittedAt: new Date().toISOString(),
       },
-      aiProofReview,
       timeline: [
         ...current.timeline,
         makeTimelineEvent({
@@ -516,16 +428,12 @@ export default function DealDetailsPage() {
         actor: "Client",
       }),
     ];
-    const aiDispute = await requestDisputeSummary(deal, values, nextTimeline);
-
     updateDeal(deal.id, (current) => {
       return {
         ...current,
         status: "Disputed",
         disputeReason: values.reason,
         disputeEvidence: values.evidence,
-        aiDisputeSummary: aiDispute.summary,
-        aiDisputeRecommendation: aiDispute.recommendation,
         timeline: nextTimeline,
       };
     });
@@ -815,103 +723,52 @@ export default function DealDetailsPage() {
                 </div>
               </article>
 
-              {deal.aiProofReview ? (
+              {deal.proof ? (
                 <article className="glass-panel overflow-hidden rounded-3xl">
                   <div className="border-b border-violet-100/10 bg-white/[0.025] p-6 sm:p-8">
-                    <div className="flex flex-wrap items-start justify-between gap-5">
-                      <div>
-                        <p className="inline-flex items-center gap-2 rounded-full border border-violet-300/20 bg-violet-300/10 px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-violet-200">
-                          <Fingerprint className="size-4" />
-                          AI Trust Engine
-                        </p>
-                        <h2 className="mt-4 text-3xl font-black text-white">
-                          AI Proof Review
-                        </h2>
-                        <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">
-                          Groq checks proof metadata against the deal scope. AI assists
-                          the review; payment decisions stay with the client or judge.
-                        </p>
-                      </div>
-                      <div className="min-w-48 rounded-3xl border border-violet-300/20 bg-violet-300/[0.08] p-5 text-right shadow-2xl shadow-violet-950/20">
-                        <p className="text-xs font-black uppercase tracking-[0.16em] text-violet-200">
-                          SealTrust Score
-                        </p>
-                        <p className="mt-2 text-5xl font-black text-white">
-                          {deal.aiProofReview.score}
-                          <span className="text-xl text-slate-400">/100</span>
-                        </p>
-                        <p className="mt-3 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-black text-violet-100">
-                          {deal.aiProofReview.verdict ?? deal.aiProofReview.status}
-                        </p>
-                      </div>
-                    </div>
+                    <p className="inline-flex items-center gap-2 rounded-full border border-violet-300/20 bg-violet-300/10 px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-violet-200">
+                      <Fingerprint className="size-4" />
+                      Decentralized Proof
+                    </p>
+                    <h2 className="mt-4 text-3xl font-black text-white">
+                      IPFS Proof Record
+                    </h2>
+                    <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">
+                      The uploaded proof is pinned to IPFS through Pinata. The
+                      CID can later be submitted to the escrow contract, making
+                      the proof trail verifiable without a centralized database.
+                    </p>
                   </div>
 
-                  <div className="grid gap-4 p-6 sm:p-8 lg:grid-cols-[1fr_0.85fr]">
+                  <div className="grid gap-4 p-6 sm:p-8 lg:grid-cols-2">
                     <div className="rounded-3xl border border-violet-300/15 bg-violet-300/[0.055] p-5">
                       <p className="text-xs font-black uppercase tracking-[0.16em] text-violet-200">
-                        Review Summary
+                        IPFS CID
                       </p>
-                      <p className="mt-3 text-sm font-semibold leading-6 text-slate-200">
-                        {deal.aiProofReview.summary ??
-                          "AI reviewed the uploaded proof for relevance to the deal."}
+                      <p className="mt-3 break-all font-mono text-sm font-semibold leading-6 text-slate-200">
+                        {deal.proof.fileHash}
                       </p>
                     </div>
                     <div className="rounded-3xl border border-white/10 bg-white/[0.045] p-5">
                       <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">
-                        Status
+                        Contract Handoff
                       </p>
-                      <p className="mt-3 text-lg font-black text-violet-200">
-                        {deal.aiProofReview.status}
+                      <p className="mt-3 text-sm font-semibold leading-6 text-slate-300">
+                        {deal.proof.txHash
+                          ? "CID submitted on-chain. Transaction hash is available in the timeline."
+                          : "CID is ready for the submitProof contract call."}
                       </p>
-                      <p className="mt-4 text-xs font-black uppercase tracking-[0.16em] text-slate-500">
-                        Proof CID
-                      </p>
-                      <p className="mt-2 break-all font-mono text-xs font-bold text-slate-300">
-                        {deal.proof?.fileHash ?? "pending"}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid gap-4 px-6 pb-6 sm:px-8 sm:pb-8 lg:grid-cols-2">
-                    <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
-                      <div className="flex items-center gap-2 text-sm font-black text-white">
-                        <ListChecks className="size-4 text-violet-300" />
-                        Reasons
-                      </div>
-                      <div className="mt-4 grid gap-3">
-                        {deal.aiProofReview.reasons.map((reason) => (
-                          <p
-                            key={reason}
-                            className="rounded-2xl border border-white/8 bg-black/15 p-3 text-sm font-semibold leading-6 text-slate-300"
-                          >
-                            {reason}
-                          </p>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="rounded-3xl border border-amber-300/15 bg-amber-300/[0.06] p-5">
-                      <div className="flex items-center gap-2 text-sm font-black text-amber-100">
-                        <TriangleAlert className="size-4" />
-                        Issues To Check
-                      </div>
-                      <div className="mt-4 grid gap-3">
-                        {deal.aiProofReview.issues?.length ? (
-                          deal.aiProofReview.issues.map((issue) => (
-                            <p
-                              key={issue}
-                              className="rounded-2xl border border-amber-200/10 bg-black/15 p-3 text-sm font-semibold leading-6 text-amber-100"
-                            >
-                              {issue}
-                            </p>
-                          ))
-                        ) : (
-                          <p className="rounded-2xl border border-amber-200/10 bg-black/15 p-3 text-sm font-semibold leading-6 text-amber-100">
-                            No major issues returned by AI. The client should still verify the proof manually.
-                          </p>
-                        )}
-                      </div>
+                      {deal.proof.gatewayUrl ? (
+                        <a
+                          href={deal.proof.gatewayUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="secondary-button mt-5 w-fit border-white/10 bg-white/5 text-white"
+                        >
+                          Open IPFS Proof
+                          <ExternalLink className="size-4" />
+                        </a>
+                      ) : null}
                     </div>
                   </div>
                 </article>
@@ -1147,25 +1004,6 @@ export default function DealDetailsPage() {
                   <p className="mt-3 text-sm leading-6 text-[#53606a]">
                     {deal.disputeEvidence}
                   </p>
-                  {deal.aiDisputeSummary ? (
-                    <div className="mt-4 rounded-2xl border border-violet-300/25 bg-violet-50 p-4">
-                      <p className="text-sm font-black text-[#6d28d9]">
-                        AI Dispute Summary
-                      </p>
-                      <p className="mt-2 text-xs font-bold text-[#43474b]">
-                        AI assists the review. Final decision stays with human
-                        admin/judge.
-                      </p>
-                      <p className="mt-3 text-sm leading-6 text-[#43474b]">
-                        {deal.aiDisputeSummary}
-                      </p>
-                      {deal.aiDisputeRecommendation ? (
-                        <p className="mt-3 text-sm font-black leading-6 text-[#1e1233]">
-                          Recommendation: {deal.aiDisputeRecommendation}
-                        </p>
-                      ) : null}
-                    </div>
-                  ) : null}
                   {deal.resolution ? (
                     <p className="mt-4 rounded-2xl border border-emerald-300/25 bg-emerald-300/10 p-3 text-sm font-bold text-emerald-800">
                       Resolution: {deal.resolution}

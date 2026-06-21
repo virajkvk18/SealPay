@@ -11,7 +11,7 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import { deliverableTypes, type Deal } from "@/lib/mockData";
-import { calculateRiskScore, suggestMilestones } from "@/lib/aiEngine";
+import { calculateRiskScore, suggestMilestones } from "@/lib/scoring";
 import { useSealPay } from "@/lib/store";
 import { useWallet } from "@/lib/wallet";
 import {
@@ -189,10 +189,8 @@ export default function CreateDealForm({
         preview_url: null,
         final_file_name: null,
         proof: null,
-        ai_proof_review: null,
         dispute_reason: null,
         dispute_evidence: null,
-        ai_dispute_summary: null,
         resolution: null,
       });
       const remoteId = remoteRows?.[0]?.id;
@@ -502,7 +500,7 @@ export default function CreateDealForm({
             </span>
             <div>
               <p className="text-sm font-bold text-[#53606a]">
-                AI Milestone Suggestion
+                Milestone Suggestion
               </p>
               <p className="text-lg font-black text-[#1e1233]">
                 {milestoneSuggestion.structure.length === 1

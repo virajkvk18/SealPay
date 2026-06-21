@@ -60,7 +60,6 @@ Until wallet-signature sessions or contract-derived reads are implemented, Supab
 
 Server-only:
 
-- `GROQ_API_KEY`
 - `PINATA_JWT`
 - `PRIVATE_KEY`
 - database service keys
@@ -81,8 +80,7 @@ Never expose service-role database keys or provider API tokens to browser code.
 Current protection:
 
 - `proxy.ts` applies security headers, suspicious path blocking, HTTPS redirects in production, and route-group rate limits.
-- AI and upload endpoints reject cross-origin API calls.
-- AI endpoints enforce request-size limits and trim prompt input.
+- Upload endpoints reject cross-origin API calls.
 - Proof uploads enforce deal ID validation and upload-size limits.
 
 For production, replace in-memory rate limits with Redis, Upstash, Cloudflare, or another shared store so limits work across server instances.

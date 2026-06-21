@@ -19,11 +19,8 @@ const optionalDealColumns = new Set([
   "preview_url",
   "final_file_name",
   "proof",
-  "ai_proof_review",
   "dispute_reason",
   "dispute_evidence",
-  "ai_dispute_summary",
-  "ai_dispute_recommendation",
   "resolution",
   "selected_freelancer_wallet",
   "on_chain_deal_id",
@@ -137,13 +134,9 @@ export function mapSupabaseDeal(row: SupabaseDeal): Deal {
       ? String(row.final_file_name)
       : undefined,
     proof: row.proof as Deal["proof"],
-    aiProofReview: row.ai_proof_review as Deal["aiProofReview"],
     disputeReason: row.dispute_reason ? String(row.dispute_reason) : undefined,
     disputeEvidence: row.dispute_evidence
       ? String(row.dispute_evidence)
-      : undefined,
-    aiDisputeSummary: row.ai_dispute_summary
-      ? String(row.ai_dispute_summary)
       : undefined,
     resolution: row.resolution as Deal["resolution"],
     onChainDealId: row.on_chain_deal_id ? String(row.on_chain_deal_id) : undefined,

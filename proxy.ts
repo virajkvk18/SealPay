@@ -71,7 +71,7 @@ function isSuspiciousPath(pathname: string) {
 }
 
 function getRateLimitGroup(pathname: string) {
-  if (pathname.startsWith("/api/auth") || pathname.startsWith("/api/ai")) {
+  if (pathname.startsWith("/api/auth")) {
     return {
       limit: readPositiveInt("SECURITY_SENSITIVE_RATE_LIMIT", DEFAULT_SENSITIVE_LIMIT),
       name: "sensitive",
