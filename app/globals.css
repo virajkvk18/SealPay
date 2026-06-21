@@ -1918,6 +1918,12 @@ html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.lan
 
 .landing-professional .hero-video-overlay {
   background:
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.08) 0%,
+      rgba(0, 0, 0, 0.2) 52%,
+      rgba(7, 4, 13, 0.92) 100%
+    ),
     radial-gradient(
       circle at 22% 45%,
       rgba(0, 0, 0, 0.96) 0%,

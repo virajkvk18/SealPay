@@ -268,51 +268,50 @@ export default function Home() {
             </div>
           </div>
         </div>
+        <section
+          aria-label="SealPay protocol overview"
+          className="landing-section relative z-20 pb-10 lg:pb-12"
+        >
+          <div className="protocol-overview-grid overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/[0.035]">
+            {protocolOverview.map((item) => {
+              const Icon = item.icon;
+              return (
+                <article key={item.value} className="protocol-overview-item">
+                  <Icon className="size-5 text-violet-300" />
+                  <div>
+                    <p className="brand-font text-base font-black text-white">
+                      {item.value}
+                    </p>
+                    <p className="mt-1 text-xs leading-5 text-slate-400">
+                      {item.label}
+                    </p>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+
+        <section
+          aria-label="SealPay benefits"
+          className="relative z-20 overflow-hidden border-y border-violet-100/10 bg-black/35 py-4"
+        >
+          <div className="protocol-ticker-track">
+            {[...protocolSignals, ...protocolSignals].map((signal, index) => (
+              <span
+                key={`${signal}-${index}`}
+                aria-hidden={index >= protocolSignals.length ? true : undefined}
+                className="protocol-ticker-item"
+              >
+                <BadgeCheck className="size-4 text-violet-300" />
+                {signal}
+              </span>
+            ))}
+          </div>
+        </section>
       </section>
 
-      <section
-        aria-label="SealPay protocol overview"
-        className="landing-section relative z-10 pb-16 lg:pb-20"
-      >
-        <div className="protocol-overview-grid overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/[0.035]">
-          {protocolOverview.map((item) => {
-            const Icon = item.icon;
-            return (
-              <article key={item.value} className="protocol-overview-item">
-                <Icon className="size-5 text-violet-300" />
-                <div>
-                  <p className="brand-font text-base font-black text-white">
-                    {item.value}
-                  </p>
-                  <p className="mt-1 text-xs leading-5 text-slate-400">
-                    {item.label}
-                  </p>
-                </div>
-              </article>
-            );
-          })}
-        </div>
-      </section>
-
-      <section
-        aria-label="SealPay benefits"
-        className="relative z-10 mb-20 overflow-hidden border-y border-violet-100/10 bg-black/20 py-4"
-      >
-        <div className="protocol-ticker-track">
-          {[...protocolSignals, ...protocolSignals].map((signal, index) => (
-            <span
-              key={`${signal}-${index}`}
-              aria-hidden={index >= protocolSignals.length ? true : undefined}
-              className="protocol-ticker-item"
-            >
-              <BadgeCheck className="size-4 text-violet-300" />
-              {signal}
-            </span>
-          ))}
-        </div>
-      </section>
-
-      <section className="landing-section relative z-10 grid gap-5 pb-20 lg:grid-cols-2">
+      <section className="landing-section relative z-10 grid gap-5 py-20 lg:grid-cols-2">
         <article className="glass-panel-dark rounded-[2rem] p-7 sm:p-9">
           <video
             className="landing-inline-video"
