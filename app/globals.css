@@ -1904,7 +1904,7 @@ html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.lan
 
 /* Landing hero video: isolated from the remaining landing-page layout. */
 .landing-professional .hero-video-section {
-  min-height: calc(90svh - 4.5rem);
+  min-height: calc(88svh - 4.5rem);
   background:
     radial-gradient(circle at 78% 35%, rgba(34, 211, 238, 0.14), transparent 34%),
     linear-gradient(135deg, #07040d 0%, #160d27 52%, #0b1830 100%);
@@ -1913,37 +1913,40 @@ html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.lan
 .landing-professional .hero-background-video {
   min-height: 100%;
   object-position: center center;
+  filter: saturate(1.05) contrast(1.03) brightness(1);
 }
 
 .landing-professional .hero-video-overlay {
   background:
     linear-gradient(
       90deg,
-      rgba(5, 3, 12, 0.94) 0%,
-      rgba(9, 5, 18, 0.84) 34%,
-      rgba(13, 8, 28, 0.5) 64%,
-      rgba(5, 12, 25, 0.4) 100%
+      rgba(15, 23, 42, 0.24) 0%,
+      rgba(15, 23, 42, 0.14) 34%,
+      rgba(15, 23, 42, 0.06) 62%,
+      transparent 100%
     ),
-    linear-gradient(180deg, rgba(8, 5, 16, 0.28) 0%, rgba(8, 5, 16, 0.6) 100%);
+    linear-gradient(180deg, rgba(15, 23, 42, 0.08) 0%, rgba(15, 23, 42, 0.12) 100%);
 }
 
 .landing-professional .hero-video-content {
-  min-height: calc(90svh - 4.5rem);
+  min-height: calc(88svh - 4.5rem);
 }
 
 .landing-professional .hero-copy-panel {
   width: min(100%, 46rem);
-  border: 1px solid rgba(196, 181, 253, 0.16);
+  transform: translateY(-1rem);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 1.5rem;
   background: linear-gradient(
     135deg,
-    rgba(8, 5, 18, 0.78),
-    rgba(20, 12, 38, 0.54)
+    rgba(15, 23, 42, 0.5),
+    rgba(15, 23, 42, 0.26)
   );
   padding: clamp(1.5rem, 3vw, 2.5rem);
+  text-shadow: 0 2px 18px rgba(15, 23, 42, 0.55);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.07),
-    0 28px 80px rgba(0, 0, 0, 0.32);
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 24px 70px rgba(15, 23, 42, 0.22);
   backdrop-filter: blur(12px) saturate(125%);
   -webkit-backdrop-filter: blur(12px) saturate(125%);
 }
@@ -1981,7 +1984,7 @@ html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.lan
 @media (max-width: 639px) {
   .landing-professional .hero-video-section,
   .landing-professional .hero-video-content {
-    min-height: calc(100svh - 4.5rem);
+    min-height: calc(92svh - 4.5rem);
   }
 
   .landing-professional .hero-background-video {
@@ -1989,8 +1992,15 @@ html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.lan
   }
 
   .landing-professional .hero-copy-panel {
+    transform: translateY(-0.5rem);
     border-radius: 1.15rem;
     padding: 1.35rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .landing-professional .hero-copy-panel {
+    transform: translateY(-1.5rem);
   }
 }
 

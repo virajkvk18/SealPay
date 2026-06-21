@@ -233,7 +233,7 @@ export default function Home() {
         </video>
         <div className="hero-video-overlay pointer-events-none absolute inset-0 z-10" />
 
-        <div className="landing-section hero-video-content relative z-20 flex items-center py-16 sm:py-20 lg:py-24">
+        <div className="landing-section hero-video-content relative z-20 flex items-center py-12 sm:py-16 lg:py-18">
           <div className="hero-copy hero-copy-panel">
             <div className="chain-chip inline-flex">
               <ShieldCheck className="size-3.5" />
