@@ -1901,3 +1901,101 @@ html[data-theme="light"] :is(.page-shell, .dashboard-shell, .web3-shell:not(.lan
     border-radius: 1.25rem;
   }
 }
+
+/* Landing hero video: isolated from the remaining landing-page layout. */
+.landing-professional .hero-video-section {
+  min-height: calc(90svh - 4.5rem);
+  background:
+    radial-gradient(circle at 78% 35%, rgba(34, 211, 238, 0.14), transparent 34%),
+    linear-gradient(135deg, #07040d 0%, #160d27 52%, #0b1830 100%);
+}
+
+.landing-professional .hero-background-video {
+  min-height: 100%;
+  object-position: center center;
+}
+
+.landing-professional .hero-video-overlay {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(5, 3, 12, 0.94) 0%,
+      rgba(9, 5, 18, 0.84) 34%,
+      rgba(13, 8, 28, 0.5) 64%,
+      rgba(5, 12, 25, 0.4) 100%
+    ),
+    linear-gradient(180deg, rgba(8, 5, 16, 0.28) 0%, rgba(8, 5, 16, 0.6) 100%);
+}
+
+.landing-professional .hero-video-content {
+  min-height: calc(90svh - 4.5rem);
+}
+
+.landing-professional .hero-copy-panel {
+  width: min(100%, 46rem);
+  border: 1px solid rgba(196, 181, 253, 0.16);
+  border-radius: 1.5rem;
+  background: linear-gradient(
+    135deg,
+    rgba(8, 5, 18, 0.78),
+    rgba(20, 12, 38, 0.54)
+  );
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 28px 80px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(12px) saturate(125%);
+  -webkit-backdrop-filter: blur(12px) saturate(125%);
+}
+
+.landing-professional .hero-video-section :is(h1, [class~="text-white"]) {
+  color: #f8fafc !important;
+}
+
+.landing-professional .hero-video-section [class*="text-slate-200"] {
+  color: #e2e8f0 !important;
+}
+
+.landing-professional .hero-video-section [class*="text-slate-400"] {
+  color: #cbd5e1 !important;
+}
+
+.landing-professional .hero-video-section [class*="text-violet-"] {
+  color: #c4b5fd !important;
+}
+
+.landing-professional .hero-video-section .chain-chip {
+  border-color: rgba(196, 181, 253, 0.26);
+  background: rgba(124, 58, 237, 0.16);
+  color: #ddd6fe;
+  backdrop-filter: blur(10px);
+}
+
+.landing-professional .hero-video-section .freelancer-cta,
+.landing-professional .hero-video-section .secondary-button {
+  border-color: rgba(196, 181, 253, 0.3) !important;
+  background: rgba(15, 23, 42, 0.62) !important;
+  color: #f8fafc !important;
+}
+
+@media (max-width: 639px) {
+  .landing-professional .hero-video-section,
+  .landing-professional .hero-video-content {
+    min-height: calc(100svh - 4.5rem);
+  }
+
+  .landing-professional .hero-background-video {
+    object-position: 62% center;
+  }
+
+  .landing-professional .hero-copy-panel {
+    border-radius: 1.15rem;
+    padding: 1.35rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-professional .hero-background-video {
+    display: none;
+  }
+}

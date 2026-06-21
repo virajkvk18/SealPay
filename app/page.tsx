@@ -1,4 +1,3 @@
-import Image from "next/image";
 import {
   BadgeCheck,
   Blocks,
@@ -145,33 +144,6 @@ const faqs = [
   },
 ];
 
-const floatingSignals = [
-  {
-    title: "Escrow locked",
-    detail: "Payment protected",
-    icon: LockKeyhole,
-    className: "hero-signal-left-top",
-  },
-  {
-    title: "Trust review",
-    detail: "AI-assisted",
-    icon: BrainCircuit,
-    className: "hero-signal-right-top",
-  },
-  {
-    title: "Proof stored",
-    detail: "CID verifiable",
-    icon: FileKey2,
-    className: "hero-signal-left-bottom",
-  },
-  {
-    title: "Fair payout",
-    detail: "Ready to settle",
-    icon: CircleDollarSign,
-    className: "hero-signal-right-bottom",
-  },
-];
-
 const protocolSignals = [
   "Wallet-first identity",
   "Payment protection",
@@ -243,71 +215,59 @@ export default function Home() {
     <main className="web3-shell protocol-grid landing-professional relative overflow-hidden">
       <Navbar />
 
-      <section className="landing-section hero-section relative z-10 grid gap-12 pb-16 pt-10 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:pb-20 lg:pt-16">
-        <div className="hero-copy">
-          <div className="chain-chip inline-flex">
-            <ShieldCheck className="size-3.5" />
-            Wallet-first payment protection
-          </div>
-          <h1 className="brand-font mt-5 max-w-3xl text-5xl font-black leading-[1.02] tracking-tight text-white sm:text-6xl lg:text-[4rem]">
-            Seal the deal.{" "}
-            <span className="gradient-text">Secure the pay.</span>
-          </h1>
-          <p className="mt-4 max-w-2xl text-base font-bold leading-7 text-slate-200 sm:whitespace-nowrap sm:text-lg">
-            Web3 escrow for freelancers, creators, and service buyers.
-          </p>
-          <p className="mt-5 max-w-xl text-base leading-7 text-slate-400">
-            Clients lock payment before work starts. Freelancers submit
-            protected proof. SealPay releases funds fairly through smart
-            contracts.
-          </p>
+      <section className="hero-section hero-video-section relative isolate overflow-hidden">
+        <video
+          className="hero-background-video pointer-events-none absolute inset-0 z-0 size-full object-cover"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          aria-hidden="true"
+          tabIndex={-1}
+        >
+          <source
+            src="/videos/sealpay-freelancer-hero.mp4"
+            type="video/mp4"
+          />
+        </video>
+        <div className="hero-video-overlay pointer-events-none absolute inset-0 z-10" />
 
-          <div className="mt-6">
-            <WalletIntentActions compact />
-          </div>
+        <div className="landing-section hero-video-content relative z-20 flex items-center py-16 sm:py-20 lg:py-24">
+          <div className="hero-copy hero-copy-panel">
+            <div className="chain-chip inline-flex">
+              <ShieldCheck className="size-3.5" />
+              Wallet-first payment protection
+            </div>
+            <h1 className="brand-font mt-5 max-w-3xl text-5xl font-black leading-[1.02] tracking-tight text-white sm:text-6xl lg:text-[4rem]">
+              Seal the deal.{" "}
+              <span className="gradient-text">Secure the pay.</span>
+            </h1>
+            <p className="mt-4 max-w-2xl text-base font-bold leading-7 text-slate-200 sm:whitespace-nowrap sm:text-lg">
+              Web3 escrow for freelancers, creators, and service buyers.
+            </p>
+            <p className="mt-5 max-w-xl text-base leading-7 text-slate-400">
+              Clients lock payment before work starts. Freelancers submit
+              protected proof. SealPay releases funds fairly through smart
+              contracts.
+            </p>
 
-          <div className="mt-6 flex flex-wrap gap-x-6 gap-y-3 text-xs font-bold text-slate-400">
-            {["No passwords", "Wallet identity", "Transparent settlement"].map(
-              (item) => (
+            <div className="mt-6">
+              <WalletIntentActions compact />
+            </div>
+
+            <div className="mt-6 flex flex-wrap gap-x-6 gap-y-3 text-xs font-bold text-slate-400">
+              {[
+                "No passwords",
+                "Wallet identity",
+                "Transparent settlement",
+              ].map((item) => (
                 <span key={item} className="flex items-center gap-2">
                   <CheckCircle2 className="size-4 text-violet-300" />
                   {item}
                 </span>
-              ),
-            )}
-          </div>
-        </div>
-
-        <div className="hero-visual-stage relative mx-auto w-full max-w-[550px]">
-          <div className="hero-orbit hero-orbit-outer" />
-          <div className="hero-orbit hero-orbit-inner" />
-          <Image
-            src="/sealpay-web3-dashboard-square.webp"
-            alt="SealPay wallet escrow dashboard with protected payment, decentralized proof, and trust review"
-            width={900}
-            height={900}
-            priority
-            sizes="(max-width: 1024px) 92vw, 540px"
-            className="hero-dashboard-visual mx-auto aspect-square w-full rounded-[2rem] object-cover"
-          />
-          <div className="mt-5 grid grid-cols-2 gap-3 lg:mt-0 lg:block">
-            {floatingSignals.map((signal) => {
-              const Icon = signal.icon;
-              return (
-                <div
-                  key={signal.title}
-                  className={`hero-signal-card ${signal.className}`}
-                >
-                  <span className="hero-signal-icon">
-                    <Icon className="size-4" />
-                  </span>
-                  <span>
-                    <strong>{signal.title}</strong>
-                    <small>{signal.detail}</small>
-                  </span>
-                </div>
-              );
-            })}
+              ))}
+            </div>
           </div>
         </div>
       </section>
