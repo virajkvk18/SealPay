@@ -26,12 +26,12 @@ import { generateWalletTrustScore } from "@/lib/scoring";
 import { useDashboardMode } from "@/lib/dashboardMode";
 import {
   attachApplicationsToDeals,
+  getClientDeals,
+  getFreelancerDirectDeals,
   getApplicationsForDeals,
-  mapSupabaseDeal,
+  getOpenDeals,
 } from "@/lib/deals";
 import type { Deal } from "@/lib/mockData";
-import { useSealPay } from "@/lib/store";
-import { supabase } from "@/lib/supabase";
 import { useWallet } from "@/lib/wallet";
 import {
   formatAmount,
@@ -172,72 +172,46 @@ function DealList({
 }
 
 export default function DashboardPage() {
-  const { deals: localDeals } = useSealPay();
   const { address } = useWallet();
   const mode = useDashboardMode();
   const [remoteDeals, setRemoteDeals] = useState<Deal[] | null>(null);
-  const deals = useMemo(() => {
-    if (!remoteDeals) return localDeals;
-    const localIds = new Set(localDeals.map((deal) => deal.id));
-    return [
-      ...localDeals,
-      ...remoteDeals.filter((deal) => !localIds.has(deal.id)),
-    ];
-  }, [localDeals, remoteDeals]);
+  const deals = remoteDeals ?? [];
 
   useEffect(() => {
-    const supabaseClient = supabase;
-    if (!supabaseClient || !/^0x[a-fA-F0-9]{40}$/.test(address)) return;
-    const client = supabaseClient;
+    if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
+      setRemoteDeals([]);
+      return;
+    }
     let cancelled = false;
-    const wallet = address.toLowerCase();
+    const wallet = address.trim().toLowerCase();
 
     async function loadDashboardDeals() {
-      const { data, error } = await client
-        .from("deals")
-        .select("*")
-        .order("deadline", { ascending: true });
-
-      if (cancelled || error) return;
-
-      const mappedDeals = (data ?? [])
-        .map((row) => mapSupabaseDeal(row))
-        .filter(
-          (deal) =>
-            deal.clientWallet.toLowerCase() === wallet ||
-            deal.freelancerWallet.toLowerCase() === wallet ||
-            (deal.dealKind === "Public" && deal.status === "Created"),
+      try {
+        const mappedDeals =
+          mode === "client"
+            ? await getClientDeals(wallet)
+            : [
+                ...(await getFreelancerDirectDeals(wallet)),
+                ...(await getOpenDeals()),
+              ];
+        const applications = await getApplicationsForDeals(
+          mappedDeals.map((deal) => deal.id),
         );
-      const applications = await getApplicationsForDeals(
-        mappedDeals.map((deal) => deal.id),
-      );
 
-      if (!cancelled) {
-        setRemoteDeals(attachApplicationsToDeals(mappedDeals, applications));
+        if (!cancelled) {
+          setRemoteDeals(attachApplicationsToDeals(mappedDeals, applications));
+        }
+      } catch {
+        if (!cancelled) setRemoteDeals([]);
       }
     }
 
     void loadDashboardDeals();
 
-    const channel = client
-      .channel(`dashboard-marketplace-${wallet}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "deals" },
-        () => void loadDashboardDeals(),
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "applications" },
-        () => void loadDashboardDeals(),
-      )
-      .subscribe();
-
     return () => {
       cancelled = true;
-      void client.removeChannel(channel);
     };
-  }, [address]);
+  }, [address, mode]);
 
   const normalizedWallet = address.toLowerCase();
   const clientDeals = useMemo(

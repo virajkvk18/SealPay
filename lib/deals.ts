@@ -25,6 +25,7 @@ const optionalDealColumns = new Set([
   "selected_freelancer_wallet",
   "on_chain_deal_id",
   "timeline",
+  "created_at",
 ]);
 
 function getMissingColumnName(message?: string) {
@@ -36,6 +37,39 @@ function isUuid(value: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
     value,
   );
+}
+
+function normalizeDealKind(value: unknown): Deal["dealKind"] {
+  const kind = String(value ?? "").toLowerCase();
+  return kind === "public" ? "Public" : "Direct";
+}
+
+function normalizeDealStatus(
+  status: unknown,
+  dealKind: Deal["dealKind"],
+  freelancerWallet: string,
+): Deal["status"] {
+  const normalized = String(status ?? "").toLowerCase();
+
+  if (normalized === "open") {
+    return dealKind === "Public" || !freelancerWallet ? "Created" : "Assigned";
+  }
+  if (normalized === "assigned") return "Assigned";
+  if (normalized === "locked") return "Locked";
+  if (normalized === "payment locked" || normalized === "payment_locked") {
+    return "Payment Locked";
+  }
+  if (normalized === "work submitted" || normalized === "work_submitted") {
+    return "Work Submitted";
+  }
+  if (normalized === "approved") return "Approved";
+  if (normalized === "payment released" || normalized === "payment_released") {
+    return "Payment Released";
+  }
+  if (normalized === "disputed") return "Disputed";
+  if (normalized === "resolved") return "Resolved";
+
+  return dealKind === "Public" || !freelancerWallet ? "Created" : "Assigned";
 }
 
 async function getProfileIdForWallet(wallet: string) {
@@ -93,6 +127,8 @@ export function mapSupabaseApplication(row: SupabaseApplication): DealApplicatio
 
 export function mapSupabaseDeal(row: SupabaseDeal): Deal {
   const risk = row.risk;
+  const freelancerWallet = String(row.freelancer_wallet ?? "").trim().toLowerCase();
+  const dealKind = normalizeDealKind(row.deal_kind ?? (freelancerWallet ? "direct" : "public"));
 
   return {
     id: String(row.id ?? ""),
@@ -100,11 +136,9 @@ export function mapSupabaseDeal(row: SupabaseDeal): Deal {
     description: String(row.description ?? "No description provided."),
     clientName: String(row.client_name ?? "Client"),
     freelancerName: String(row.freelancer_name ?? "Unassigned"),
-    clientWallet: String(row.client_wallet ?? ""),
-    freelancerWallet: String(row.freelancer_wallet ?? ""),
-    dealKind:
-      (row.deal_kind as Deal["dealKind"]) ??
-      (row.freelancer_wallet ? "Direct" : "Public"),
+    clientWallet: String(row.client_wallet ?? "").trim().toLowerCase(),
+    freelancerWallet,
+    dealKind,
     category: row.category
       ? String(row.category)
       : row.deliverable_type
@@ -116,11 +150,11 @@ export function mapSupabaseDeal(row: SupabaseDeal): Deal {
     applications: Array.isArray(row.applications)
       ? (row.applications as Deal["applications"])
       : [],
-    amount: Number(row.amount ?? 0),
+    amount: Number(row.budget ?? row.amount ?? 0),
     deadline: String(row.deadline ?? new Date().toISOString()),
     deliverableType:
       (row.deliverable_type as Deal["deliverableType"]) ?? "Other",
-    status: (row.status as Deal["status"]) ?? "Created",
+    status: normalizeDealStatus(row.status, dealKind, freelancerWallet),
     risk:
       risk && typeof risk === "object"
         ? (risk as Deal["risk"])
@@ -182,8 +216,68 @@ export async function getDeals() {
   return data;
 }
 
-export async function createDeal(deal: Record<string, unknown>) {
+export async function getOpenDeals() {
   if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from("deals")
+    .select("*")
+    .eq("deal_kind", "public")
+    .eq("status", "open")
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+
+  return (data ?? []).map((row) => mapSupabaseDeal(row));
+}
+
+export async function getClientDeals(clientWallet: string) {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from("deals")
+    .select("*")
+    .eq("client_wallet", clientWallet.trim().toLowerCase())
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+
+  return (data ?? []).map((row) => mapSupabaseDeal(row));
+}
+
+export async function getFreelancerDirectDeals(freelancerWallet: string) {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from("deals")
+    .select("*")
+    .eq("deal_kind", "direct")
+    .eq("freelancer_wallet", freelancerWallet.trim().toLowerCase())
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+
+  return (data ?? []).map((row) => mapSupabaseDeal(row));
+}
+
+export async function getDealById(dealId: string) {
+  if (!supabase) return undefined;
+
+  const { data, error } = await supabase
+    .from("deals")
+    .select("*")
+    .eq("id", dealId)
+    .single();
+
+  if (error) throw error;
+
+  return mapSupabaseDeal(data);
+}
+
+export async function createDeal(deal: Record<string, unknown>) {
+  if (!supabase) {
+    throw new Error("Shared database is not configured.");
+  }
   const payload = { ...deal };
 
   for (let attempt = 0; attempt < optionalDealColumns.size + 1; attempt += 1) {
@@ -197,6 +291,24 @@ export async function createDeal(deal: Record<string, unknown>) {
     if (!error) return data;
 
     const missingColumn = getMissingColumnName(error.message);
+    if (
+      error.code === "PGRST204" &&
+      missingColumn === "budget" &&
+      "budget" in payload
+    ) {
+      payload.amount = payload.budget;
+      delete payload.budget;
+      continue;
+    }
+    if (
+      error.code === "PGRST204" &&
+      missingColumn === "amount" &&
+      "amount" in payload
+    ) {
+      payload.budget = payload.amount;
+      delete payload.amount;
+      continue;
+    }
     if (error.code === "PGRST204" && optionalDealColumns.has(missingColumn)) {
       delete payload[missingColumn];
       continue;

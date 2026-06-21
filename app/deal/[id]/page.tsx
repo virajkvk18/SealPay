@@ -42,6 +42,7 @@ import {
   submitProofCID,
 } from "@/lib/blockchain";
 import { useDashboardMode } from "@/lib/dashboardMode";
+import { getDealById } from "@/lib/deals";
 import { type Deal, type Role } from "@/lib/mockData";
 import { saveProofToSupabase } from "@/lib/proofs";
 import { useSealPay } from "@/lib/store";
@@ -130,7 +131,7 @@ export default function DealDetailsPage() {
   const params = useParams();
   const routeId = Array.isArray(params.id) ? params.id[0] : params.id;
   const dealId = routeId ? decodeURIComponent(routeId) : "";
-  const { deals, updateDeal } = useSealPay();
+  const { deals, addDeal, updateDeal } = useSealPay();
   const { address } = useWallet();
   const sessionMode = useDashboardMode();
   const [proofOpen, setProofOpen] = useState(false);
@@ -148,7 +149,10 @@ export default function DealDetailsPage() {
     phase: TransactionUiPhase;
     txHash?: string;
   } | null>(null);
-  const deal = deals.find((candidate) => candidate.id === dealId);
+  const [remoteDeal, setRemoteDeal] = useState<Deal | null>(null);
+  const [dealLoadError, setDealLoadError] = useState("");
+  const localDeal = deals.find((candidate) => candidate.id === dealId);
+  const deal = localDeal ?? remoteDeal;
   const normalizedWallet = address.toLowerCase();
   const arbitratorWallet = (
     process.env.NEXT_PUBLIC_ARBITRATOR_ADDRESS ?? ""
@@ -174,6 +178,33 @@ export default function DealDetailsPage() {
       hasSelectedFreelancer &&
       (["Created", "Assigned"] as Deal["status"][]).includes(deal.status),
   );
+
+  useEffect(() => {
+    if (!dealId) return;
+    let cancelled = false;
+
+    async function loadDeal() {
+      try {
+        const sharedDeal = await getDealById(dealId);
+        if (cancelled || !sharedDeal) return;
+        setRemoteDeal(sharedDeal);
+        setDealLoadError("");
+        if (!deals.some((candidate) => candidate.id === sharedDeal.id)) {
+          addDeal(sharedDeal);
+        }
+      } catch {
+        if (!cancelled) {
+          setDealLoadError("Deal could not be loaded from the shared database.");
+        }
+      }
+    }
+
+    void loadDeal();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [addDeal, dealId, deals]);
 
   useEffect(() => {
     if (
@@ -472,7 +503,7 @@ export default function DealDetailsPage() {
               Deal not found
             </h1>
             <p className="mt-4 text-[#53606a]">
-              The local demo store does not have a deal with ID {dealId}.
+              {dealLoadError || `No shared deal was found with ID ${dealId}.`}
             </p>
             <Link href="/dashboard" className="primary-button mt-8">
               Back to Dashboard

@@ -105,9 +105,11 @@ export default function CreateDealForm({
       return;
     }
     const clientWallet = connectedWallet.toLowerCase();
+    const freelancerWallet =
+      dealKind === "direct" ? form.freelancerWallet.trim().toLowerCase() : "";
     if (
       dealKind === "direct" &&
-      !/^0x[a-fA-F0-9]{40}$/.test(form.freelancerWallet.trim())
+      !/^0x[a-fA-F0-9]{40}$/.test(freelancerWallet)
     ) {
       setFormError(
         "Enter a valid freelancer wallet address for a direct deal.",
@@ -145,8 +147,7 @@ export default function CreateDealForm({
       freelancerName:
         dealKind === "direct" ? form.freelancerName.trim() : "Open Application",
       clientWallet,
-      freelancerWallet:
-        dealKind === "direct" ? form.freelancerWallet.trim() : "",
+      freelancerWallet,
       dealKind: dealKind === "direct" ? "Direct" : "Public",
       category: form.category,
       amount,
@@ -173,17 +174,15 @@ export default function CreateDealForm({
       const remoteRows = await createDeal({
         title: deal.title,
         description: deal.description,
-        client_name: deal.clientName,
-        freelancer_name: deal.freelancerName,
+        budget: deal.amount,
+        deal_kind: deal.dealKind?.toLowerCase(),
         client_wallet: deal.clientWallet,
         freelancer_wallet: deal.freelancerWallet,
-        deal_kind: deal.dealKind,
-        category: deal.category,
-        applications: [],
-        amount: deal.amount,
-        deadline: deal.deadline,
+        status: "open",
+        created_at: new Date().toISOString(),
+        client_name: deal.clientName,
+        freelancer_name: deal.freelancerName,
         deliverable_type: deal.deliverableType,
-        status: deal.status,
         risk: deal.risk,
         created_tx_hash: deal.createdTxHash,
         preview_url: null,
@@ -192,17 +191,28 @@ export default function CreateDealForm({
         dispute_reason: null,
         dispute_evidence: null,
         resolution: null,
+        deadline: deal.deadline,
       });
       const remoteId = remoteRows?.[0]?.id;
-      if (remoteId) {
-        finalDeal = { ...deal, id: String(remoteId) };
+      if (!remoteId) {
+        throw new Error("Shared database did not return a deal id.");
       }
+      finalDeal = {
+        ...deal,
+        id: String(remoteId),
+      };
     } catch (error) {
-      console.error(
-        "Remote deal save failed; retaining wallet-local record.",
+      console.warn(
+        "Remote deal save failed; not adding wallet-local record.",
         error,
       );
+      setFormError(
+        "Deal could not be saved to the shared database. Other users will not be able to see it.",
+      );
+      setIsSubmitting(false);
+      return;
     }
+
     addDeal(finalDeal);
     setSuccessMessage("Deal created successfully.");
     window.setTimeout(() => router.push(`/deal/${finalDeal.id}`), 700);

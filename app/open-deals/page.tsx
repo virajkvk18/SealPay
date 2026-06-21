@@ -11,68 +11,38 @@ import StatusBadge from "@/components/StatusBadge";
 import {
   attachApplicationsToDeals,
   getApplicationsForDeals,
-  mapSupabaseDeal,
+  getOpenDeals,
 } from "@/lib/deals";
 import type { Deal } from "@/lib/mockData";
-import { useSealPay } from "@/lib/store";
-import { supabase } from "@/lib/supabase";
 import { formatAmount, formatDate, formatWallet } from "@/lib/utils";
 import { useWallet } from "@/lib/wallet";
 
 export default function OpenDealsPage() {
-  const { deals } = useSealPay();
   const { address } = useWallet();
-  const [remoteDeals, setRemoteDeals] = useState<Deal[] | null>(null);
-  const fallbackOpenDeals = deals.filter(
-    (deal) => deal.dealKind === "Public" && deal.status === "Created",
-  );
-  const openDeals = remoteDeals ?? fallbackOpenDeals;
+  const [openDeals, setOpenDeals] = useState<Deal[]>([]);
 
   useEffect(() => {
-    const supabaseClient = supabase;
-    if (!supabaseClient) return;
-    const client = supabaseClient;
     let cancelled = false;
 
     async function loadOpenDeals() {
-      const { data, error } = await client
-        .from("deals")
-        .select("*")
-        .eq("deal_kind", "Public")
-        .eq("status", "Created")
-        .order("deadline", { ascending: true });
+      try {
+        const mappedDeals = await getOpenDeals();
+        const applications = await getApplicationsForDeals(
+          mappedDeals.map((deal) => deal.id),
+        );
 
-      if (cancelled || error) return;
-
-      const mappedDeals = (data ?? []).map((row) => mapSupabaseDeal(row));
-      const applications = await getApplicationsForDeals(
-        mappedDeals.map((deal) => deal.id),
-      );
-
-      if (!cancelled) {
-        setRemoteDeals(attachApplicationsToDeals(mappedDeals, applications));
+        if (!cancelled) {
+          setOpenDeals(attachApplicationsToDeals(mappedDeals, applications));
+        }
+      } catch {
+        if (!cancelled) setOpenDeals([]);
       }
     }
 
     void loadOpenDeals();
 
-    const channel = client
-      .channel("open-deals-marketplace")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "deals" },
-        () => void loadOpenDeals(),
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "applications" },
-        () => void loadOpenDeals(),
-      )
-      .subscribe();
-
     return () => {
       cancelled = true;
-      void client.removeChannel(channel);
     };
   }, []);
 
