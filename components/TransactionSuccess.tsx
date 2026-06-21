@@ -30,8 +30,8 @@ export default function TransactionSuccess({
   }
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-[#010b13]/75 p-4 backdrop-blur-sm">
-      <article className="w-full max-w-lg rounded-[2rem] border border-emerald-300/20 bg-[#071722] p-6 text-white shadow-2xl">
+    <div className="fixed inset-0 z-50 grid place-items-center bg-[#1e1233]/75 p-4 backdrop-blur-sm">
+      <article className="w-full max-w-lg rounded-[2rem] border border-emerald-300/20 bg-[#1c1230] p-6 text-white shadow-2xl">
         <div className="flex justify-between gap-4">
           <span className="grid size-12 place-items-center rounded-2xl bg-emerald-400/15 text-emerald-300">
             <CheckCircle2 className="size-6" />

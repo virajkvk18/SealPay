@@ -63,7 +63,7 @@ export default function DealStatusTracker({
                   className={cn(
                     "absolute hidden h-0.5 w-full -translate-x-1/2 sm:block",
                     index <= current
-                      ? "bg-cyan-400"
+                      ? "bg-violet-400"
                       : dark
                         ? "bg-white/10"
                         : "bg-slate-200",
@@ -74,9 +74,9 @@ export default function DealStatusTracker({
                 className={cn(
                   "relative z-10 grid size-8 shrink-0 place-items-center rounded-full border text-xs font-black transition",
                   complete || active
-                    ? "border-cyan-300 bg-cyan-400 text-[#010b13] shadow-[0_0_18px_rgba(34,211,238,0.32)]"
+                    ? "border-violet-300 bg-violet-400 text-[#1e1233] shadow-[0_0_18px_rgba(34,211,238,0.32)]"
                     : dark
-                      ? "border-white/10 bg-[#081823] text-slate-600"
+                      ? "border-white/10 bg-[#201438] text-slate-600"
                       : "border-slate-200 bg-white text-slate-400",
                 )}
               >
@@ -87,8 +87,8 @@ export default function DealStatusTracker({
                   "text-xs font-bold",
                   active
                     ? dark
-                      ? "text-cyan-300"
-                      : "text-[#00677f]"
+                      ? "text-violet-300"
+                      : "text-[#7c3aed]"
                     : complete
                       ? dark
                         ? "text-white"

@@ -71,7 +71,7 @@ export default function ApplyDealButton({
 
   if (!wallet)
     return (
-      <p className="rounded-2xl border border-cyan-300/20 bg-cyan-300/[0.06] p-4 text-sm font-bold text-[#00566a]">
+      <p className="rounded-2xl border border-violet-300/20 bg-violet-300/[0.06] p-4 text-sm font-bold text-[#6d28d9]">
         Connect your wallet by choosing Work as Freelancer to apply.
       </p>
     );
@@ -88,14 +88,14 @@ export default function ApplyDealButton({
         {applied ? "Application Sent" : "Apply for Deal"}
       </button>
       {open ? (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-[#010b13]/75 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 grid place-items-center bg-[#1e1233]/75 p-4 backdrop-blur-sm">
           <form
             onSubmit={submit}
-            className="w-full max-w-lg rounded-[2rem] border border-white/10 bg-[#071722] p-6 text-white shadow-2xl"
+            className="w-full max-w-lg rounded-[2rem] border border-white/10 bg-[#1c1230] p-6 text-white shadow-2xl"
           >
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.14em] text-cyan-300">
+                <p className="text-xs font-black uppercase tracking-[0.14em] text-violet-300">
                   Freelancer application
                 </p>
                 <h2 className="mt-2 text-2xl font-black">Apply for Deal</h2>
@@ -114,7 +114,7 @@ export default function ApplyDealButton({
                 required
                 name="proposal"
                 rows={4}
-                className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-white outline-none focus:border-cyan-300"
+                className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-white outline-none focus:border-violet-300"
                 placeholder="Explain how you will deliver this work."
               />
             </label>
@@ -123,7 +123,7 @@ export default function ApplyDealButton({
               <input
                 required
                 name="delivery"
-                className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-white outline-none focus:border-cyan-300"
+                className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-white outline-none focus:border-violet-300"
                 placeholder="For example, 5 business days"
               />
             </label>
@@ -132,7 +132,7 @@ export default function ApplyDealButton({
               <textarea
                 name="note"
                 rows={2}
-                className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-white outline-none focus:border-cyan-300"
+                className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-white outline-none focus:border-violet-300"
               />
             </label>
             {error ? (

@@ -119,11 +119,11 @@ export default function ProofPage() {
         <article className="glass-panel rounded-3xl p-6 sm:p-8">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/25 bg-cyan-300/10 px-4 py-2 text-sm font-black text-[#00566a]">
+              <div className="inline-flex items-center gap-2 rounded-full border border-violet-300/25 bg-violet-300/10 px-4 py-2 text-sm font-black text-[#6d28d9]">
                 <FileSearch className="size-4" />
                 Public Proof Timeline
               </div>
-              <h1 className="mt-5 text-4xl font-black tracking-normal text-[#010b13] sm:text-5xl">
+              <h1 className="mt-5 text-4xl font-black tracking-normal text-[#1e1233] sm:text-5xl">
                 Verify the complete deal record
               </h1>
               <p className="mt-4 max-w-3xl text-base leading-7 text-[#43474b]">
@@ -136,7 +136,7 @@ export default function ProofPage() {
               className="flex w-full gap-2 rounded-full border border-[#101d25]/10 bg-white/70 p-1 lg:max-w-md"
             >
               <input
-                className="min-w-0 flex-1 bg-transparent px-4 text-sm font-bold text-[#010b13] placeholder:text-[#74777b]"
+                className="min-w-0 flex-1 bg-transparent px-4 text-sm font-bold text-[#1e1233] placeholder:text-[#74777b]"
                 value={lookup}
                 onChange={(event) => setLookup(event.target.value)}
                 placeholder="Enter Deal ID"
@@ -156,10 +156,10 @@ export default function ProofPage() {
           <article className="mt-6 glass-panel rounded-3xl p-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <p className="text-sm font-black uppercase tracking-normal text-[#00677f]">
+                <p className="text-sm font-black uppercase tracking-normal text-[#7c3aed]">
                   Blockchain Proof
                 </p>
-                <h2 className="mt-2 text-2xl font-black text-[#010b13]">
+                <h2 className="mt-2 text-2xl font-black text-[#1e1233]">
                   Proof found for {currentRemoteProof.deal_id}
                 </h2>
                 <p className="mt-3 text-sm leading-6 text-[#53606a]">
@@ -191,15 +191,15 @@ export default function ProofPage() {
                 href={currentRemoteProof.proof_url}
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-2xl border border-cyan-300/25 bg-cyan-300/[0.08] p-4 text-sm font-black text-[#00677f] underline md:col-span-2"
+                className="rounded-2xl border border-violet-300/25 bg-violet-300/[0.08] p-4 text-sm font-black text-[#7c3aed] underline md:col-span-2"
               >
                 Open pinned proof
               </a>
             </div>
 
             {currentRemoteProof.ai_review ? (
-              <div className="mt-6 rounded-3xl border border-cyan-300/20 bg-[#061f2a] p-5 text-white">
-                <p className="text-sm font-black uppercase tracking-[0.18em] text-cyan-200">
+              <div className="mt-6 rounded-3xl border border-violet-300/20 bg-[#241642] p-5 text-white">
+                <p className="text-sm font-black uppercase tracking-[0.18em] text-violet-200">
                   AI Proof Review
                 </p>
                 <div className="mt-4 grid gap-4 md:grid-cols-[180px_1fr]">
@@ -210,7 +210,7 @@ export default function ProofPage() {
                     <p className="mt-2 text-4xl font-black text-white">
                       {currentRemoteProof.ai_review.score}/100
                     </p>
-                    <p className="mt-2 text-sm font-bold text-cyan-100">
+                    <p className="mt-2 text-sm font-bold text-violet-100">
                       {currentRemoteProof.ai_review.verdict ??
                         currentRemoteProof.ai_review.status}
                     </p>
@@ -237,7 +237,7 @@ export default function ProofPage() {
           </article>
         ) : !deal ? (
           <article className="mt-6 glass-panel rounded-3xl p-6 text-center">
-            <h2 className="text-2xl font-black text-[#010b13]">
+            <h2 className="text-2xl font-black text-[#1e1233]">
               No public proof found
             </h2>
             <p className="mt-3 text-[#53606a]">
@@ -249,10 +249,10 @@ export default function ProofPage() {
             <aside className="glass-panel h-fit rounded-3xl p-5">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-xs font-black uppercase tracking-normal text-[#00677f]">
+                  <p className="text-xs font-black uppercase tracking-normal text-[#7c3aed]">
                     Deal ID
                   </p>
-                  <h2 className="mt-2 text-3xl font-black text-[#010b13]">
+                  <h2 className="mt-2 text-3xl font-black text-[#1e1233]">
                     {deal.id}
                   </h2>
                 </div>
@@ -264,7 +264,7 @@ export default function ProofPage() {
                   <p className="text-sm font-bold text-emerald-800">
                     Amount locked
                   </p>
-                  <p className="mt-2 text-2xl font-black text-[#010b13]">
+                  <p className="mt-2 text-2xl font-black text-[#1e1233]">
                     {formatAmount(deal.amount)}
                   </p>
                 </div>
@@ -311,7 +311,7 @@ export default function ProofPage() {
                       href={deal.proof.gatewayUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="mt-2 block break-all text-sm font-bold text-[#00677f] underline"
+                      className="mt-2 block break-all text-sm font-bold text-[#7c3aed] underline"
                     >
                       Open pinned proof
                     </a>
@@ -353,8 +353,8 @@ export default function ProofPage() {
                 </div>
               </div>
 
-              <div className="mt-6 rounded-2xl border border-cyan-300/20 bg-cyan-300/[0.06] p-4">
-                <div className="flex items-center gap-2 text-sm font-black text-[#00566a]">
+              <div className="mt-6 rounded-2xl border border-violet-300/20 bg-violet-300/[0.06] p-4">
+                <div className="flex items-center gap-2 text-sm font-black text-[#6d28d9]">
                   <ShieldCheck className="size-4" />
                   Smart Contract Escrow
                 </div>
@@ -364,21 +364,21 @@ export default function ProofPage() {
                 </p>
               </div>
 
-              <div className="mt-4 rounded-2xl border border-cyan-300/20 bg-cyan-300/[0.06] p-4">
-                <div className="flex items-center gap-2 text-sm font-black text-[#00566a]">
+              <div className="mt-4 rounded-2xl border border-violet-300/20 bg-violet-300/[0.06] p-4">
+                <div className="flex items-center gap-2 text-sm font-black text-[#6d28d9]">
                   <Fingerprint className="size-4" />
                   AI explorer signals
                 </div>
                 <div className="mt-3 space-y-2 text-sm leading-6 text-[#43474b]">
                   <p>
                     AI risk score:{" "}
-                    <span className="font-black text-[#010b13]">
+                    <span className="font-black text-[#1e1233]">
                       {deal.risk.score}/100
                     </span>
                   </p>
                   <p>
                     AI proof review:{" "}
-                    <span className="font-black text-[#010b13]">
+                    <span className="font-black text-[#1e1233]">
                       {proofReview?.status ?? "Pending proof submission"}
                     </span>
                   </p>
@@ -386,13 +386,13 @@ export default function ProofPage() {
                     <>
                       <p>
                         AI review score:{" "}
-                        <span className="font-black text-[#010b13]">
+                        <span className="font-black text-[#1e1233]">
                           {proofReview.score}/100
                         </span>
                       </p>
                       <p>
                         AI verdict:{" "}
-                        <span className="font-black text-[#010b13]">
+                        <span className="font-black text-[#1e1233]">
                           {proofReview.verdict ?? proofReview.status}
                         </span>
                       </p>
@@ -420,7 +420,7 @@ export default function ProofPage() {
 
             <section className="glass-panel rounded-3xl p-5 sm:p-7">
               <div className="mb-8 rounded-3xl border border-[#101d25]/10 bg-white/65 p-5">
-                <p className="mb-5 text-sm font-black uppercase tracking-normal text-[#00677f]">
+                <p className="mb-5 text-sm font-black uppercase tracking-normal text-[#7c3aed]">
                   Deal status
                 </p>
                 <DealStatusTracker deal={deal} dark />
@@ -429,7 +429,7 @@ export default function ProofPage() {
                 <p className="text-sm font-black uppercase tracking-normal text-emerald-700">
                   Timeline
                 </p>
-                <h2 className="mt-2 text-3xl font-black text-[#010b13]">
+                <h2 className="mt-2 text-3xl font-black text-[#1e1233]">
                   Blockchain Proof Trail
                 </h2>
               </div>

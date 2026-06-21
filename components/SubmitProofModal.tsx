@@ -201,14 +201,14 @@ export default function SubmitProofModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-[#010b13]/80 px-4 backdrop-blur-md">
+    <div className="fixed inset-0 z-50 grid place-items-center bg-[#1e1233]/80 px-4 backdrop-blur-md">
       <form
         onSubmit={handleSubmit}
-        className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-cyan-300/15 bg-[#071722] p-6 text-white shadow-2xl"
+        className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-violet-300/15 bg-[#1c1230] p-6 text-white shadow-2xl"
       >
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <span className="grid size-11 place-items-center rounded-xl border border-cyan-300/30 bg-cyan-300/10 text-[#00566a]">
+            <span className="grid size-11 place-items-center rounded-xl border border-violet-300/30 bg-violet-300/10 text-[#6d28d9]">
               <FileUp className="size-5" />
             </span>
             <div>
@@ -260,7 +260,7 @@ export default function SubmitProofModal({
 
           <label>
             <span className="mb-2 flex items-center gap-2 text-sm font-bold text-[#43474b]">
-              <Link2 className="size-4 text-[#00677f]" />
+              <Link2 className="size-4 text-[#7c3aed]" />
               Preview URL
             </span>
             <input
@@ -282,10 +282,10 @@ export default function SubmitProofModal({
           ) : null}
 
           {uploading || generatedCid ? (
-            <div className="rounded-3xl border border-cyan-300/25 bg-[#061f2a] p-4 text-white shadow-[0_20px_50px_rgba(0,14,25,0.18)]">
+            <div className="rounded-3xl border border-violet-300/25 bg-[#241642] p-4 text-white shadow-[0_20px_50px_rgba(0,14,25,0.18)]">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-black uppercase tracking-[0.18em] text-cyan-200">
+                  <p className="text-sm font-black uppercase tracking-[0.18em] text-violet-200">
                     Proof submission
                   </p>
                   <p className="mt-1 text-xs font-bold text-slate-300">
@@ -293,7 +293,7 @@ export default function SubmitProofModal({
                   </p>
                 </div>
                 {uploading ? (
-                  <Loader2 className="size-5 animate-spin text-cyan-200" />
+                  <Loader2 className="size-5 animate-spin text-violet-200" />
                 ) : (
                   <CheckCircle2 className="size-5 text-emerald-300" />
                 )}
@@ -311,11 +311,11 @@ export default function SubmitProofModal({
                       key={item.key}
                       className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3"
                     >
-                      <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full border border-cyan-200/30 bg-cyan-200/10">
+                      <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full border border-violet-200/30 bg-violet-200/10">
                         {isDone ? (
                           <CheckCircle2 className="size-4 text-emerald-300" />
                         ) : isCurrent ? (
-                          <Loader2 className="size-4 animate-spin text-cyan-200" />
+                          <Loader2 className="size-4 animate-spin text-violet-200" />
                         ) : (
                           <span className="size-2 rounded-full bg-slate-500" />
                         )}
@@ -334,8 +334,8 @@ export default function SubmitProofModal({
               </div>
 
               {generatedCid ? (
-                <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-cyan-200/20 bg-cyan-200/10 p-3 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="min-w-0 break-all text-xs font-bold text-cyan-100">
+                <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-violet-200/20 bg-violet-200/10 p-3 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="min-w-0 break-all text-xs font-bold text-violet-100">
                     CID: {generatedCid}
                   </p>
                   <button

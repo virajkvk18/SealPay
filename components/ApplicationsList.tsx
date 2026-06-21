@@ -81,7 +81,7 @@ export default function ApplicationsList({
           className={
             dark
               ? "text-xl font-black text-white"
-              : "text-2xl font-black text-[#010b13]"
+              : "text-2xl font-black text-[#1e1233]"
           }
         >
           Applications Received
@@ -95,7 +95,7 @@ export default function ApplicationsList({
         </p>
       </div>
       {message === "Freelancer selected successfully." ? (
-        <p className={dark ? "mx-6 mt-5 text-sm font-bold text-cyan-200" : "mt-5 text-sm font-bold text-[#00677f]"}>
+        <p className={dark ? "mx-6 mt-5 text-sm font-bold text-violet-200" : "mt-5 text-sm font-bold text-[#7c3aed]"}>
           Next step: Lock payment in escrow.
         </p>
       ) : null}
@@ -116,7 +116,7 @@ export default function ApplicationsList({
                     className={
                       dark
                         ? "font-black text-white"
-                        : "font-black text-[#010b13]"
+                        : "font-black text-[#1e1233]"
                     }
                   >
                     {deal.title}
@@ -125,7 +125,7 @@ export default function ApplicationsList({
                     {formatWallet(application.freelancerWallet)}
                   </p>
                 </div>
-                <span className="rounded-full bg-cyan-400/10 px-3 py-1 text-xs font-black capitalize text-cyan-300">
+                <span className="rounded-full bg-violet-400/10 px-3 py-1 text-xs font-black capitalize text-violet-300">
                   {application.status}
                 </span>
               </div>
@@ -175,8 +175,8 @@ export default function ApplicationsList({
         )}
       </div>
       {selection ? (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-[#010b13]/75 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-[2rem] border border-white/10 bg-[#071722] p-6 text-white">
+        <div className="fixed inset-0 z-50 grid place-items-center bg-[#1e1233]/75 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-[2rem] border border-white/10 bg-[#1c1230] p-6 text-white">
             <div className="flex justify-between gap-4">
               <h2 className="text-2xl font-black">Select this freelancer?</h2>
               <button onClick={() => setSelection(null)}>

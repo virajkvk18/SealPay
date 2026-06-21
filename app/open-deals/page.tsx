@@ -30,7 +30,7 @@ export default function OpenDealsPage() {
             Freelancer Dashboard
           </Link>
           <div className="mt-8">
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-cyan-300">
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-violet-300">
               Public opportunities
             </p>
             <h1 className="mt-3 text-4xl font-black text-white sm:text-5xl">
@@ -49,7 +49,7 @@ export default function OpenDealsPage() {
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="text-xs font-black uppercase text-cyan-300">
+                      <p className="text-xs font-black uppercase text-violet-300">
                         {deal.id}
                       </p>
                       <h2 className="mt-2 text-xl font-black text-white">
@@ -73,7 +73,7 @@ export default function OpenDealsPage() {
                       {formatAmount(deal.amount)}
                     </span>
                     <span className="flex items-center gap-2">
-                      <Clock3 className="size-4 text-cyan-300" />
+                      <Clock3 className="size-4 text-violet-300" />
                       {formatDate(deal.deadline)}
                     </span>
                   </div>

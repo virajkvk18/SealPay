@@ -17,20 +17,20 @@ export default function TransactionPending({
   const waitingForWallet = phase === "wallet";
 
   return (
-    <div className="fixed inset-0 z-[60] grid place-items-center bg-[#010b13]/80 p-4 backdrop-blur-md">
+    <div className="fixed inset-0 z-[60] grid place-items-center bg-[#1e1233]/80 p-4 backdrop-blur-md">
       <article
         role="status"
         aria-live="polite"
-        className="w-full max-w-md rounded-[2rem] border border-cyan-300/20 bg-[#071722] p-7 text-center text-white shadow-2xl"
+        className="w-full max-w-md rounded-[2rem] border border-violet-300/20 bg-[#1c1230] p-7 text-center text-white shadow-2xl"
       >
-        <span className="mx-auto grid size-14 place-items-center rounded-2xl border border-cyan-300/20 bg-cyan-300/10 text-cyan-200">
+        <span className="mx-auto grid size-14 place-items-center rounded-2xl border border-violet-300/20 bg-violet-300/10 text-violet-200">
           {waitingForWallet ? (
             <ShieldCheck className="size-7" />
           ) : (
             <LoaderCircle className="size-7 animate-spin" />
           )}
         </span>
-        <p className="mt-5 text-xs font-black uppercase tracking-[0.18em] text-cyan-300">
+        <p className="mt-5 text-xs font-black uppercase tracking-[0.18em] text-violet-300">
           {action}
         </p>
         <h2 className="mt-3 text-2xl font-black">

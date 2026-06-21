@@ -38,7 +38,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body
-        className="min-h-full bg-[#02070c] text-slate-50"
+        className="min-h-full bg-[#0f0a1a] text-slate-50"
         suppressHydrationWarning
       >
         <WalletProvider>{children}</WalletProvider>

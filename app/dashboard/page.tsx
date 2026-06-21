@@ -134,12 +134,12 @@ function ActionCard({
 }) {
   return (
     <Link href={href} className="dashboard-action-card group rounded-3xl p-5">
-      <span className="grid size-11 place-items-center rounded-2xl bg-cyan-300/10 text-cyan-200">
+      <span className="grid size-11 place-items-center rounded-2xl bg-violet-300/10 text-violet-200">
         {icon}
       </span>
       <h3 className="mt-5 text-base font-black text-white">{title}</h3>
       <p className="mt-2 text-xs leading-5 text-slate-500">{detail}</p>
-      <span className="mt-5 inline-flex items-center gap-2 text-xs font-black text-cyan-300">
+      <span className="mt-5 inline-flex items-center gap-2 text-xs font-black text-violet-300">
         Open{" "}
         <ArrowRight className="size-3.5 transition group-hover:translate-x-1" />
       </span>
@@ -198,7 +198,7 @@ function DealList({
                     Submit Work
                   </span>
                 ) : null}
-                <ArrowRight className="size-4 text-cyan-300" />
+                <ArrowRight className="size-4 text-violet-300" />
               </div>
             </Link>
           ))}
@@ -461,7 +461,7 @@ export default function DashboardPage() {
 
           <section className="mt-8">
             <div className="mb-5">
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-cyan-300">
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-violet-300">
                 Quick actions
               </p>
               <h2 className="mt-2 text-2xl font-black text-white">
@@ -583,7 +583,7 @@ export default function DashboardPage() {
                       <p className="mt-2 text-xs text-slate-500">
                         {event.dealTitle}
                       </p>
-                      <p className="mt-3 text-xs font-bold text-cyan-300">
+                      <p className="mt-3 text-xs font-bold text-violet-300">
                         {formatDateTime(event.timestamp)}
                       </p>
                     </Link>

@@ -213,11 +213,11 @@ export default function CreateDealForm({
     >
       <section className="glass-panel rounded-[2rem] p-6 sm:p-8">
         <div className="flex items-center gap-3">
-          <span className="grid size-12 place-items-center rounded-2xl bg-cyan-100 text-[#00677f]">
+          <span className="grid size-12 place-items-center rounded-2xl bg-violet-100 text-[#7c3aed]">
             <FileText className="size-5" />
           </span>
           <div>
-            <h2 className="text-2xl font-black tracking-normal text-[#010b13]">
+            <h2 className="text-2xl font-black tracking-normal text-[#1e1233]">
               Deal Details
             </h2>
             <p className="mt-1 text-sm text-[#53606a]">
@@ -406,15 +406,15 @@ export default function CreateDealForm({
 
       <aside className="space-y-5">
         <section className="glass-panel overflow-hidden rounded-[2rem]">
-          <div className="bg-[#010b13] p-6 text-white">
+          <div className="bg-[#1e1233] p-6 text-white">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm font-black text-cyan-100">Live Preview</p>
+                <p className="text-sm font-black text-violet-100">Live Preview</p>
                 <h3 className="mt-2 text-2xl font-black tracking-normal">
                   {form.title || "Untitled deal"}
                 </h3>
               </div>
-              <span className="grid size-12 place-items-center rounded-2xl bg-cyan-300/15 text-cyan-100">
+              <span className="grid size-12 place-items-center rounded-2xl bg-violet-300/15 text-violet-100">
                 <LockKeyhole className="size-5" />
               </span>
             </div>
@@ -429,7 +429,7 @@ export default function CreateDealForm({
           <div className="space-y-4 p-6">
             <div className="flex items-center justify-between gap-4 rounded-2xl border border-[#101d25]/10 bg-white/60 p-4">
               <span className="text-sm font-bold text-[#53606a]">Deadline</span>
-              <span className="text-sm font-black text-[#010b13]">
+              <span className="text-sm font-black text-[#1e1233]">
                 {form.deadline ? formatDate(form.deadline) : "Select date"}
               </span>
             </div>
@@ -437,7 +437,7 @@ export default function CreateDealForm({
               <p className="text-xs font-black uppercase tracking-normal text-[#74777b]">
                 Client
               </p>
-              <p className="mt-2 font-mono text-sm font-bold text-[#010b13]">
+              <p className="mt-2 font-mono text-sm font-bold text-[#1e1233]">
                 {form.clientWallet || address
                   ? formatWallet(form.clientWallet || address)
                   : "0x..."}
@@ -447,7 +447,7 @@ export default function CreateDealForm({
               <p className="text-xs font-black uppercase tracking-normal text-[#74777b]">
                 Freelancer
               </p>
-              <p className="mt-2 font-mono text-sm font-bold text-[#010b13]">
+              <p className="mt-2 font-mono text-sm font-bold text-[#1e1233]">
                 {dealKind === "public"
                   ? "Open to applications"
                   : form.freelancerWallet
@@ -467,7 +467,7 @@ export default function CreateDealForm({
               <p className="text-sm font-bold text-[#53606a]">
                 Deal Risk Score
               </p>
-              <p className="text-2xl font-black text-[#010b13]">
+              <p className="text-2xl font-black text-[#1e1233]">
                 {liveRisk.score}/100
               </p>
             </div>
@@ -484,7 +484,7 @@ export default function CreateDealForm({
           <ul className="mt-5 space-y-2 text-sm text-[#53606a]">
             {liveRisk.reasons.map((reason) => (
               <li key={reason} className="flex items-center gap-2">
-                <span className="size-1.5 rounded-full bg-cyan-300" />
+                <span className="size-1.5 rounded-full bg-violet-300" />
                 {reason}
               </li>
             ))}
@@ -493,14 +493,14 @@ export default function CreateDealForm({
 
         <section className="glass-panel rounded-[2rem] p-6">
           <div className="flex items-center gap-3">
-            <span className="grid size-11 place-items-center rounded-2xl bg-cyan-100 text-[#00677f]">
+            <span className="grid size-11 place-items-center rounded-2xl bg-violet-100 text-[#7c3aed]">
               <Fingerprint className="size-5" />
             </span>
             <div>
               <p className="text-sm font-bold text-[#53606a]">
                 AI Milestone Suggestion
               </p>
-              <p className="text-lg font-black text-[#010b13]">
+              <p className="text-lg font-black text-[#1e1233]">
                 {milestoneSuggestion.structure.length === 1
                   ? "Single release"
                   : "Milestone-based payment"}
@@ -529,9 +529,9 @@ export default function CreateDealForm({
           ) : null}
         </section>
 
-        <section className="rounded-[2rem] bg-cyan-50 p-5">
+        <section className="rounded-[2rem] bg-violet-50 p-5">
           <div className="flex items-start gap-3">
-            <Fingerprint className="mt-0.5 size-5 shrink-0 text-[#00677f]" />
+            <Fingerprint className="mt-0.5 size-5 shrink-0 text-[#7c3aed]" />
             <p className="text-sm leading-6 text-[#43474b]">
               Creating a deal records its first proof event and opens the deal
               workspace immediately.
